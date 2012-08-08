@@ -244,6 +244,7 @@ class EvaCloudImage
 
         $sourceImageName = $this->getSourceImageName();
 
+        $this->getUniqueParameters();
         $argString = $this->parametersToString();
         if(!$argString){
             return $this->uniqueTargetImageName = $sourceImageName;
@@ -256,6 +257,8 @@ class EvaCloudImage
         $uniqueName = implode('.', $nameArray);
         return $this->uniqueTargetImageName = $uniqueName;
     }
+
+
 
     public function getSourceImage()
     {
@@ -339,36 +342,101 @@ class EvaCloudImage
         }
     }
 
-    public function transferImage(GdThumb $thumb)
+    public function getUniqueParameters()
     {
         $params = $this->getTransferParameters();
-        if($params['width'] || $params['height']) {
 
-            //Convert string to float or int
+        $requireResize = true;
+
+        if($params['width'] || $params['height']) {
             $params['width'] = $params['width'] ? $params['width'] + 0 : null;
             $params['height'] = $params['height'] ? $params['height'] + 0 : null;
 
             if(is_int($params['width']) && is_int($params['height'])){
-                $thumb->resize($params['width'], $params['height']);
             } elseif(is_int($params['width']) || is_int($params['height'])){
-                //resize by fixed number first
                 $params['width'] = !$params['width'] || is_float($params['width']) ? 0 : $params['width'];
                 $params['height'] = !$params['height'] || is_float($params['height']) ? 0 : $params['height'];
-                $thumb->resize($params['width'], $params['height']);
             } else {
                 $percent = $params['width'];
                 $percent = !$percent || $percent > 0 && $percent < $params['height'] ? $params['height'] : $percent;
-                $percent = $percent * 100;
-                $thumb->resizePercent($percent);
+                $params['width'] = $percent;
+                $params['height'] = null;
             }
+        }
 
+        if($params['x'] || $params['y']) {
+            $params['x'] = $params['x'] ? $params['x'] + 0 : null;
+            $params['y'] = $params['y'] ? $params['y'] + 0 : null;
+        }
+
+        if($params['crop']){
+            $requireResize = false;
+
+            if(is_numeric($params['crop'])){
+                $params['crop'] = $params['crop'] + 0;
+            } elseif($params['crop'] == 'crop'){
+                if(!$params['x'] && !$params['y']){
+                    $params['crop'] = null;
+                }
+            } else {
+                $params['crop'] = null;
+            }
         }
 
         if($params['rotate']){
             $allowRotate = array('CW', 'CCW');
             if(is_numeric($params['rotate'])){
+                $params['rotate'] = $params['rotate'] + 0;
+            } elseif(!in_array($params['rotate'], $allowRotate)) {
+                $params['rotate'] = null;
+            }
+        }
+
+        if($params['quality']){
+            if(is_numeric($params['quality'])){
+                $params['quality'] = $params['quality'] + 0;
+            } else {
+                $params['quality'] = null;
+            }
+        }
+
+        return $this->transferParameters = $params;
+    }
+
+    public function transferImage(GdThumb $thumb)
+    {
+        $params = $this->getTransferParameters();
+
+        $requireResize = true;
+
+        if($params['crop']){
+            if(is_int($params['crop'])){
+                $thumb->cropFromCenter($params['crop']);
+                $requireResize = false;
+            }
+
+            if($params['crop'] == 'crop' && ($params['x'] || $params['y'])){
+                $params['x'] = $params['x'] ? $params['x'] : 0;
+                $params['y'] = $params['y'] ? $params['y'] : 0;
+                $thumb->crop($params['x'], $params['y'], $params['width'], $params['height']);
+                $requireResize = false;
+            }
+        }
+
+        if(true === $requireResize && ($params['width'] || $params['height'])) {
+            if(is_int($params['width']) && is_int($params['height'])){
+                $thumb->resize($params['width'], $params['height']);
+            } else {
+                $percent = $params['width'];
+                $percent = $percent * 100;
+                $thumb->resizePercent($percent);
+            }
+        }
+
+        if($params['rotate']){
+            if(is_int($params['rotate'])){
                 $thumb->rotateImageNDegrees($params['rotate']);
-            } elseif(in_array($params['rotate'], $allowRotate)) {
+            } else {
                 $thumb->rotateImage($params['rotate']);
             }
         }

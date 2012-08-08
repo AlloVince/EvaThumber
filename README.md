@@ -13,6 +13,8 @@ Sometimes we don't want to expose images source url, EvaCloudImage allow you cre
  - Image source file : [http://evacloudimage.avnpc.com/upload/demo.jpg](http://evacloudimage.avnpc.com/upload/demo.jpg)
  - Shadow image : [http://evacloudimage.avnpc.com/thumb/demo.jpg](http://evacloudimage.avnpc.com/thumb/demo.jpg), use this url in your website, visitor will not know source file url.
 
+Shadow pretect support multi-level directory structure, if cache enabled, all folders in URL will be created.
+
 Resize Dimensions
 -----------------
 
@@ -32,11 +34,11 @@ The following URL points to a 300px width dynamically created image, pass the '*
 
 ###Resize by height:
 
-The following URL points to a 200px height dynamically created image, pass the '*h*' parameter by '*h_200*':
+The following URL points to a 150px height dynamically created image, pass the '*h*' parameter by '*h_150*':
 
-    http://evacloudimage.avnpc.com/thumb/demo,h_200.jpg
+    http://evacloudimage.avnpc.com/thumb/demo,h_150.jpg
 
-![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,h_200.jpg)
+![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,h_150.jpg)
 
 ###Resize by percent:
 
@@ -47,6 +49,23 @@ For example, resizing the demo image to *40%* of its original size is done by se
     http://evacloudimage.avnpc.com/thumb/demo,w_0.4.jpg
 
 ![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,w_0.4.jpg)
+
+
+Crop
+----
+
+Crop use '*c*' as parameter, under crop mode, you could pass an integer value for croppin from the center of the image.
+
+    http://evacloudimage.avnpc.com/thumb/demo,c_100.jpg
+
+![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_100.jpg)
+
+Cropping fixed coordinates of image, by using the 'x' and 'y' parameters. Also the width and height parameters is required.
+
+    http://evacloudimage.avnpc.com/thumb/demo,c_crop,h_200,w_100,x_80.jpg
+
+![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_crop,h_200,w_100,x_80.jpg)
+
 
 Rotate
 -----------------
@@ -114,6 +133,3 @@ EvaCloudImage uses below open source projects to work properly:
 Thanks to
 ---------
 Demo image is from [Рыбачка](http://nzakonova.35photo.ru/photo_391467/), great shot!
-
-
-
