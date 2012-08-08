@@ -9,6 +9,33 @@ Resize Dimensions
 -----------------
 
 
+Installation
+------------
+
+###Nginx
+
+Config as below
+
+    server {
+            listen   80;
+            server_name  evacloudimage.avnpc.com;
+            location / {
+                    root  /usr/www/EvaCloudImage/;
+                    index index.php index.html index.htm;
+                    if (!-e $request_filename){
+                       rewrite ^/(.*)$ /index.php?$1& last;
+                    }
+            }
+            location ~ \.php$ {
+                    include fastcgi_params;
+                    fastcgi_pass   127.0.0.1:9000;
+                    fastcgi_index  index.php;
+                    fastcgi_param  SCRIPT_FILENAME  /usr/www/EvaCloudImage/$fastcgi_script_name;
+            }
+    }
+
+
+
 Tech
 ----
 
