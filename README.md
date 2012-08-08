@@ -62,9 +62,9 @@ Crop use '*c*' as parameter, under crop mode, you could pass an integer value fo
 
 Cropping fixed coordinates of image, by using the 'x' and 'y' parameters. Also the width and height parameters is required.
 
-    http://evacloudimage.avnpc.com/thumb/demo,c_crop,h_200,w_100,x_80.jpg
+    http://evacloudimage.avnpc.com/thumb/demo,c_crop,h_200,w_100,x_80,y_10.jpg
 
-![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_crop,h_200,w_100,x_80.jpg)
+![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_crop,h_200,w_100,x_80,y_10.jpg)
 
 
 Rotate
@@ -82,7 +82,7 @@ For example, rotate the demo image by 90 degress clockwise by setting the '*r*' 
 JPG Quality
 -----------------
 
-The quality parameter is '*q*' for changing compression quality, default quality is 80:
+The quality parameter is '*q*' for changing compression quality, default quality is 100:
 
     http://evacloudimage.avnpc.com/thumb/demo,h_200,q_30.jpg
 
@@ -97,7 +97,26 @@ Caching
 Installation
 ------------
 
-###Nginx
+###Requirements
+
+1. PHP version must greater than 5.3.0
+2. GD 2.0+
+3. Mod rewrite module enabled in webserver.
+
+###Download
+
+Ready to get started? Well then, download the [latest release](https://github.com/AlloVince/EvaCloudImage/zipball/master)!
+
+
+###Enable Url Re-write
+
+####Apache Setting
+
+Apache setting is already wroten in .htaccess.
+
+Please make sure the [mod_rewrite](http://httpd.apache.org/docs/current/mod/mod_rewrite.html) Module is already enabled.
+
+####Nginx
 
 Config as below
 
@@ -119,6 +138,9 @@ Config as below
             }
     }
 
+###Configuration
+
+Edit config.inc.php to change image paths.
 
 
 Tech
@@ -129,6 +151,10 @@ EvaCloudImage uses below open source projects to work properly:
  - [PHP Thumb](https://github.com/masterexploder/PHPThumb) : thumbnail generation library;
  - [Cloudinary](http://cloudinary.com/) : API design is almost as same as Cloudinary;
 
+License
+-------
+
+EvaCloudImage is a independent components of [EvaEngine](https://github.com/AlloVince/eva-engine), which released under the [New BSD License](http://framework.zend.com/license/new-bsd). 
 
 Thanks to
 ---------
