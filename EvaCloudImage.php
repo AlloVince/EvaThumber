@@ -9,7 +9,7 @@
  * @author    AlloVince
  */
 
-/** Public functions */
+/** Debug functions */
 function p($r, $usePr = false)
 {
     echo '<pre>' . var_dump($r, true) . '</pre>';
@@ -283,7 +283,6 @@ class EvaCloudImage
         if(!$options['sourceRootPath']) {
             throw new InvalidArgumentException('Source file path not set');
         }
-
 
         $url = parse_url($url);
         if(!$url || !$url['path']){
