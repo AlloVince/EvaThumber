@@ -1,4 +1,4 @@
-EvaCloudImage - light-weight url based image transformation php library
+EvaCloudImage - Light-weight url based image transformation php library
 ================================================================
 
 EvaCloudImage is a url based image transformation php library.
@@ -54,18 +54,31 @@ For example, resizing the demo image to *40%* of its original size is done by se
 Crop
 ----
 
-Crop use '*c*' as parameter, under crop mode, you could pass an integer value for croppin from the center of the image.
+Crop use '*c*' as parameter, under crop mode, you could pass an integer value for cropping from the center of the image.
 
     http://evacloudimage.avnpc.com/thumb/demo,c_100.jpg
 
 ![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_100.jpg)
 
+'*g*' parameter is shorten for *gravity* which assist Crop mode, this paramter defined which part of the image to take, or crop height.
+
+Below example use both crop and gravity will get a 100px*200px image cropping from center of the image
+
+    http://evacloudimage.avnpc.com/thumb/demo,c_200,g_100.jpg
+
+![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_200,g_100.jpg)
+
 Cropping fixed coordinates of image, by using the 'x' and 'y' parameters. Also the width and height parameters is required.
 
-    http://evacloudimage.avnpc.com/thumb/demo,c_crop,h_200,w_100,x_80,y_10.jpg
+    http://evacloudimage.avnpc.com/thumb/demo,c_100,g_200,x_80,y_10.jpg
 
-![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_crop,h_200,w_100,x_80,y_10.jpg)
+![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_100,g_200,x_80,y_10.jpg)
 
+EvaCloudImage support both cropping and resizing on same time, below example will crop image to 100*200 and resize to 50px width. Resizing is always after cropping.
+
+    http://evacloudimage.avnpc.com/thumb/demo,c_100,g_200,w_50.jpg
+
+![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_100,g_200,w_50.jpg)
 
 Rotate
 -----------------
@@ -159,3 +172,4 @@ EvaCloudImage is a independent components of [EvaEngine](https://github.com/Allo
 Thanks to
 ---------
 Demo image is from [Рыбачка](http://nzakonova.35photo.ru/photo_391467/), great shot!
+

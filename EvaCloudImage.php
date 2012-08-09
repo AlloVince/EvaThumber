@@ -61,6 +61,7 @@ class EvaCloudImage
         'x' => 'x',
         'y' => 'y',
         'r' => 'rotate',
+        'g' => 'gravity',
     );
     protected $transferParameters = array(
         'width' => null,
@@ -70,6 +71,7 @@ class EvaCloudImage
         'x' => null,
         'y' => null,
         'rotate' => null,
+        'gravity' => null,
     );
     protected $transferParametersMerged = false;
 
@@ -125,7 +127,9 @@ class EvaCloudImage
             }
             $argKey = $arg{0};
             if(isset($argMapping[$argKey])){
-                $params[$argMapping[$argKey]] = substr($arg, 2);
+                if($arg = substr($arg, 2)){
+                    $params[$argMapping[$argKey]] = $arg;
+                }
             }
         }
 
@@ -238,12 +242,13 @@ class EvaCloudImage
 
         $options = $this->options;
         $subPath = $this->getSubPath();
-        $fileName = $this->getTargetImageName();
+        //$fileName = $this->getTargetImageName();
         $uniqueName = $this->getUniqueTargetImageName();
 
         return $this->targetImage = $options['thumbFileRootPath'] . DIRECTORY_SEPARATOR . $subPath . DIRECTORY_SEPARATOR . $uniqueName;
     }
 
+    /*
     public function getTargetImageName($urlPath = null)
     {
         if($this->targetImageName){
@@ -262,6 +267,7 @@ class EvaCloudImage
 
         return $this->targetImageName = $fileName;
     }
+    */
 
     public function getUniqueTargetImageName()
     {
@@ -337,9 +343,18 @@ class EvaCloudImage
             throw new InvalidArgumentException('File name not correct');
         }
 
+        //remove empty elements
+        $fileNameArray = array_filter($fileNameArray);
+
         $fileNameMain = array_shift($fileNameArray);
         $this->imageNameArgs = $fileNameArray;
         return $this->sourceImageName = $fileNameMain . '.' . $fileExt;
+    }
+
+    public function setSourceImageName($sourceImageName)
+    {
+        $this->sourceImageName = $sourceImageName;
+        return $this;
     }
 
     public function show()
@@ -397,16 +412,24 @@ class EvaCloudImage
         }
 
         if($params['crop']){
-            $requireResize = false;
-
             if(is_numeric($params['crop'])){
                 $params['crop'] = $params['crop'] + 0;
-            } elseif($params['crop'] == 'crop'){
-                if(!$params['x'] && !$params['y']){
-                    $params['crop'] = null;
-                }
             } else {
                 $params['crop'] = null;
+            }
+        }
+
+        if(!$params['crop']){
+            $params['x'] = null;
+            $params['y'] = null;
+        }
+
+        if($params['gravity']){
+            if(!$params['crop']){
+                $params['gravity'] = null;
+            }
+            if(is_numeric($params['gravity'])){
+                $params['gravity'] = $params['gravity'] + 0;
             }
         }
 
@@ -434,24 +457,29 @@ class EvaCloudImage
     {
         $params = $this->getTransferParameters();
 
-        $requireResize = true;
-
         if($params['crop']){
-            if(is_int($params['crop'])){
-                $thumb->cropFromCenter($params['crop']);
-                $requireResize = false;
-            }
-
-            if($params['crop'] == 'crop' && ($params['x'] || $params['y'])){
+            if($params['x'] || $params['y']){
                 $params['x'] = $params['x'] ? $params['x'] : 0;
                 $params['y'] = $params['y'] ? $params['y'] : 0;
-                $thumb->crop($params['x'], $params['y'], $params['width'], $params['height']);
-                $requireResize = false;
+
+                if(is_int($params['gravity'])){
+                    $thumb->crop($params['x'], $params['y'], $params['crop'], $params['gravity']);
+                } else {
+                    $thumb->crop($params['x'], $params['y'], $params['crop'], $params['crop']);
+                }
+            } else {
+                if(is_int($params['gravity'])){
+                    $thumb->cropFromCenter($params['crop'], $params['gravity']);
+                } else {
+                    $thumb->cropFromCenter($params['crop']);
+                }
             }
         }
 
-        if(true === $requireResize && ($params['width'] || $params['height'])) {
-            if(is_int($params['width']) && is_int($params['height'])){
+        if($params['width'] || $params['height']) {
+            if(is_int($params['width']) || is_int($params['height'])){
+                $params['width'] = $params['width'] ? $params['width'] : 0;
+                $params['height'] = $params['height'] ? $params['height'] : 0;
                 $thumb->resize($params['width'], $params['height']);
             } else {
                 $percent = $params['width'];
@@ -499,13 +527,13 @@ class EvaCloudImage
 
 
     /**
-     * Prepares a directory structure for the given file(spec)
-     * using the configured directory level.
-     * this method is from https://github.com/zendframework/zf2/blob/master/library/Zend/Cache/Storage/Adapter/Filesystem.php 
-     *
-     * @param string $file
-     * @return void
-     */
+    * Prepares a directory structure for the given file(spec)
+    * using the configured directory level.
+    * this method is from https://github.com/zendframework/zf2/blob/master/library/Zend/Cache/Storage/Adapter/Filesystem.php 
+    *
+    * @param string $file
+    * @return void
+    */
     protected function prepareDirectoryStructure($file, $level = '')
     {
         if (!$level) {
