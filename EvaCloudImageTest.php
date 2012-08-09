@@ -127,6 +127,7 @@ class EvaCloudImageTest extends PHPUnit_Framework_TestCase
             'x_100',
             'y_200',
             'c_200',
+            'g_100',
         ));
         $params = $this->evaCloudImage->getUniqueParameters();
         $this->assertEquals(100, $params['width']);
@@ -135,6 +136,7 @@ class EvaCloudImageTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(50, $params['rotate']);
         $this->assertEquals(100, $params['x']);
         $this->assertEquals(200, $params['crop']);
+        $this->assertEquals(100, $params['gravity']);
 
 
         $this->evaCloudImage = new EvaCloudImage($this->testUrl, $this->testConfig);
@@ -173,5 +175,56 @@ class EvaCloudImageTest extends PHPUnit_Framework_TestCase
         $params = $this->evaCloudImage->getUniqueParameters();
         $this->assertEquals(0.2, $params['width']);
         $this->assertEquals(null, $params['height']);
+
+        $this->evaCloudImage = new EvaCloudImage($this->testUrl, $this->testConfig);
+        $this->evaCloudImage->setImageNameArgs(array(
+            'c_abc',
+            'g_200',
+            'q_abc',
+        ));
+        $params = $this->evaCloudImage->getUniqueParameters();
+        $this->assertEquals(null, $params['crop']);
+        $this->assertEquals(null, $params['gravity']);
+        $this->assertEquals(null, $params['quality']);
+
+
+        $this->evaCloudImage = new EvaCloudImage($this->testUrl, $this->testConfig);
+        $this->evaCloudImage->setImageNameArgs(array(
+            'c_0',
+            'x_100',
+            'y_100',
+        ));
+        $params = $this->evaCloudImage->getUniqueParameters();
+        $this->assertEquals(null, $params['crop']);
+        $this->assertEquals(null, $params['x']);
+        $this->assertEquals(null, $params['y']);
+    }
+
+
+    public function testUniqueNameString()
+    {
+        $this->evaCloudImage = new EvaCloudImage($this->testUrl, $this->testConfig);
+        $this->assertEquals($this->evaCloudImage->getSourceImageName(), $this->evaCloudImage->getUniqueTargetImageName());
+
+        $this->evaCloudImage = new EvaCloudImage($this->testUrl, $this->testConfig);
+        $this->evaCloudImage->getSourceImageName();
+        $this->evaCloudImage->setImageNameArgs(array(
+            'w_100',
+            'h_20',
+            'q_10',
+            'r_50',
+            'x_100',
+            'y_200',
+            'c_200',
+            'g_100',
+        ));
+        $name = $this->evaCloudImage->getUniqueTargetImageName();
+        $this->assertEquals('demo,c_200,g_100,h_20,q_10,r_50,w_100,x_100,y_200.jpg', $name);
+    }
+
+    public function testStaticUrl()
+    {
+        $url = EvaCloudImage::url('http://evacloudimage.avnpc.com/thumb/demo.jpg', array('w_100','h_200'));
+        $this->assertEquals('http://evacloudimage.avnpc.com/thumb/demo,h_200,w_100.jpg', $url);
     }
 }

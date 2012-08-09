@@ -75,6 +75,16 @@ class EvaCloudImage
     );
     protected $transferParametersMerged = false;
 
+    public static function url($url, array $nameArgs = array())
+    {
+        $evaCloudImage = new static($url);
+
+        //source image will reset imageNameArgs once
+        $evaCloudImage->getSourceImageName();
+        return $evaCloudImage->setImageNameArgs($nameArgs)->getUniqueUrl();
+    }
+
+
     public function setImageNameArgs(array $imageNameArgs)
     {
         $this->imageNameArgs = $imageNameArgs;
@@ -113,45 +123,6 @@ class EvaCloudImage
         return implode('/', $urlArray);
     }
 
-    protected function argsToParameters()
-    {
-        $args = $this->imageNameArgs;
-        $argMapping = $this->argMapping;
-        $params = array();
-        foreach($args as $arg){
-            if(!$arg){
-                continue;
-            }
-            if(strpos($arg, '_') !== 1){
-                continue;
-            }
-            $argKey = $arg{0};
-            if(isset($argMapping[$argKey])){
-                if($arg = substr($arg, 2)){
-                    $params[$argMapping[$argKey]] = $arg;
-                }
-            }
-        }
-
-        return $params;
-    }
-
-    protected function parametersToString(array $params = array())
-    {
-        $params = $params ? $params : $this->getTransferParameters();
-        $argMapping = array_flip($this->argMapping);
-        $args = array();
-        foreach($params as $key => $param){
-            if(!$param){
-                continue;
-            }
-            if(isset($argMapping[$key])){
-                $args[$key] = $argMapping[$key] . '_' . $param;
-            }
-        }
-        ksort($args);
-        return implode(',', $args);
-    }
 
     public function getTransferParameters()
     {
@@ -196,6 +167,13 @@ class EvaCloudImage
         }
 
         $options = $this->options;
+
+        if(!$options['thumbFileRootPath']){
+            throw new InvalidArgumentException('Thumb file path not set');
+        }
+        if(!$options['thumbUrlRootPath']){
+            throw new InvalidArgumentException('Thumb file url path not set');
+        }
 
         //NOTE : realpath performance not good
         $relativePath = str_replace(realpath($options['thumbUrlRootPath']), '', realpath($options['thumbFileRootPath']));
@@ -302,6 +280,11 @@ class EvaCloudImage
         $url = $this->url;
         $options = $this->options;
 
+        if(!$options['sourceRootPath']) {
+            throw new InvalidArgumentException('Source file path not set');
+        }
+
+
         $url = parse_url($url);
         if(!$url || !$url['path']){
             throw new InvalidArgumentException('Url not able to parse');
@@ -372,6 +355,13 @@ class EvaCloudImage
             header("HTTP/1.1 301 Moved Permanently");
             return header('Location:' . $url);
         }
+
+
+        $options = $this->options;
+        if(!$options['libPath']){
+            throw new InvalidArgumentException('PHPThumb library path not set');
+        }
+        require_once $options['libPath'] . DIRECTORY_SEPARATOR . 'ThumbLib.inc.php';
 
         $thumb = PhpThumbFactory::create($sourceImage);
         $this->transferImage($thumb);
@@ -509,22 +499,49 @@ class EvaCloudImage
         $url = $url ? $url : $this->getCurrentUrl();
         $this->url = $url;
         $options = array_merge($this->options, $options);
-        if(!$options['sourceRootPath']) {
-            throw new InvalidArgumentException('Source file path not set');
-        }
-        if(!$options['thumbFileRootPath']){
-            throw new InvalidArgumentException('Thumb file path not set');
-        }
-        if(!$options['thumbUrlRootPath']){
-            throw new InvalidArgumentException('Thumb file url path not set');
-        }
-        if(!$options['libPath']){
-            throw new InvalidArgumentException('PHPThumb library path not set');
-        }
-        require_once $options['libPath'] . DIRECTORY_SEPARATOR . 'ThumbLib.inc.php';
         $this->options = $options;
     }
 
+
+    protected function argsToParameters()
+    {
+        $args = $this->imageNameArgs;
+        $argMapping = $this->argMapping;
+        $params = array();
+        foreach($args as $arg){
+            if(!$arg){
+                continue;
+            }
+            if(strpos($arg, '_') !== 1){
+                continue;
+            }
+            $argKey = $arg{0};
+            if(isset($argMapping[$argKey])){
+                if($arg = substr($arg, 2)){
+                    $params[$argMapping[$argKey]] = $arg;
+                }
+            }
+        }
+
+        return $params;
+    }
+
+    protected function parametersToString(array $params = array())
+    {
+        $params = $params ? $params : $this->getTransferParameters();
+        $argMapping = array_flip($this->argMapping);
+        $args = array();
+        foreach($params as $key => $param){
+            if(!$param){
+                continue;
+            }
+            if(isset($argMapping[$key])){
+                $args[$key] = $argMapping[$key] . '_' . $param;
+            }
+        }
+        ksort($args);
+        return implode(',', $args);
+    }
 
     /**
     * Prepares a directory structure for the given file(spec)
