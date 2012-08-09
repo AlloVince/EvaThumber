@@ -5,15 +5,15 @@ EvaCloudImage is a url based image transformation php library.
 
 EvaCloudImage allow you to easily transform your images to any required dimension. EvaCloudImage support optimizing, resizing or cropping the images by just change few url letters.
 
-Shadow Pretect
---------------
+Shadow Protection
+-----------------
 
-Sometimes we don't want to expose images source url, EvaCloudImage allow you create shadow image to pretect source file:
+Sometimes we don't want to expose images source url, EvaCloudImage allow you create shadow image to protect source file:
 
  - Image source file : [http://evacloudimage.avnpc.com/upload/demo.jpg](http://evacloudimage.avnpc.com/upload/demo.jpg)
  - Shadow image : [http://evacloudimage.avnpc.com/thumb/demo.jpg](http://evacloudimage.avnpc.com/thumb/demo.jpg), use this url in your website, visitor will not know source file url.
 
-Shadow pretect support multi-level directory structure, if cache enabled, all folders in URL will be created.
+Shadow protection support multi-level directory structure, if cache enabled, all folders in URL will be created.
 
 Resize Dimensions
 -----------------
