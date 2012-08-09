@@ -97,15 +97,16 @@ JPG Quality
 
 The quality parameter is '*q*' for changing compression quality, default quality is 100:
 
-    http://evacloudimage.avnpc.com/thumb/demo,h_200,q_30.jpg
+    http://evacloudimage.avnpc.com/thumb/demo,h_200,q_10.jpg
 
-![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,h_200,q_30.jpg)
-
-Caching
--------
+![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,h_200,q_10.jpg)
 
 
 
+Download
+------------
+
+Ready to get started? Well then, download the [latest release](https://github.com/AlloVince/EvaCloudImage/zipball/master)!
 
 Installation
 ------------
@@ -114,11 +115,7 @@ Installation
 
 1. PHP version must greater than 5.3.0
 2. GD 2.0+
-3. Mod rewrite module enabled in webserver.
-
-###Download
-
-Ready to get started? Well then, download the [latest release](https://github.com/AlloVince/EvaCloudImage/zipball/master)!
+3. Mod-rewrite module enabled in webserver.
 
 
 ###Enable Url Re-write
@@ -154,6 +151,14 @@ Config as below
 ###Configuration
 
 Edit config.inc.php to change image paths.
+
+    array(
+        'libPath' => __DIR__ . '/lib',  //PHPthumb library path
+        'sourceRootPath' => __DIR__ . '/upload',  //original image save path, require path read permission
+        'thumbFileRootPath' => __DIR__ . '/thumb', //resized thumbnails save path, require read and write permission
+        'thumbUrlRootPath' => __DIR__, //thumbnails url root path, require read and write permission
+        'saveImage' => false,  //if true, thumbnails will be created and auto save as same directory structure as original images
+    );
 
 
 Tech
