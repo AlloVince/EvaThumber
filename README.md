@@ -174,6 +174,15 @@ License
 
 EvaCloudImage is a independent components of [EvaEngine](https://github.com/AlloVince/eva-engine), which released under the [New BSD License](http://framework.zend.com/license/new-bsd). 
 
+TODO
+----
+
+1. Add ImageMagick support.
+2. Image size limit mode
+3. Better error handler
+4. Face detect.
+5. Image effect filters
+
 Thanks to
 ---------
 Demo image is from [Рыбачка](http://nzakonova.35photo.ru/photo_391467/), great shot!
