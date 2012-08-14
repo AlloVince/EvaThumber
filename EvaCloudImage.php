@@ -379,6 +379,7 @@ class EvaCloudImage
 
         $requireResize = true;
 
+        //TODO: how to know image real width & height in advance
         if($params['width'] || $params['height']) {
             $params['width'] = $params['width'] ? $params['width'] + 0 : null;
             $params['height'] = $params['height'] ? $params['height'] + 0 : null;
@@ -424,7 +425,7 @@ class EvaCloudImage
                 $params['gravity'] = null;
             }
 
-            $allowGravity = array('face', 'faces', 'top', 'bottom', 'right', 'left');
+            $allowGravity = array('top', 'bottom', 'right', 'left');
             if(is_numeric($params['gravity'])){
                 $params['gravity'] = $params['gravity'] + 0;
             } else {
@@ -436,10 +437,12 @@ class EvaCloudImage
             $params['gravity'] = null;
         }
 
+        /*
         if($params['gravity'] == 'face'){
             $params['x'] = null;
             $params['y'] = null;
         }
+        */
 
         if($params['rotate']){
             $allowRotate = array('CW', 'CCW');
@@ -477,8 +480,12 @@ class EvaCloudImage
                 }
             } else {
                 if(is_int($params['gravity'])){
+
                     $thumb->cropFromCenter($params['crop'], $params['gravity']);
                 } else {
+                    if($params['gravity'] == 'face') {
+                        $this->faceDetect($thumb);
+                    }
                     $thumb->cropFromCenter($params['crop']);
                 }
             }
@@ -527,9 +534,12 @@ class EvaCloudImage
         return $thumb;
     }
 
-    protected function faceDetected()
+    public function getFaceDetectClass()
     {
-    
+    }
+
+    protected function faceDetect(GdThumb $thumb)
+    {
     }
 
     public function __construct($url = null, array $options = array())

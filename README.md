@@ -54,6 +54,8 @@ For example, resizing the demo image to *40%* of its original size is done by se
 Crop
 ----
 
+
+
 Crop use '*c*' as parameter, under crop mode, you could pass an integer value for cropping from the center of the image.
 
     http://evacloudimage.avnpc.com/thumb/demo,c_100.jpg
@@ -79,6 +81,20 @@ EvaCloudImage support both cropping and resizing on same time, below example wil
     http://evacloudimage.avnpc.com/thumb/demo,c_100,g_200,w_50.jpg
 
 ![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_100,g_200,w_50.jpg)
+
+###Fill Mode
+
+We always use resized images with exact given dimensions to meet web page layouts, EvaCloudImage support set crop to 'fill' by 'c_fill', then set the image width and height will get the part of the image which fills the given dimensions:
+
+    http://evacloudimage.avnpc.com/thumb/demo,c_fill,w_250,h_50.jpg
+
+![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_fill,w_250,h_50.jpg)
+
+Under fill mode, change gravity to '*top*', '*bottom*', '*left*', '*right*' will change crop quadrants.
+
+    http://evacloudimage.avnpc.com/thumb/demo,c_fill,g_top,w_250,h_60.jpg
+
+![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_fill,g_top,w_250,h_60.jpg)
 
 Rotate
 -----------------
@@ -186,4 +202,5 @@ TODO
 Thanks to
 ---------
 Demo image is from [Рыбачка](http://nzakonova.35photo.ru/photo_391467/), great shot!
+
 
