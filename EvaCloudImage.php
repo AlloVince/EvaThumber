@@ -54,14 +54,14 @@ class EvaCloudImage
     );
 
     protected $argMapping = array(
-        'w' => 'width',
+        'c' => 'crop',
+        'g' => 'gravity',
         'h' => 'height',
         'q' => 'quality',
-        'c' => 'crop',
+        'r' => 'rotate',
+        'w' => 'width',
         'x' => 'x',
         'y' => 'y',
-        'r' => 'rotate',
-        'g' => 'gravity',
     );
     protected $transferParameters = array(
         'width' => null,
@@ -401,10 +401,11 @@ class EvaCloudImage
         }
 
         if($params['crop']){
+            $allowCrop = array('fill');
             if(is_numeric($params['crop'])){
                 $params['crop'] = $params['crop'] + 0;
             } else {
-                $params['crop'] = null;
+                $params['crop'] = in_array($params['crop'], $allowCrop) ? $params['crop'] : null;
             }
         }
 
@@ -413,13 +414,31 @@ class EvaCloudImage
             $params['y'] = null;
         }
 
+        //Fill mode must have a certain width & height
+        if($params['crop'] == 'fill' && (!is_int($params['width']) || !$params['width'] || !is_int($params['height']) || !$params['height'])){
+            $params['crop'] = null;
+        }
+
         if($params['gravity']){
             if(!$params['crop']){
                 $params['gravity'] = null;
             }
+
+            $allowGravity = array('face', 'faces', 'top', 'bottom', 'right', 'left');
             if(is_numeric($params['gravity'])){
                 $params['gravity'] = $params['gravity'] + 0;
+            } else {
+                $params['gravity'] = in_array($params['gravity'], $allowGravity) ? $params['gravity'] : null;
             }
+        }
+
+        if($params['gravity'] && $params['crop'] != 'fill' && in_array($params['gravity'], array('top', 'bottom', 'right', 'left'))){
+            $params['gravity'] = null;
+        }
+
+        if($params['gravity'] == 'face'){
+            $params['x'] = null;
+            $params['y'] = null;
         }
 
         if($params['rotate']){
@@ -446,7 +465,7 @@ class EvaCloudImage
     {
         $params = $this->getTransferParameters();
 
-        if($params['crop']){
+        if($params['crop'] && is_int($params['crop'])){
             if($params['x'] || $params['y']){
                 $params['x'] = $params['x'] ? $params['x'] : 0;
                 $params['y'] = $params['y'] ? $params['y'] : 0;
@@ -463,9 +482,24 @@ class EvaCloudImage
                     $thumb->cropFromCenter($params['crop']);
                 }
             }
+        } else if($params['crop'] && is_string($params['crop'])){
+
+            if($params['crop'] == 'fill'){
+                $gravityMap = array(
+                    'top' => 'T',
+                    'left' => 'L',
+                    'right' => 'R',
+                    'bottom' => 'B',
+                );
+                if($params['gravity']) {
+                    $thumb->adaptiveResizeQuadrant ($params['width'], $params['height'], $gravityMap[$params['gravity']]);
+                } else {
+                    $thumb->adaptiveResize($params['width'], $params['height']);
+                }
+            }
         }
 
-        if($params['width'] || $params['height']) {
+        if( (!$params['crop'] || is_int($params['crop']) ) && ($params['width'] || $params['height'])) {
             if(is_int($params['width']) || is_int($params['height'])){
                 $params['width'] = $params['width'] ? $params['width'] : 0;
                 $params['height'] = $params['height'] ? $params['height'] : 0;
@@ -491,6 +525,11 @@ class EvaCloudImage
             ));
         }
         return $thumb;
+    }
+
+    protected function faceDetected()
+    {
+    
     }
 
     public function __construct($url = null, array $options = array())

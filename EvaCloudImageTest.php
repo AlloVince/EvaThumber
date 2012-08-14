@@ -198,6 +198,15 @@ class EvaCloudImageTest extends PHPUnit_Framework_TestCase
         $this->assertEquals(null, $params['crop']);
         $this->assertEquals(null, $params['x']);
         $this->assertEquals(null, $params['y']);
+
+        $this->evaCloudImage = new EvaCloudImage($this->testUrl, $this->testConfig);
+        $this->evaCloudImage->setImageNameArgs(array(
+            'c_fill',
+            'w_100',
+        ));
+        $params = $this->evaCloudImage->getUniqueParameters();
+        $this->assertEquals(null, $params['crop']);
+        $this->assertEquals(100, $params['width']);
     }
 
 
