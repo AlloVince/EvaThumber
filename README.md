@@ -198,6 +198,7 @@ TODO
 3. Better error handler
 4. Face detect.
 5. Image effect filters
+6. Add allow image sizes
 
 Thanks to
 ---------
