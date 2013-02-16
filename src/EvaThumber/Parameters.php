@@ -118,17 +118,23 @@ class Parameters
 
     public function getExtension()
     {
+        if(!$this->extension){
+            throw new Exception\InvalidArgumentException(sprintf('File extension not be set in parameters'));
+        }
         return $this->extension;
     }
 
     public function setExtension($extension)
     {
-        $this->extension = $extension;
+        $this->extension = strtolower($extension);
         return $this;    
     }
 
     public function getFilename()
     {
+        if(!$this->filename){
+            throw new Exception\InvalidArgumentException(sprintf('Filename not be set in parameters'));
+        }
         return $this->filename;
     }
 
@@ -223,6 +229,7 @@ class Parameters
             'rotate' => $this->getRotate(),
             'gravity' => $this->getGravity(), 
             'extension' => $this->getExtension(),
+            'filename' => $this->getFilename(),
         );
     }
 
@@ -233,7 +240,21 @@ class Parameters
     */
     public function toString()
     {
-        $array = $this->toArray();
+        $params = $this->toArray();
+        $filename = $params['filename'];
+        $extension = $params['extension'];
+        unset($params['filename'], $params['extension']);
+
+        ksort($params);
+        $mapping = array_flip($this->argMapping);
+        $nameArray = array();
+        foreach($params as $key => $value){
+            if($value !== null){
+                $nameArray[$mapping[$key]] = $mapping[$key] . '_' . $value;
+            }
+        }
+        $nameArray = $nameArray ? ',' . implode(',', $nameArray) : '';
+        return $filename . $nameArray . '.' . $extension;
     }
 
     /**

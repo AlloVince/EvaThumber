@@ -35,7 +35,7 @@ class Thumber
             return $this->thumber;
         }
 
-        return $this->thumber = new Gd\Imagine();
+        return $this->thumber = new Imagine\Gd\Imagine();
     }
 
     public function setThumber(ImagineInterface $thumber)
@@ -78,12 +78,41 @@ class Thumber
     {
         $this->config = new Config\StandardConfig($config);
         $this->url = $url = new Url($url);
+        p($url->toArray());
         $params = new Parameters();
         $params->fromString($url->getUrlImageName());
-        p($params);
+        $this->params = $params;
+        //p($params->toString());
+        //p($params->toArray());
+    }
+
+    protected function transform()
+    {
+    }
+
+    protected function resize()
+    {
+    
+    }
+
+    protected function rotate()
+    {
+    }
+
+    protected function filter()
+    {
     }
 
     public function show()
     {
+        return;
+        $thumber = $this->getThumber();
+        $image = $thumber->open(__DIR__ . '/../../upload/demo.jpg');
+        $size    = new Imagine\Image\Box(40, 40);
+        //$mode    = Imagine\Image\ImageInterface::THUMBNAIL_INSET;
+        $mode    = Imagine\Image\ImageInterface::THUMBNAIL_OUTBOUND;
+        $image->thumbnail($size, $mode)
+                ->show('png');
+
     }
 }

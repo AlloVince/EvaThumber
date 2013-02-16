@@ -118,6 +118,12 @@ class Url
         return $this->urlImageName = array_pop($urlImagePathArray);
     }
 
+    public function setUrlImageName($imageName)
+    {
+        $this->urlImageName = $imageName;
+        return $this;
+    }
+
     public function getUrlRewritePath()
     {
         $scriptName = $this->getUrlScriptName();
@@ -130,6 +136,10 @@ class Url
         return $this->urlRewritePath = implode('/', $rewitePathArray);
     }
 
+    public function toString()
+    {
+    
+    }
 
     public function __construct($url = null)
     {

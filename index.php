@@ -39,5 +39,5 @@ if(file_exists($localConfig)){
     $config = array_merge($config, $localConfig);
 }
 
-$thumber = new \EvaThumber\Thumber($config);
+$thumber = new EvaThumber\Thumber($config);
 $thumber->show();
