@@ -9,13 +9,9 @@
  * @author    AlloVince
  */
 
-/** Debug functions */
-function p($r, $usePr = false)
-{
-    echo '<pre>' . var_dump($r, true) . '</pre>';
-}
+namespace EvaThumber;
 
-class EvaCloudImage
+class Thumber
 {
     
     protected $relativePath;
@@ -169,10 +165,10 @@ class EvaCloudImage
         $options = $this->options;
 
         if(!$options['thumbFileRootPath']){
-            throw new InvalidArgumentException('Thumb file path not set');
+            throw new Exception\InvalidArgumentException('Thumb file path not set');
         }
         if(!$options['thumbUrlRootPath']){
-            throw new InvalidArgumentException('Thumb file url path not set');
+            throw new Exception\InvalidArgumentException('Thumb file url path not set');
         }
 
         //NOTE : realpath performance not good
@@ -281,12 +277,12 @@ class EvaCloudImage
         $options = $this->options;
 
         if(!$options['sourceRootPath']) {
-            throw new InvalidArgumentException('Source file path not set');
+            throw new  Exception\InvalidArgumentException('Source file path not set');
         }
 
         $url = parse_url($url);
         if(!$url || !$url['path']){
-            throw new InvalidArgumentException('Url not able to parse');
+            throw new  Exception\InvalidArgumentException('Url not able to parse');
         }
 
         $sourceImageName = $this->getSourceImageName($url['path']);
@@ -310,7 +306,7 @@ class EvaCloudImage
         $fileName = $urlArray[count($urlArray) - 1];
         $fileNameArray = $fileName ? explode('.', $fileName) : array();
         if(!$fileNameArray || count($fileNameArray) < 2){
-            throw new InvalidArgumentException('File name not correct');
+            throw new  Exception\InvalidArgumentException('File name not correct');
         }
 
         $this->targetImageName = $fileName;
@@ -322,7 +318,7 @@ class EvaCloudImage
         $fileNameMain = implode('.', $fileNameArray);
         $fileNameArray = explode(',', $fileNameMain);
         if(!$fileExt || !$fileNameArray || !$fileNameArray[0]){
-            throw new InvalidArgumentException('File name not correct');
+            throw new  Exception\InvalidArgumentException('File name not correct');
         }
 
         //remove empty elements
@@ -346,7 +342,7 @@ class EvaCloudImage
 
         if(false === file_exists($sourceImage)){
             header('HTTP/1.1 404 Not Found');
-            throw new Exception(printf('Source image is not exist, image path %s', $sourceImage));
+            throw new  Exception\RuntimeException(printf('Source image is not exist, image path %s', $sourceImage));
         }
 
         $url = $this->getUniqueUrl();
@@ -358,7 +354,7 @@ class EvaCloudImage
 
         $options = $this->options;
         if(!$options['libPath']){
-            throw new InvalidArgumentException('PHPThumb library path not set');
+            throw new Exception\InvalidArgumentException('PHPThumb library path not set');
         }
         require_once $options['libPath'] . DIRECTORY_SEPARATOR . 'ThumbLib.inc.php';
 
@@ -630,14 +626,14 @@ class EvaCloudImage
 
             if (!$res) {
                 $oct = ($perm === false) ? '777' : decoct($perm);
-                throw new Exception(
+                throw new Exception\OperationNotPermitedException(
                     "mkdir('{$pathname}', 0{$oct}, true) failed", 0, $err
                 );
             }
 
             if ($perm !== false && !chmod($pathname, $perm)) {
                 $oct = decoct($perm);
-                throw new Exception(
+                throw new Exception\OperationNotPermitedException(
                     "chmod('{$pathname}', 0{$oct}) failed", 0, $err
                 );
             }
@@ -672,14 +668,14 @@ class EvaCloudImage
 
                 if (!$res) {
                     $oct = ($perm === false) ? '777' : decoct($perm);
-                    throw new Exception(
+                    throw new Exception\OperationNotPermitedException(
                         "mkdir('{$path}', 0{$oct}, false) failed"
                     );
                 }
 
                 if ($perm !== false && !chmod($path, $perm)) {
                     $oct = decoct($perm);
-                    throw new Exception(
+                    throw new Exception\OperationNotPermitedException(
                         "chmod('{$path}', 0{$oct}) failed"
                     );
                 }
