@@ -3,6 +3,7 @@ return array(
     'websiteRootPath' => '',
     'thumbRootPath' => __DIR__,
     'thumbAdapter' => 'Imagick',
+    'thumbDirName' => 'thumb',
     'debug' => true,
     'configCache' => false,
     'globalCache' => true,
