@@ -3,9 +3,11 @@
 namespace EvaThumber\Config;
 
 use EvaThumber\Exception;
-use Traversable;
+use ArrayAccess;
+use Countable;
+use Iterator;
 
-class StandardConfig implements ConfigInterface
+class StandardConfig implements ConfigInterface, Iterator, ArrayAccess
 {
     /**
      * All options

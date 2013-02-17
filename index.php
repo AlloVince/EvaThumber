@@ -26,17 +26,17 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 /** Debug functions */
 function p($r, $usePr = false)
 {
-    echo '<pre>' . var_dump($r, true) . '</pre>';
+    echo '<pre>' . var_dump($r) . '</pre>';
 }
 
 $loader->add('EvaThumber', __DIR__ . '/src');
 
 
-$config = include __DIR__ . '/config.default.php';
+$config = new EvaThumber\Config\Config(include __DIR__ . '/config.default.php');
 $localConfig = __DIR__ . '/config.local.php';
 if(file_exists($localConfig)){
-    $localConfig = include $localConfig;
-    $config = array_merge($config, $localConfig);
+    $localConfig = new EvaThumber\Config\Config(include $localConfig);
+    $config = $config->merge($localConfig);
 }
 
 $thumber = new EvaThumber\Thumber($config);

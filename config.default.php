@@ -1,35 +1,31 @@
 <?php
 return array(
-    'websiteRootPath' => '',
-    'thumbRootPath' => __DIR__,
-    'thumbAdapter' => 'Imagick',
-    'thumbDirName' => 'thumb',
-    'debug' => true,
-    'configCache' => false,
-    'globalCache' => true,
-    'errorUrl' => '',
-    'fileSources' => array(
+    'thumbers' => array(
         'default' => array(
-            'prefix' => 'pic', //if no prefix, will use array key
-            'sourcePath' => '',
+            'source_path' => __DIR__ . '/upload',
+            'cache_path' => __DIR__ . '/thumb',
+            'adapter' => 'Imagick',
+            'prefix' => 'thumb', //if no prefix, will use array key
             'cache' => false,
-            'allowStretch' => false,
-            'maxFilesize' => '1M',
-            'maxWidth' => '2000',
-            'maxHeight' => '1000',
-            'errorUrl' => '',
-            'allowSizes' => array(
+            'error_url' => 'http://localhost/EvaCloudImage/error.png',
+            'allow_stretch' => false,
+            'max_file_size' => '1M',
+            'max_width' => '2000',
+            'max_height' => '1000',
+            'allow_sizes' => array(
                 'size1' => '200*100',
                 'size2' => '100*100',
             ),
+            'filters' => array(
+            ),
             'watermark' => array(
                 'enable' => false,
-                'enableWidth' => 500,
-                'enableHeight' => 400,
                 'position' => '',
                 'text' => 'watermark',
-                'font' => '',
-                'fontfile' => '',
+                'layer_file' => '',
+                'font_file' => '',
+                'font_size' => '',
+                'font_color' => '',
             ),
         ),
     ),

@@ -9,6 +9,8 @@ class Url
 
     protected $urlPath;
 
+    protected $urlPrefix;
+
     protected $urlScriptName;
 
     protected $urlImagePath;
@@ -19,16 +21,20 @@ class Url
 
     protected $urlRewritePath;
 
+    protected $imageName;
+
     public function toArray()
     {
         return array(
             'urlString' => $this->urlString,
             'urlPath' => $this->getUrlPath(),
+            'urlPrefix' => $this->getUrlPrefix(),
             'urlScriptName' => $this->getUrlScriptName(),
             'urlImagePath' => $this->getUrlImagePath(),
             'urlImageName' => $this->getUrlImageName(),
             'urlRewriteEnabled' => $this->getUrlRewriteEnabled(),
             'urlRewritePath' => $this->getUrlRewritePath(),
+            'imageName' => $this->getImageName(),
         );
     }
 
@@ -64,6 +70,13 @@ class Url
         $url = $this->urlString;
         $url = parse_url($url);
         return $this->urlPath = $url['path'];
+    }
+
+    public function getUrlPrefix()
+    {
+        $urlImagePath = $this->getUrlImagePath();
+        $urlImagePathArray = explode('/', ltrim($urlImagePath, '/'));
+        return $this->urlPrefix = array_shift($urlImagePathArray);
     }
 
     public function getUrlScriptName()
@@ -104,7 +117,6 @@ class Url
         } else {
             return $this->urlImagePath = $urlPath;
         }
-        //return $this->urlImagePath =
     }
 
     public function getUrlImageName()
@@ -122,6 +134,28 @@ class Url
     {
         $this->urlImageName = $imageName;
         return $this;
+    }
+
+    public function getImageName()
+    {
+        $urlImageName = $this->getUrlImageName();
+        if(!$urlImageName){
+            return '';
+        }
+
+        $fileNameArray = explode('.', $urlImageName);
+        if(!$fileNameArray || count($fileNameArray) < 2){
+            throw new Exception\InvalidArgumentException('File name not correct');
+        }
+        $fileExt = array_pop($fileNameArray);
+        $fileNameMain = implode('.', $fileNameArray);
+        $fileNameArray = explode(',', $fileNameMain);
+        if(!$fileExt || !$fileNameArray || !$fileNameArray[0]){
+            throw new Exception\InvalidArgumentException('File name not correct');
+        }
+        $fileNameMain = array_shift($fileNameArray);
+
+        return $this->imageName = $fileNameMain . '.' . $fileExt;
     }
 
     public function getUrlRewritePath()

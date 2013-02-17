@@ -1,11 +1,11 @@
 <?php
 /**
- * EvaCloudImage
+ * EvaThumber
  * light-weight url based image transformation php library
  *
  * @link      https://github.com/AlloVince/EvaCloudImage
- * @copyright Copyright (c) 2012 AlloVince (http://avnpc.com/)
- * @license   http://framework.zend.com/license/new-bsd New BSD License
+ * @copyright Copyright (c) 2013 AlloVince (http://avnpc.com/)
+ * @license   New BSD License
  * @author    AlloVince
  */
 
@@ -28,6 +28,8 @@ class Thumber
     protected $url;
 
     protected $params;
+
+    protected $fileSystem;
 
     public function getThumber()
     {
@@ -66,24 +68,22 @@ class Thumber
         return $this->config;
     }
 
-    /**
-     * Constructor
-     *
-     * @param  Config|null $config
-     * @param  Storage|null $storage
-     * @param  SaveHandler|null $saveHandler
-     * @throws Exception\RuntimeException
-     */
-    public function __construct(array $config = null, $url = null)
+    public function __construct($config, $url = null)
     {
-        $this->config = new Config\StandardConfig($config);
+        if($config instanceof Config\Config){
+            $this->config = $config; 
+        } else {
+            $this->config = new Config\StandardConfig($config);
+        }
         $this->url = $url = new Url($url);
-        p($url->toArray());
         $params = new Parameters();
         $params->fromString($url->getUrlImageName());
         $this->params = $params;
-        //p($params->toString());
-        //p($params->toArray());
+        
+        p($this->config->thumbers->default);
+        p($url->toArray());
+        p($params->toString());
+        p($params->toArray());
     }
 
     protected function transform()
@@ -105,14 +105,20 @@ class Thumber
 
     public function show()
     {
+
         return;
         $thumber = $this->getThumber();
         $image = $thumber->open(__DIR__ . '/../../upload/demo.jpg');
-        $size    = new Imagine\Image\Box(40, 40);
+        $size    = new Imagine\Image\Box(400, 300);
         //$mode    = Imagine\Image\ImageInterface::THUMBNAIL_INSET;
         $mode    = Imagine\Image\ImageInterface::THUMBNAIL_OUTBOUND;
-        $image->thumbnail($size, $mode)
-                ->show('png');
+
+        //$transformation = new Imagine\Filter\Advanced\Grayscale();
+        //$transformation = new Imagine\Filter\Advanced\Border(new Imagine\Image\Color('000', 100));
+        //$transformation->apply($image)->show('png');
+
+        //$image->thumbnail($size, $mode)->show('png');
+        $image->show('png');
 
     }
 }
