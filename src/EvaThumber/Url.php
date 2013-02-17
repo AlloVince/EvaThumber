@@ -21,6 +21,8 @@ class Url
 
     protected $urlRewritePath;
 
+    protected $imagePath;
+
     protected $imageName;
 
     public function toArray()
@@ -29,11 +31,13 @@ class Url
             'urlString' => $this->urlString,
             'urlPath' => $this->getUrlPath(),
             'urlPrefix' => $this->getUrlPrefix(),
+            'urlKey' => $this->getUrlKey(),
             'urlScriptName' => $this->getUrlScriptName(),
             'urlImagePath' => $this->getUrlImagePath(),
             'urlImageName' => $this->getUrlImageName(),
             'urlRewriteEnabled' => $this->getUrlRewriteEnabled(),
             'urlRewritePath' => $this->getUrlRewritePath(),
+            'imagePath' => $this->getImagePath(),
             'imageName' => $this->getImageName(),
         );
     }
@@ -76,7 +80,20 @@ class Url
     {
         $urlImagePath = $this->getUrlImagePath();
         $urlImagePathArray = explode('/', ltrim($urlImagePath, '/'));
+        if(count($urlImagePathArray) < 2){
+            return '';
+        }
         return $this->urlPrefix = array_shift($urlImagePathArray);
+    }
+
+    public function getUrlKey()
+    {
+        $urlImagePath = $this->getUrlImagePath();
+        $urlImagePathArray = explode('/', ltrim($urlImagePath, '/'));
+        if(count($urlImagePathArray) < 3){
+            return '';
+        }
+        return $this->urlKey = $urlImagePathArray[1];
     }
 
     public function getUrlScriptName()
@@ -134,6 +151,24 @@ class Url
     {
         $this->urlImageName = $imageName;
         return $this;
+    }
+
+    public function getImagePath()
+    {
+        $urlImagePath = $this->getUrlImagePath();
+        $urlImagePathArray = explode('/', ltrim($urlImagePath, '/'));
+        if(count($urlImagePathArray) < 4){
+            return '';
+        }
+
+        //remove url prefix
+        array_shift($urlImagePathArray);
+        //remove url key
+        array_shift($urlImagePathArray);
+        //remove imagename
+        array_pop($urlImagePathArray);
+        return $this->imagePath = '/'. implode('/', $urlImagePathArray);
+    
     }
 
     public function getImageName()

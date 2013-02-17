@@ -29,21 +29,46 @@ class Thumber
 
     protected $params;
 
-    protected $fileSystem;
+    protected $filesystem;
 
-    public function getThumber()
+    protected $sourcefile;
+
+    public function getThumber($sourcefile = null, $adapter = null)
     {
         if($this->thumber){
             return $this->thumber;
         }
 
-        return $this->thumber = new Imagine\Gd\Imagine();
+        $adapter = $adapter ? $adapter : strtolower($this->config->adapter);
+        switch ($adapter) {
+            case 'gd':
+            $thumber = new Imagine\Gd\Imagine();
+            break;
+            case 'imagick':
+            $thumber = new Imagine\Imagick\Imagine();
+            break;
+            case 'gmagick':
+            $thumber = new Imagine\Gmagick\Imagine();
+            break;
+            default:
+            $thumber = new Imagine\Gd\Imagine();
+        }
+
+        if($sourcefile){
+            $this->image = $thumber->open($sourcefile);
+        }
+        return $this->thumber = $thumber;
     }
 
     public function setThumber(ImagineInterface $thumber)
     {
         $this->thumber = $thumber;
         return $this;
+    }
+
+    public function getImage()
+    {
+        return $this->image;
     }
 
     /**
@@ -68,57 +93,130 @@ class Thumber
         return $this->config;
     }
 
+    public function getFilesystem()
+    {
+        if($this->filesystem){
+            return $this->filesystem;
+        }
+        return $this->filesystem = new Filesystem();
+    }
+
+    public function getSourcefile()
+    {
+        if($this->sourcefile){
+            return $this->sourcefile;
+        }
+        $fileRootPath = $this->config->source_path;
+        $filePath = $this->url->getImagePath();
+        $fileName = $this->url->getImageName();
+
+        if(!$fileName){
+            throw new Exception\InvalidArgumentException(sprintf("Request an empty filename"));
+        }
+
+        $sourcefile = $fileRootPath . $filePath . '/' . $fileName;
+
+        if(false === $this->getFilesystem()->exists($sourcefile)){
+            throw new Exception\IOException(sprintf(
+                "Request file not find in %s", $sourcefile
+            ));
+        }
+
+        return $this->sourcefile = $sourcefile;
+    }
+
+    public function getParameters()
+    {
+        if($this->params){
+            return $this->params;
+        }
+
+        $params = new Parameters();
+        $params->setConfig($this->config);
+        $params->fromString($this->url->getUrlImageName());
+        return $this->params = $params;
+    }
+
     public function __construct($config, $url = null)
     {
         if($config instanceof Config\Config){
             $this->config = $config; 
         } else {
-            $this->config = new Config\StandardConfig($config);
+            $this->config = new Config\Config($config);
         }
         $this->url = $url = new Url($url);
-        $params = new Parameters();
-        $params->fromString($url->getUrlImageName());
-        $this->params = $params;
+        $configKey = $url->getUrlKey();
+        if(isset($this->config->thumbers->$configKey)){
+            $this->config = $config = $this->config->thumbers->$configKey;
+        }
         
-        p($this->config->thumbers->default);
+        /*
+        p($config);
         p($url->toArray());
         p($params->toString());
         p($params->toArray());
+        */
     }
 
     protected function transform()
     {
+        $params = $this->getParameters();
+        $size    = new Imagine\Image\Box(100, 100);
+        //$mode    = Imagine\Image\ImageInterface::THUMBNAIL_INSET;
+        $mode    = Imagine\Image\ImageInterface::THUMBNAIL_OUTBOUND;
+
+        $transformation = new Imagine\Filter\Advanced\Grayscale();
+        //$transformation = new Imagine\Filter\Advanced\Border(new Imagine\Image\Color('000', 100));
+        $image = $transformation->apply($image);
+        return $this;
+    }
+
+    protected function crop()
+    {
+        $params = $this->getParameters();
+        $width = $params->getWidth();
+        $height = $params->getHeight();
+        return $this;
     }
 
     protected function resize()
     {
-    
+        $params = $this->getParameters();
+        $width = $params->getWidth();
+        $height = $params->getHeight();
+
+        return $this;
     }
 
     protected function rotate()
     {
+        $params = $this->getParameters();
+        return $this;
     }
 
     protected function filter()
     {
+        $params = $this->getParameters();
+        return $this;
+    }
+
+    protected function quality()
+    {
+        return $this;
     }
 
     public function show()
     {
+        $sourcefile = $this->getSourcefile();
+        $thumber = $this->getThumber($sourcefile);
 
-        return;
-        $thumber = $this->getThumber();
-        $image = $thumber->open(__DIR__ . '/../../upload/demo.jpg');
-        $size    = new Imagine\Image\Box(400, 300);
-        //$mode    = Imagine\Image\ImageInterface::THUMBNAIL_INSET;
-        $mode    = Imagine\Image\ImageInterface::THUMBNAIL_OUTBOUND;
-
-        //$transformation = new Imagine\Filter\Advanced\Grayscale();
-        //$transformation = new Imagine\Filter\Advanced\Border(new Imagine\Image\Color('000', 100));
-        //$transformation->apply($image)->show('png');
-
-        //$image->thumbnail($size, $mode)->show('png');
-        $image->show('png');
-
+        $this->resize()
+        ->rotate()
+        ->filter()
+        ->quality();
+        $params = $this->getParameters();
+        $extension = $params->getExtension();
+        $image = $this->getImage();
+        return $image->show($extension);
     }
 }

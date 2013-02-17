@@ -28,6 +28,21 @@ class Parameters
         'y' => 'y',
     );
 
+    protected $argDefaults = array(
+        'crop' => 'crop',
+        'gravity' => null,
+        'height' => null,
+        'quality' => 100,
+        'rotate' => null,
+        'width' => null,
+        'x' => null,
+        'y' => null,
+    );
+
+    protected $config;
+
+    protected $normalized = false;
+
     public function setCrop($crop)
     {
         $this->crop = $crop;
@@ -145,6 +160,18 @@ class Parameters
     }
 
 
+    public function setConfig(Config\Config $config)
+    {
+        $this->config = $config;
+        $this->nomalrize();
+        return $this;
+    }
+
+    public function getConfig()
+    {
+        return $this->config;
+    }
+
 
     /**
     * Populate from native PHP array
@@ -247,6 +274,8 @@ class Parameters
 
         ksort($params);
         $mapping = array_flip($this->argMapping);
+        $defaults = $this->argDefaults;
+
         $nameArray = array();
         foreach($params as $key => $value){
             if($value !== null){
@@ -265,7 +294,7 @@ class Parameters
     *
     * @param  array $values
     */
-    public function __construct($imageName = null)
+    public function __construct($imageName = null, Config\Config $config = null)
     {
         if($imageName && is_string($imageName)){
             $this->fromString($imageName);
@@ -278,6 +307,18 @@ class Parameters
 
     protected function nomalrize()
     {
+        //set default here;
+        $defaults = $this->argDefaults;
+        $config = $this->getConfig();
+
+        if($config->max_width){
+            $this->defaults['width'] = $config->max_width;
+        }
+
+        if($config->max_height){
+            $this->defaults['height'] = $config->max_height;
+        }
+
         return $this;
     }
 }

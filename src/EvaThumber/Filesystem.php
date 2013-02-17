@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace EvaThumber\Filesystem;
+namespace EvaThumber;
 
 use EvaThumber\Exception\IOException;
 

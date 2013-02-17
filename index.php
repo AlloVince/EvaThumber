@@ -40,4 +40,10 @@ if(file_exists($localConfig)){
 }
 
 $thumber = new EvaThumber\Thumber($config);
-$thumber->show();
+
+try {
+    $thumber->show();
+} catch(Exception $e){
+    throw $e;
+    //header('location:' . $config->error_url . '?msg=' . urlencode($e->getMessage()));
+}
