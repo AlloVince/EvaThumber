@@ -278,7 +278,8 @@ class Parameters
 
         $nameArray = array();
         foreach($params as $key => $value){
-            if($value !== null){
+            //remove value if as same as default setting
+            if($value !== null && $value !== $defaults[$key]){
                 $nameArray[$mapping[$key]] = $mapping[$key] . '_' . $value;
             }
         }

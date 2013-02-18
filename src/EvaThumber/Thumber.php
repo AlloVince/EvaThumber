@@ -71,6 +71,11 @@ class Thumber
         return $this->image;
     }
 
+    public function getUrl()
+    {
+        return $this->url;
+    }
+
     /**
      * Set configuration object
      *
@@ -208,13 +213,23 @@ class Thumber
     public function show()
     {
         $sourcefile = $this->getSourcefile();
-        $thumber = $this->getThumber($sourcefile);
+        $params = $this->getParameters();
+        $url = $this->getUrl();
+        $urlImageName = $url->getUrlImageName();
+        $newImageName = $params->toString();
 
+        //Keep unique url
+        if($urlImageName !== $newImageName){
+            $url->setUrlImageName($newImageName);
+            $newUrl = $url->toString();
+            return header("location:$newUrl");
+        }
+
+        $thumber = $this->getThumber($sourcefile);
         $this->resize()
         ->rotate()
         ->filter()
         ->quality();
-        $params = $this->getParameters();
         $extension = $params->getExtension();
         $image = $this->getImage();
         return $image->show($extension);

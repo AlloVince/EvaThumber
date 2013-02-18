@@ -5,6 +5,12 @@ namespace EvaThumber;
 
 class Url
 {
+    protected $scheme;
+
+    protected $host;
+
+    protected $query;
+
     protected $urlString;
 
     protected $urlPath;
@@ -30,16 +36,34 @@ class Url
         return array(
             'urlString' => $this->urlString,
             'urlPath' => $this->getUrlPath(),
+            'scheme' => $this->getScheme(),
+            'host' => $this->getHost(),
+            'query' => $this->getQuery(),
+            'urlScriptName' => $this->getUrlScriptName(), //from $_SERVER
+            'urlRewritePath' => $this->getUrlRewritePath(),
             'urlPrefix' => $this->getUrlPrefix(),
             'urlKey' => $this->getUrlKey(),
-            'urlScriptName' => $this->getUrlScriptName(),
             'urlImagePath' => $this->getUrlImagePath(),
             'urlImageName' => $this->getUrlImageName(),
             'urlRewriteEnabled' => $this->getUrlRewriteEnabled(),
-            'urlRewritePath' => $this->getUrlRewritePath(),
             'imagePath' => $this->getImagePath(),
             'imageName' => $this->getImageName(),
         );
+    }
+
+    public function getScheme()
+    {
+        return $this->scheme;
+    }
+
+    public function getHost()
+    {
+        return $this->host;
+    }
+
+    public function getQuery()
+    {
+        return $this->query;
     }
 
     public function getUrlRewriteEnabled()
@@ -48,14 +72,8 @@ class Url
             return $this->urlRewriteEnabled;
         }
 
-        $urlScriptName = $this->getUrlScriptName();
-        if(!$urlScriptName){
-            return $this->urlRewriteEnabled = false;
-        }
-
-        $urlScriptArray = explode('/', $urlScriptName);
-        $selfFileName = array_pop($urlScriptArray);
-        if(false !== strpos($selfFileName, '.php')){
+        $urlPath = $this->getUrlPath();
+        if(false === strpos($urlPath, '.php')){
             return $this->urlRewriteEnabled = true;
         }
         return $this->urlRewriteEnabled = false;
@@ -207,13 +225,37 @@ class Url
 
     public function toString()
     {
-    
+        $path = $this->getUrlRewritePath();
+        if($prefix = $this->getUrlPrefix()){
+            $path .= "/$prefix"; 
+        }
+
+        if($urlKey = $this->getUrlKey()){
+            $path .= "/$urlKey";
+        }
+
+        if($imagePath = $this->getImagePath()){
+            $path .= $imagePath;
+        }
+
+        $path .= '/' . $this->getUrlImageName();
+
+        $url = $this->getScheme() . '://' . $this->getHost() . $path;
+        $url .= $this->getQuery() ? '?' . $this->getQuery() : '';
+        return $url;
     }
 
     public function __construct($url = null)
     {
         $url = $url ? $url : $this->getCurrentUrl();
         $this->urlString = $url;
+        if($url){
+            $url = parse_url($url);
+            $this->scheme = isset($url['scheme']) ? $url['scheme'] : null;
+            $this->host = isset($url['host']) ? $url['host'] : null;
+            $this->query = isset($url['query']) ? $url['query'] : null;
+            $this->urlPath = isset($url['path']) ? $url['path'] : null;
+        }
     }
 
     public function getCurrentUrl()
