@@ -5,23 +5,32 @@ use ArrayObject;
 
 class Parameters
 {
+    protected $border;
+    protected $dummy;
     protected $crop;
+    protected $filter;
     protected $gravity;
     protected $height;
     protected $width;
+    protected $percent;
     protected $quality;
     protected $rotate;
     protected $x;
     protected $y;
-    protected $percent;
     protected $extension;
     protected $filename;
 
+    protected $imageWidth;
+    protected $imageHeight;
+
     protected $argMapping = array(
+        'b' => 'border',
         'c' => 'crop',
         'd' => 'dummy',
+        'f' => 'filter',
         'g' => 'gravity',
         'h' => 'height',
+        'p' => 'percent',
         'q' => 'quality',
         'r' => 'rotate',
         'w' => 'width',
@@ -30,20 +39,21 @@ class Parameters
     );
 
     protected $argDefaults = array(
+        'border' => null,
         'crop' => 'crop',
-        'd' => null, //picasa | flickr
+        'dummy' => null, //picasa | flickr
+        'filter' => null,
         'gravity' => null,
         'height' => null,
+        'percent' => 100,
         'quality' => 100,
-        'rotate' => null,
+        'rotate' => 360,
         'width' => null,
         'x' => null,
         'y' => null,
     );
 
     protected $config;
-
-    protected $normalized = false;
 
     public function setCrop($crop)
     {
@@ -66,6 +76,33 @@ class Parameters
         return $this->crop = $this->argDefaults['crop'];
     }
 
+    public function setBorder($border)
+    {
+        $this->border = $border;
+        return $this;
+    }
+
+    public function getBorder()
+    {
+        return $this->border;
+    }
+
+    public function setDummy($dummy)
+    {
+        $dummy = strtolower($dummy);
+        if(false === in_array($dummy, array('flickr', 'picasa'))){
+            $this->dummy = null;
+            return $this;
+        }
+        $this->dummy = $dummy;
+        return $this;
+    }
+
+    public function getDummy()
+    {
+        return $this->dummy;
+    }
+
     public function getGravity()
     {
         return $this->gravity;
@@ -73,8 +110,22 @@ class Parameters
 
     public function setGravity($gravity)
     {
-        $this->gravity = $gravity;
+        $this->gravity = (int) $gravity;
         return $this;
+    }
+
+    public function setPercent($percent)
+    {
+        $percent = (int) $percent;
+        $percent = $percent > 100 ? 100 : $percent;
+        $percent = $percent < 1 ? 1 : $percent;
+        $this->percent = $percent;
+        return $this;
+    }
+
+    public function getPercent()
+    {
+        return $this->percent;
     }
 
     public function getQuality()
@@ -148,7 +199,10 @@ class Parameters
 
     public function setRotate($rotate)
     {
-        $this->rotate = $rotate;
+        $rotate = (int) $rotate;
+
+        //rotate is between 1 ~ 360
+        $this->rotate = $rotate % 360;
         return $this;
     }
 
@@ -184,7 +238,7 @@ class Parameters
     public function setConfig(Config\Config $config)
     {
         $this->config = $config;
-        $this->nomalrize();
+        $this->normalize();
         return $this;
     }
 
@@ -193,6 +247,13 @@ class Parameters
         return $this->config;
     }
 
+    public function setImageSize($imageWidth, $imageHeight)
+    {
+        $this->imageWidth = $imageWidth;
+        $this->imageHeight = $imageHeight;
+        $this->normalize();
+        return $this;
+    }
 
     /**
     * Populate from native PHP array
@@ -212,7 +273,7 @@ class Parameters
     }
 
     /**
-    * Populate from query string
+    * Populate from filename string
     *
     * @param  string $string
     * @return void
@@ -249,7 +310,8 @@ class Parameters
             }
             $argKey = $arg{0};
             if(isset($argMapping[$argKey])){
-                if($arg = substr($arg, 2)){
+                $arg = substr($arg, 2);
+                if($arg !== ''){
                     $params[$argMapping[$argKey]] = $arg;
                 }
             }
@@ -266,10 +328,13 @@ class Parameters
     */
     public function toArray()
     {
-        $this->nomalrize();
+        $this->normalize();
         return array(
             'width' => $this->getWidth(),
             'height' => $this->getHeight(),
+            'percent' => $this->getPercent(),
+            'dummy' => $this->getDummy(),
+            'border' => $this->getBorder(),
             'quality' => $this->getQuality(), 
             'crop' => $this->getCrop(),
             'x' => $this->getX(),
@@ -327,18 +392,35 @@ class Parameters
         }
     }
 
-    protected function nomalrize()
+    protected function normalize()
     {
         //set default here;
         $defaults = $this->argDefaults;
         $config = $this->getConfig();
 
-        if($config->max_width){
-            $defaults['width'] = $config->max_width;
+        $maxWidth = $config->max_width;
+        $maxHeight = $config->max_height;
+        if($maxWidth){
+            $defaults['width'] = $maxWidth;
+        }
+        if($maxHeight){
+            $defaults['height'] = $maxHeight;
         }
 
-        if($config->max_height){
-            $defaults['height'] = $config->max_height;
+        $imageWidth = $this->imageWidth;
+        $imageHeight = $this->imageHeight;
+        if($imageWidth && $imageHeight){
+            if($maxWidth && $maxWidth < $imageWidth){
+                $defaults['width'] = $maxWidth;
+            } else {
+                $defaults['width'] = $imageWidth;
+            }
+
+            if($maxHeight && $maxHeight < $imageHeight){
+                $defaults['height'] = $maxHeight;
+            } else {
+                $defaults['height'] = $imageHeight;
+            }
         }
 
         if($config->quality){
@@ -349,6 +431,11 @@ class Parameters
         if(!$this->crop){
             $this->x = null;
             $this->y = null;
+        }
+
+        if($this->percent){
+            $this->width = null;
+            $this->height = null;
         }
 
         $this->argDefaults = $defaults;

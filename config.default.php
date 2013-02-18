@@ -11,9 +11,12 @@ return array(
             'error_url' => 'http://localhost/EvaCloudImage/error.png',
             'allow_stretch' => false,
             'max_file_size' => '1M',
+            'min_width' => 10,
+            'min_height' => 10,
             'max_width' => 2000,
             'max_height' => 1000,
             'quality' => 70,
+            'redirect_referer' => true, 
             'allow_sizes' => array(
                 'size1' => '200*100',
                 'size2' => '100*100',
@@ -21,6 +24,7 @@ return array(
             'disable_operates' => array(
                 'f' => 'filter',
                 'c' => 'crop',
+                'd' => 'dummy'
             ),
             'allow_filters' => array(
             ),
