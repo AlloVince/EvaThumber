@@ -19,6 +19,7 @@ class Parameters
 
     protected $argMapping = array(
         'c' => 'crop',
+        'd' => 'dummy',
         'g' => 'gravity',
         'h' => 'height',
         'q' => 'quality',
@@ -30,6 +31,7 @@ class Parameters
 
     protected $argDefaults = array(
         'crop' => 'crop',
+        'd' => null, //picasa | flickr
         'gravity' => null,
         'height' => null,
         'quality' => 100,
@@ -45,13 +47,23 @@ class Parameters
 
     public function setCrop($crop)
     {
+        $crops = array('crop', 'fill');
+        if(is_numeric($crop)){
+            $crop = (int) $crop; 
+        } elseif(is_string($crop)){
+            $crop = strtolower($crop);
+        }
         $this->crop = $crop;
         return $this;
     }
 
     public function getCrop()
     {
-        return $this->crop;
+        if($this->crop){
+            return $this->crop;
+        }
+
+        return $this->crop = $this->argDefaults['crop'];
     }
 
     public function getGravity()
@@ -67,12 +79,21 @@ class Parameters
 
     public function getQuality()
     {
-        return $this->quality;
+        if($this->quality){
+            return $this->quality;
+        }
+
+        return $this->quality = $this->argDefaults['quality'];
     }
 
     public function setQuality($quality)
     {
-        $this->quality = $quality;
+        $extension = $this->getExtension();
+        if(false === in_array($extension, array('jpg', 'jpeg'))){
+            $this->quality = null;
+            return $this;
+        }
+        $this->quality = (int) $quality;
         return $this;
     }
 
@@ -313,12 +334,24 @@ class Parameters
         $config = $this->getConfig();
 
         if($config->max_width){
-            $this->defaults['width'] = $config->max_width;
+            $defaults['width'] = $config->max_width;
         }
 
         if($config->max_height){
-            $this->defaults['height'] = $config->max_height;
+            $defaults['height'] = $config->max_height;
         }
+
+        if($config->quality){
+            $defaults['quality'] = $config->quality;
+        }
+
+        //X & Y only need when cropping
+        if(!$this->crop){
+            $this->x = null;
+            $this->y = null;
+        }
+
+        $this->argDefaults = $defaults;
 
         return $this;
     }

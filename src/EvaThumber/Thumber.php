@@ -23,6 +23,8 @@ class Thumber
 
     protected $image;
 
+    protected $imageOptions = array();
+
     protected $thumber;
 
     protected $url;
@@ -74,6 +76,11 @@ class Thumber
     public function getUrl()
     {
         return $this->url;
+    }
+
+    public function getImageOptions()
+    {
+        return $this->imageOptions;
     }
 
     /**
@@ -189,6 +196,28 @@ class Thumber
         $params = $this->getParameters();
         $width = $params->getWidth();
         $height = $params->getHeight();
+        if(!$width && !$height){
+            return $this;
+        }
+
+        $crop = $params->getCrop();
+
+        $image = $this->getImage();
+        $imageWidth = $image->getSize()->getWidth();
+        $imageHeight = $image->getSize()->getHeight();
+
+        $maxWidth = $this->config->max_width;
+        $maxHeight = $this->config->max_height;
+        $allowStretch = $this->config->allow_stretch;
+
+        $size    = new Imagine\Image\Box($width, $height);
+        if($crop === 'fill'){
+            $mode    = Imagine\Image\ImageInterface::THUMBNAIL_OUTBOUND;
+        } else {
+            $mode    = Imagine\Image\ImageInterface::THUMBNAIL_INSET;
+        }
+
+        $this->image = $image->thumbnail($size, $mode);
 
         return $this;
     }
@@ -206,6 +235,15 @@ class Thumber
     }
 
     protected function quality()
+    {
+        $quality = $this->getParameters()->getQuality();
+        if($quality){
+            $this->imageOptions['quality'] = $quality;
+        }
+        return $this;
+    }
+
+    protected function border()
     {
         return $this;
     }
@@ -227,11 +265,12 @@ class Thumber
 
         $thumber = $this->getThumber($sourcefile);
         $this->resize()
-        ->rotate()
-        ->filter()
-        ->quality();
+             ->rotate()
+             ->filter()
+             ->quality();
+
         $extension = $params->getExtension();
         $image = $this->getImage();
-        return $image->show($extension);
+        return $image->show($extension, $this->getImageOptions());
     }
 }
