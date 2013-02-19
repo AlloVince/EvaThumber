@@ -330,9 +330,54 @@ class Thumber
         if(!$config->enable){
             return $this;
         }
-        $waterLayer = $this->createThumber()->open($config->layer_file);
-        $point = new Imagine\Image\Point(0, 0);
-        $this->image = $this->getImage()->paste($waterLayer, $point);
+
+        $textLayer = false;
+        $text = $config->text;
+        if($config->layer_file){
+            $waterLayer = $this->createThumber()->open($config->layer_file);
+            $layerWidth = $waterLayer->getSize()->getWidth();
+            $layerHeight = $waterLayer->getSize()->getHeight();
+        } else {
+            if(!$text || !$config->font_file || !$config->font_size || !$config->font_color){
+                return $this;
+            }
+            $font = new Imagine\Gd\Font($config->font_file, $config->font_size, new Imagine\Image\Color($config->font_color));
+            $layerBox = $font->box($text);
+            $layerWidth = $layerBox->getWidth();
+            $layerHeight = $layerBox->getHeight();
+            $textLayer = true;
+        }
+
+        $image = $this->getImage();
+        $imageWidth = $image->getSize()->getWidth();
+        $imageHeight = $image->getSize()->getHeight();
+
+        $x = 0;
+        $y = 0;
+        $position = $config->position;
+        switch($position){
+            case 'tl':
+            break;
+            case 'tr':
+            $x = $imageWidth - $layerWidth;
+            break;
+            case 'bl':
+            $y = $imageHeight - $layerHeight;
+            case 'center':
+            $x = ($imageWidth - $layerWidth) / 2;
+            $y = ($imageHeight - $layerHeight) / 2;
+            case 'br':
+            default:
+            $x = $imageWidth - $layerWidth;
+            $y = $imageHeight - $layerHeight;
+        }
+        $point = new Imagine\Image\Point($x, $y);
+
+        if($textLayer){
+            $this->getImage()->draw()->text($text, $font, $point);
+        } else {
+            $this->image = $this->getImage()->paste($waterLayer, $point);
+        }
 
         return $this;
     }
@@ -373,7 +418,7 @@ class Thumber
             ->resize()
             ->rotate()
             ->filter()
-            ->layer()
+            ->layer() 
             ->quality();
 
         $image = $this->getImage();

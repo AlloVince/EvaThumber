@@ -32,11 +32,11 @@ return array(
             'watermark' => array(
                 'enable' => true,
                 'position' => 'br', //position could be tl:TOP LEFT | tr: TOP RIGHT | bl | BOTTOM LEFT | br BOTTOM RIGHT | center
-                'text' => 'watermark',
+                'text' => '@AlloVince',
                 'layer_file' => __DIR__ . '/layers/watermark.png',
-                'font_file' => '',
-                'font_size' => '',
-                'font_color' => '',
+                'font_file' => __DIR__ . '/layers/Yahei_Mono.ttf',
+                'font_size' => 12,
+                'font_color' => '#FFFFFF',
             ),
         ),
     ),
