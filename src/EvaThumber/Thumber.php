@@ -41,6 +41,16 @@ class Thumber
             return $this->thumber;
         }
 
+        $thumber = $this->createThumber($adapter);
+
+        if($sourcefile){
+            $this->image = $thumber->open($sourcefile);
+        }
+        return $this->thumber = $thumber;
+    }
+
+    protected function createThumber($adapter = null)
+    {
         $adapter = $adapter ? $adapter : strtolower($this->config->adapter);
         switch ($adapter) {
             case 'gd':
@@ -55,11 +65,7 @@ class Thumber
             default:
             $thumber = new Imagine\Gd\Imagine();
         }
-
-        if($sourcefile){
-            $this->image = $thumber->open($sourcefile);
-        }
-        return $this->thumber = $thumber;
+        return $thumber;
     }
 
     public function setThumber(ImagineInterface $thumber)
@@ -170,19 +176,6 @@ class Thumber
         */
     }
 
-    protected function transform()
-    {
-        $params = $this->getParameters();
-        $size    = new Imagine\Image\Box(100, 100);
-        //$mode    = Imagine\Image\ImageInterface::THUMBNAIL_INSET;
-        $mode    = Imagine\Image\ImageInterface::THUMBNAIL_OUTBOUND;
-
-        $transformation = new Imagine\Filter\Advanced\Grayscale();
-        //$transformation = new Imagine\Filter\Advanced\Border(new Imagine\Image\Color('000', 100));
-        $image = $transformation->apply($image);
-        return $this;
-    }
-
     protected function crop()
     {
         $params = $this->getParameters();
@@ -251,6 +244,13 @@ class Thumber
         $maxHeight = $this->config->max_height;
         $allowStretch = $this->config->allow_stretch;
 
+        if(!$allowStretch){
+            $width = $width > $maxWidth ? $maxWidth : $width;
+            $width = $width > $imageWidth ? $imageWidth : $width;
+            $height = $height > $maxHeight ? $maxHeight : $height;
+            $height = $height > $imageHeight ? $imageHeight : $height;
+        }
+
         $size    = new Imagine\Image\Box($width, $height);
         if($crop === 'fill'){
             $mode    = Imagine\Image\ImageInterface::THUMBNAIL_OUTBOUND;
@@ -296,7 +296,17 @@ class Thumber
 
     protected function filter()
     {
-        $params = $this->getParameters();
+        $filter = $this->getParameters()->getFilter();
+        if(!$filter){
+            return $this;
+        }
+
+        switch($filter){
+            case 'gray':
+            $this->image = $this->getImage()->mask();
+            break;
+            default:
+        }
         return $this;
     }
 
@@ -314,9 +324,25 @@ class Thumber
         return $this;
     }
 
+    protected function layer()
+    {
+        $config = $this->config->watermark;
+        if(!$config->enable){
+            return $this;
+        }
+        $waterLayer = $this->createThumber()->open($config->layer_file);
+        $point = new Imagine\Image\Point(0, 0);
+        $this->image = $this->getImage()->paste($waterLayer, $point);
+
+        return $this;
+    }
+
     public function redirect($imageName)
     {
-    
+        $config = $this->getConfig();
+        $this->getUrl()->setUrlImageName($imageName);
+        $newUrl = $this->getUrl()->toString();
+        return header("location:$newUrl"); //+old url + server referer
     }
 
     public function show()
@@ -328,12 +354,7 @@ class Thumber
 
         //Keep unique url
         if($urlImageName !== $newImageName){
-            $url->setUrlImageName($newImageName);
-            $newUrl = $url->toString();
-            p($newUrl);
-            p(1);
-            exit;
-            return header("location:$newUrl"); //+old url + server referer
+            return $this->redirect($newImageName);
         }
 
         //Start reading file
@@ -344,11 +365,7 @@ class Thumber
 
         //Keep unique url again when got image width & height
         if($urlImageName !== $newImageName){
-            $url->setUrlImageName($newImageName);
-            $newUrl = $url->toString();
-            p($newUrl);
-            exit;
-            return header("location:$newUrl");
+            return $this->redirect($newImageName);
         }
         
         $this
@@ -356,6 +373,7 @@ class Thumber
             ->resize()
             ->rotate()
             ->filter()
+            ->layer()
             ->quality();
 
         $image = $this->getImage();

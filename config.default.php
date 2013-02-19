@@ -3,6 +3,7 @@ return array(
     'error_url' => 'http://localhost/EvaCloudImage/error.png',
     'thumbers' => array(
         'default' => array(
+            'debug' => 0, //0: redirect to error png | 1: redirect to error png with error url msg | 2: throw an exception
             'source_path' => __DIR__ . '/upload',
             'cache_path' => __DIR__ . '/thumb',
             'adapter' => 'GD', //GD | Imagick | Gmagick
@@ -29,10 +30,10 @@ return array(
             'allow_filters' => array(
             ),
             'watermark' => array(
-                'enable' => false,
-                'position' => '',
+                'enable' => true,
+                'position' => 'br', //position could be tl:TOP LEFT | tr: TOP RIGHT | bl | BOTTOM LEFT | br BOTTOM RIGHT | center
                 'text' => 'watermark',
-                'layer_file' => '',
+                'layer_file' => __DIR__ . '/layers/watermark.png',
                 'font_file' => '',
                 'font_size' => '',
                 'font_color' => '',

@@ -103,6 +103,22 @@ class Parameters
         return $this->dummy;
     }
 
+    public function setFilter($filter)
+    {
+        $filter = strtolower($filter);
+        if(false === in_array($filter, array('gray'))){
+            $this->filter = null;
+            return $this;
+        }
+        $this->filter = $filter;
+        return $this;
+    }
+
+    public function getFilter()
+    {
+        return $this->filter;
+    }
+
     public function getGravity()
     {
         return $this->gravity;
@@ -155,7 +171,14 @@ class Parameters
 
     public function setWidth($width)
     {
-        $this->width = (int) $width;
+        $width = (int) $width;
+        /*
+        if(!$this->config->allow_stretch){
+            $maxWidth = $this->argDefaults['width'];
+            $width = $maxWidth && $width > $maxWidth ? $maxWidth : $width;
+        }
+        */
+        $this->width = $width;
         return $this;
     }
 
@@ -238,7 +261,6 @@ class Parameters
     public function setConfig(Config\Config $config)
     {
         $this->config = $config;
-        $this->normalize();
         return $this;
     }
 
@@ -269,6 +291,7 @@ class Parameters
                 $this->$method($value);
             }
         }
+        $this->normalize();
         return $this;
     }
 
@@ -328,8 +351,8 @@ class Parameters
     */
     public function toArray()
     {
-        $this->normalize();
         return array(
+            'filter' => $this->getFilter(),
             'width' => $this->getWidth(),
             'height' => $this->getHeight(),
             'percent' => $this->getPercent(),
@@ -398,6 +421,8 @@ class Parameters
         $defaults = $this->argDefaults;
         $config = $this->getConfig();
 
+
+        //Max width & height from config
         $maxWidth = $config->max_width;
         $maxHeight = $config->max_height;
         if($maxWidth){
@@ -407,20 +432,40 @@ class Parameters
             $defaults['height'] = $maxHeight;
         }
 
+        //Change max width & height as image size if small than config
         $imageWidth = $this->imageWidth;
         $imageHeight = $this->imageHeight;
         if($imageWidth && $imageHeight){
             if($maxWidth && $maxWidth < $imageWidth){
                 $defaults['width'] = $maxWidth;
             } else {
+                $maxWidth = $imageWidth;
                 $defaults['width'] = $imageWidth;
             }
 
             if($maxHeight && $maxHeight < $imageHeight){
                 $defaults['height'] = $maxHeight;
             } else {
+                $maxHeight = $imageHeight;
                 $defaults['height'] = $imageHeight;
             }
+        }
+
+        //Config handle
+        if(!$config->allow_stretch){
+            $width = $this->width;
+            $height = $this->height;
+            if($width && $maxWidth){
+                $this->width = $width > $maxWidth ? $maxWidth : $width;
+            }
+
+            if($height && $maxHeight){
+                $this->height = $height > $maxHeight ? $maxHeight : $height;
+            }
+        }
+
+        if($config->allow_sizes){
+            
         }
 
         if($config->quality){
