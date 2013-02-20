@@ -57,7 +57,7 @@ class Thumber
             return $this->faker;
         }
 
-        return $this->faker = new Faker();
+        return $this->faker = new Faker($dummyName);
     }
 
     protected function createThumber($adapter = null)
@@ -178,22 +178,25 @@ class Thumber
     public function __construct($config, $url = null)
     {
         if($config instanceof Config\Config){
-            $this->config = $config; 
+            $config = $config; 
         } else {
-            $this->config = new Config\Config($config);
+            $config = new Config\Config($config);
         }
         $this->url = $url = new Url($url);
         $configKey = $url->getUrlKey();
-        if(isset($this->config->thumbers->$configKey)){
-            $this->config = $config = $this->config->thumbers->$configKey;
+        $defaultConfig = $config->thumbers->current();
+        $defaultKey = $config->thumbers->key();
+        if(isset($config->thumbers->$configKey)){
+            if($defaultKey == $configKey){
+                $this->config = $config->thumbers->$configKey;
+            } else {
+                $this->config = $defaultConfig->merge($config->thumbers->$configKey);
+            }
+        } else {
+            throw new Exception\InvalidArgumentException(sprintf(
+                'No config found by key %s', $configKey
+            ));
         }
-        
-        /*
-        p($config);
-        p($url->toArray());
-        p($params->toString());
-        p($params->toArray());
-        */
     }
 
     protected function crop()
@@ -347,7 +350,7 @@ class Thumber
     protected function layer()
     {
         $config = $this->config->watermark;
-        if(!$config->enable){
+        if(!$config || !$config->enable){
             return $this;
         }
 

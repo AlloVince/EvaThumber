@@ -52,7 +52,7 @@ class Faker
     public function setSourceSite($sourceSite)
     {
         $sourceSite = strtolower($sourceSite);
-        if(false === in_array($dummy, array('flickr', 'picasa'))){
+        if(false === in_array($sourceSite, array('flickr', 'picasa'))){
             $sourceSite = 'picasa';
         }
         $this->sourceSite = $sourceSite;
@@ -64,6 +64,7 @@ class Faker
         $sourceSite = $this->getSourceSite();
         switch($sourceSite){
             case 'flickr':
+            $rss = 'http://www.flickr.com/explore?data=1';
             break;
             case 'picasa':
             default:
@@ -74,18 +75,30 @@ class Faker
 
     protected function process()
     {
-    
+        $sourceSite = $this->getSourceSite();
+        $json = $this->getRss();
+        $request = Requests::get($json);
+        $data = json_decode($request->body);
+
+        switch($sourceSite){
+            case 'flickr':
+            $entry = $data->photos;
+            $count = count($entry);
+            $url = $entry[rand(0, $count - 1)]->sizes->c->url; //use medium size
+            break;
+            case 'picasa':
+            default:
+            $entry = $data->feed->entry;
+            $count = count($entry);
+            $url = $entry[rand(0, $count - 1)]->content->src;
+        }
+        return $url;
+
     }
 
     public function getFile()
     {
-        $json = $this->getRss();
-        $request = Requests::get($json);
-        $data = json_decode($request->body);
-        $entry = $data->feed->entry;
-        $count = count($entry);
-        $url = $entry[rand(0, $count - 1)]->content->src;
-        return $url;
+        return $this->process();
     }
 
     public function __construct($sourceSite = null)

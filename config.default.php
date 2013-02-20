@@ -41,5 +41,8 @@ return array(
                 'font_color' => '#FFFFFF',
             ),
         ),
+        '1' => array(
+            'source_path' => 'E:\WallPaper',
+        ),
     ),
 );
