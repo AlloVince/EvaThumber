@@ -473,7 +473,7 @@ class Parameters
         }
 
         //X & Y only need when cropping
-        if(!$this->crop){
+        if(!$this->crop || $this->crop == 'fill'){
             $this->x = null;
             $this->y = null;
         }
@@ -481,6 +481,13 @@ class Parameters
         //fill mode request both width & height
         if($this->crop == 'fill' & (!$this->width || !$this->height)){
             $defaults['crop'] = 'fill';
+        }
+
+        if(is_numeric($this->crop)){
+            if($this->x === null || $this->y === null){
+                $this->x = null;
+                $this->y = null;
+            }
         }
 
         if($this->percent){

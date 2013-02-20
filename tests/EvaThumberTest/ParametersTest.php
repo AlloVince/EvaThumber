@@ -161,4 +161,55 @@ class ParametersTest extends \PHPUnit_Framework_TestCase
         $params->fromString('abc,w_,__,_100,w100.png');
         $this->assertEquals('abc.png', $params->toString());
     }
+
+    public function testSkipWidthHeightParameters()
+    {
+        $params = new Parameters();
+        $config = new Config(array(
+            'max_width' => 200,
+            'max_height' => 100,
+        ));
+        $params->setConfig($config);
+        $params->fromString('filename,w_200,h_100.jpg');
+        $this->assertEquals('filename.jpg', $params->toString());
+
+
+        $params = new Parameters();
+        $params->setConfig($config);
+        $params->setImageSize(100, 50);
+        $params->fromString('filename,w_100,h_50.jpg');
+        $this->assertEquals('filename.jpg', $params->toString());
+        $params->fromString('filename,w_200,h_300.jpg');
+        $this->assertEquals('filename.jpg', $params->toString());
+        $params->fromString('filename,w_99,h_49.jpg');
+        $this->assertEquals('filename,h_49,w_99.jpg', $params->toString());
+
+        $params = new Parameters();
+        $params->fromString('filename,c_fill,w_100.jpg');
+        $this->assertEquals('filename,w_100.jpg', $params->toString());
+
+        $params = new Parameters();
+        $params->fromString('filename,c_fill,h_100.jpg');
+        $this->assertEquals('filename,h_100.jpg', $params->toString());
+
+        $params = new Parameters();
+        $params->fromString('filename,c_fill,w_100,h_50.jpg');
+        $this->assertEquals('filename,c_fill,h_50,w_100.jpg', $params->toString());
+    }
+
+
+    public function testSkipCropParameters()
+    {
+        $params = new Parameters();
+        $params->fromString('filename,y_100,x_10.jpg');
+        $this->assertEquals('filename.jpg', $params->toString());
+
+        $params = new Parameters();
+        $params->fromString('filename,c_fill,y_100,x_10.jpg');
+        $this->assertEquals('filename.jpg', $params->toString());
+
+        $params = new Parameters();
+        $params->fromString('filename,c_100,y_100,x_10.jpg');
+        $this->assertEquals('filename,c_100,x_10,y_100.jpg', $params->toString());
+    }
 }
