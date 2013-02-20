@@ -5,6 +5,12 @@
     "homepage": "http://avnpc.com/",
     "require": {
         "php": ">=5.3.3",
-        "imagine/Imagine": "dev-master"
+        "imagine/Imagine": "dev-master",
+        "rmccue/Requests": "dev-master"
+    },
+    "require-dev": {
+    },
+	"autoload": {
+        "psr-0": {"Requests": "library/"}
     }
 }

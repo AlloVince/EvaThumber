@@ -478,6 +478,11 @@ class Parameters
             $this->y = null;
         }
 
+        //fill mode request both width & height
+        if($this->crop == 'fill' & (!$this->width || !$this->height)){
+            $defaults['crop'] = 'fill';
+        }
+
         if($this->percent){
             $this->width = null;
             $this->height = null;

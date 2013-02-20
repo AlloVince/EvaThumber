@@ -35,6 +35,8 @@ class Thumber
 
     protected $sourcefile;
 
+    protected $faker;
+
     public function getThumber($sourcefile = null, $adapter = null)
     {
         if($this->thumber){
@@ -47,6 +49,15 @@ class Thumber
             $this->image = $thumber->open($sourcefile);
         }
         return $this->thumber = $thumber;
+    }
+
+    public function getFaker($dummyName)
+    {
+        if($this->faker) {
+            return $this->faker;
+        }
+
+        return $this->faker = new Faker();
     }
 
     protected function createThumber($adapter = null)
@@ -66,6 +77,15 @@ class Thumber
             $thumber = new Imagine\Gd\Imagine();
         }
         return $thumber;
+    }
+
+    protected function createFont($font, $size, $color)
+    {
+        $thumberClass = get_class($this->getThumber());
+        $classPart = explode('\\', $thumberClass);
+        $classPart[2] = 'Font';
+        $fontClass = implode('\\', $classPart);
+        return new $fontClass($font, $size, $color);
     }
 
     public function setThumber(ImagineInterface $thumber)
@@ -341,7 +361,7 @@ class Thumber
             if(!$text || !$config->font_file || !$config->font_size || !$config->font_color){
                 return $this;
             }
-            $font = new Imagine\Gd\Font($config->font_file, $config->font_size, new Imagine\Image\Color($config->font_color));
+            $font = $this->createFont($config->font_file, $config->font_size, new Imagine\Image\Color($config->font_color));
             $layerBox = $font->box($text);
             $layerWidth = $layerBox->getWidth();
             $layerHeight = $layerBox->getHeight();
@@ -402,8 +422,15 @@ class Thumber
             return $this->redirect($newImageName);
         }
 
+        $dummy = $params->getDummy();
+        if($dummy){
+            $faker = $this->getFaker($dummy);
+            $sourcefile = $faker->getFile();
+        } else {
+            $sourcefile = $this->getSourcefile();
+        }
+
         //Start reading file
-        $sourcefile = $this->getSourcefile();
         $thumber = $this->getThumber($sourcefile);
         $params->setImageSize($this->getImage()->getSize()->getWidth(), $this->getImage()->getSize()->getHeight());
         $newImageName = $params->toString();

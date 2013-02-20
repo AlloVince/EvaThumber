@@ -5,7 +5,8 @@ return array(
         'default' => array(
             'debug' => 0, //0: redirect to error png | 1: redirect to error png with error url msg | 2: throw an exception
             'source_path' => __DIR__ . '/upload',
-            'cache_path' => __DIR__ . '/thumb',
+            'thumb_cache_path' => __DIR__ . '/thumb',
+            'system_cache_path' => null,
             'adapter' => 'GD', //GD | Imagick | Gmagick
             'prefix' => 'thumb', //if no prefix, will use array key
             'cache' => false,
@@ -28,9 +29,10 @@ return array(
                 'd' => 'dummy'
             ),
             'allow_filters' => array(
+                'gray' => 'gray',
             ),
             'watermark' => array(
-                'enable' => true,
+                'enable' => 1,
                 'position' => 'br', //position could be tl:TOP LEFT | tr: TOP RIGHT | bl | BOTTOM LEFT | br BOTTOM RIGHT | center
                 'text' => '@AlloVince',
                 'layer_file' => __DIR__ . '/layers/watermark.png',
