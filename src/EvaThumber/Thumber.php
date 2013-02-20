@@ -21,14 +21,26 @@ class Thumber
      */
     protected $config;
 
+    /**
+    * @var Imagine\Image\Image
+    */
     protected $image;
 
     protected $imageOptions = array();
 
+    /**
+    * @var Imagine\Image\ImagineInterface
+    */
     protected $thumber;
 
+    /**
+    * @var Url
+    */
     protected $url;
 
+    /**
+    * @var Parameters
+    */
     protected $params;
 
     protected $filesystem;
@@ -36,6 +48,22 @@ class Thumber
     protected $sourcefile;
 
     protected $faker;
+
+    protected $cacher;
+
+    public function getCacher()
+    {
+        if($this->cacher){
+            return $this->cacher;
+        }
+        return $this->cacher = new Cacher();
+    }
+
+    public function setCacher(Cacher $cacher)
+    {
+        $this->cacher = $cacher;
+        return $this;
+    }
 
     public function getThumber($sourcefile = null, $adapter = null)
     {
@@ -60,33 +88,6 @@ class Thumber
         return $this->faker = new Faker($dummyName);
     }
 
-    protected function createThumber($adapter = null)
-    {
-        $adapter = $adapter ? $adapter : strtolower($this->config->adapter);
-        switch ($adapter) {
-            case 'gd':
-            $thumber = new Imagine\Gd\Imagine();
-            break;
-            case 'imagick':
-            $thumber = new Imagine\Imagick\Imagine();
-            break;
-            case 'gmagick':
-            $thumber = new Imagine\Gmagick\Imagine();
-            break;
-            default:
-            $thumber = new Imagine\Gd\Imagine();
-        }
-        return $thumber;
-    }
-
-    protected function createFont($font, $size, $color)
-    {
-        $thumberClass = get_class($this->getThumber());
-        $classPart = explode('\\', $thumberClass);
-        $classPart[2] = 'Font';
-        $fontClass = implode('\\', $classPart);
-        return new $fontClass($font, $size, $color);
-    }
 
     public function setThumber(ImagineInterface $thumber)
     {
@@ -163,6 +164,12 @@ class Thumber
         return $this->sourcefile = $sourcefile;
     }
 
+    public function setSourcefile($sourcefile)
+    {
+        $this->sourcefile = $sourcefile;
+        return $this;
+    }
+
     public function getParameters()
     {
         if($this->params){
@@ -173,6 +180,83 @@ class Thumber
         $params->setConfig($this->config);
         $params->fromString($this->url->getUrlImageName());
         return $this->params = $params;
+    }
+
+    public function setParameters(Parameters $params)
+    {
+        $this->params = $params;
+        return $this;
+    }
+
+    public function redirect($imageName)
+    {
+        $config = $this->getConfig();
+        $this->getUrl()->setUrlImageName($imageName);
+        $newUrl = $this->getUrl()->toString();
+        return header("location:$newUrl"); //+old url + server referer
+    }
+
+
+    protected function process()
+    {
+        $params = $this->getParameters();
+        $url = $this->getUrl();
+        $urlImageName = $url->getUrlImageName();
+        $newImageName = $params->toString();
+
+        //Keep unique url
+        if($urlImageName !== $newImageName){
+            return $this->redirect($newImageName);
+        }
+
+        $dummy = $params->getDummy();
+        if($dummy){
+            $faker = $this->getFaker($dummy);
+            $sourcefile = $faker->getFile();
+        } else {
+            $sourcefile = $this->getSourcefile();
+        }
+
+        //Start reading file
+        $thumber = $this->getThumber($sourcefile);
+        $params->setImageSize($this->getImage()->getSize()->getWidth(), $this->getImage()->getSize()->getHeight());
+        $newImageName = $params->toString();
+
+        //Keep unique url again when got image width & height
+        if($urlImageName !== $newImageName){
+            return $this->redirect($newImageName);
+        }
+        
+        $this
+            ->crop()  //crop first then resize
+            ->resize()
+            ->rotate()
+            ->filter()
+            ->layer() 
+            ->quality();
+
+        return $this;
+    }
+
+
+    public function save()
+    {
+    }
+
+    public function show()
+    {
+        $config = $this->getConfig();
+        $extension = $this->getParameters()->getExtension();
+        
+        $this->process();
+        $image = $this->getImage();
+        if($config->cache){
+            $cacheRoot = $config->thumb_cache_path;
+            $cachePath = $cacheRoot . $this->getUrl()->getImagePath() . '/' . $this->getUrl()->getUrlImageName();
+            $image->save($cachePath, $this->getImageOptions());
+        }
+
+        return $image->show($extension, $this->getImageOptions());
     }
 
     public function __construct($config, $url = null)
@@ -198,6 +282,35 @@ class Thumber
             ));
         }
     }
+
+    protected function createThumber($adapter = null)
+    {
+        $adapter = $adapter ? $adapter : strtolower($this->config->adapter);
+        switch ($adapter) {
+            case 'gd':
+            $thumber = new Imagine\Gd\Imagine();
+            break;
+            case 'imagick':
+            $thumber = new Imagine\Imagick\Imagine();
+            break;
+            case 'gmagick':
+            $thumber = new Imagine\Gmagick\Imagine();
+            break;
+            default:
+            $thumber = new Imagine\Gd\Imagine();
+        }
+        return $thumber;
+    }
+
+    protected function createFont($font, $size, $color)
+    {
+        $thumberClass = get_class($this->getThumber());
+        $classPart = explode('\\', $thumberClass);
+        $classPart[2] = 'Font';
+        $fontClass = implode('\\', $classPart);
+        return new $fontClass($font, $size, $color);
+    }
+
 
     protected function crop()
     {
@@ -405,54 +518,5 @@ class Thumber
         return $this;
     }
 
-    public function redirect($imageName)
-    {
-        $config = $this->getConfig();
-        $this->getUrl()->setUrlImageName($imageName);
-        $newUrl = $this->getUrl()->toString();
-        return header("location:$newUrl"); //+old url + server referer
-    }
 
-    public function show()
-    {
-        $params = $this->getParameters();
-        $url = $this->getUrl();
-        $urlImageName = $url->getUrlImageName();
-        $newImageName = $params->toString();
-
-        //Keep unique url
-        if($urlImageName !== $newImageName){
-            return $this->redirect($newImageName);
-        }
-
-        $dummy = $params->getDummy();
-        if($dummy){
-            $faker = $this->getFaker($dummy);
-            $sourcefile = $faker->getFile();
-        } else {
-            $sourcefile = $this->getSourcefile();
-        }
-
-        //Start reading file
-        $thumber = $this->getThumber($sourcefile);
-        $params->setImageSize($this->getImage()->getSize()->getWidth(), $this->getImage()->getSize()->getHeight());
-        $newImageName = $params->toString();
-
-        //Keep unique url again when got image width & height
-        if($urlImageName !== $newImageName){
-            return $this->redirect($newImageName);
-        }
-        
-        $this
-            ->crop()  //crop first then resize
-            ->resize()
-            ->rotate()
-            ->filter()
-            ->layer() 
-            ->quality();
-
-        $image = $this->getImage();
-        $extension = $params->getExtension();
-        return $image->show($extension, $this->getImageOptions());
-    }
 }

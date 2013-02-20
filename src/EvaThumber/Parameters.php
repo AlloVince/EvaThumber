@@ -328,7 +328,7 @@ class Parameters
             if(!$arg){
                 continue;
             }
-            if(strpos($arg, '_') !== 1){
+            if(strlen($arg) < 3 || strpos($arg, '_') !== 1){
                 continue;
             }
             $argKey = $arg{0};
@@ -423,53 +423,53 @@ class Parameters
 
 
         //Max width & height from config
-        $maxWidth = $config->max_width;
-        $maxHeight = $config->max_height;
-        if($maxWidth){
-            $defaults['width'] = $maxWidth;
-        }
-        if($maxHeight){
-            $defaults['height'] = $maxHeight;
-        }
-
-        //Change max width & height as image size if small than config
-        $imageWidth = $this->imageWidth;
-        $imageHeight = $this->imageHeight;
-        if($imageWidth && $imageHeight){
-            if($maxWidth && $maxWidth < $imageWidth){
+        if($config){
+            $maxWidth = $config->max_width;
+            $maxHeight = $config->max_height;
+            if($maxWidth){
                 $defaults['width'] = $maxWidth;
-            } else {
-                $maxWidth = $imageWidth;
-                $defaults['width'] = $imageWidth;
             }
-
-            if($maxHeight && $maxHeight < $imageHeight){
+            if($maxHeight){
                 $defaults['height'] = $maxHeight;
-            } else {
-                $maxHeight = $imageHeight;
-                $defaults['height'] = $imageHeight;
             }
-        }
 
-        //Config handle
-        if(!$config->allow_stretch){
+            //Change max width & height as image size if small than config
+            $imageWidth = $this->imageWidth;
+            $imageHeight = $this->imageHeight;
+            $allowStretch = $config->allow_stretch;
+            if($imageWidth && $imageHeight){
+                if($maxWidth && $maxWidth < $imageWidth){
+                    $defaults['width'] = $maxWidth;
+                } else {
+                    $maxWidth = $allowStretch ? $maxWidth : $imageWidth;
+                    $defaults['width'] = $maxWidth;
+                }
+
+                if($maxHeight && $maxHeight < $imageHeight){
+                    $defaults['height'] = $maxHeight;
+                } else {
+                    $maxHeight = $allowStretch ? $maxHeight : $imageHeight;
+                    $defaults['height'] = $maxHeight;
+                }
+            }
+
+            //Width & height Limit
             $width = $this->width;
             $height = $this->height;
             if($width && $maxWidth){
                 $this->width = $width > $maxWidth ? $maxWidth : $width;
             }
-
             if($height && $maxHeight){
                 $this->height = $height > $maxHeight ? $maxHeight : $height;
             }
-        }
 
-        if($config->allow_sizes){
-            
-        }
+            if($config->allow_sizes){
 
-        if($config->quality){
-            $defaults['quality'] = $config->quality;
+            }
+
+            if($config->quality){
+                $defaults['quality'] = $config->quality;
+            }
         }
 
         //X & Y only need when cropping

@@ -9,6 +9,7 @@
 
 namespace EvaThumber\Config;
 
+use EvaThumber\Exception;
 use ArrayAccess;
 use Countable;
 use Iterator;

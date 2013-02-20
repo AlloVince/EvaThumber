@@ -9,7 +9,7 @@ return array(
             'system_cache_path' => null,
             'adapter' => 'GD', //GD | Imagick | Gmagick
             'prefix' => 'thumb', //if no prefix, will use array key
-            'cache' => false,
+            'cache' => 1,
             'error_url' => 'http://localhost/EvaCloudImage/error.png',
             'allow_stretch' => false,
             'max_file_size' => '1M',
