@@ -218,7 +218,9 @@ class Thumber
 
     protected function process()
     {
+        $config = $this->getConfig();
         $params = $this->getParameters();
+        $params->disableOperates($config->disable_operates);
         $url = $this->getUrl();
         $urlImageName = $url->getUrlImageName();
         $newImageName = $params->toString();
@@ -240,7 +242,7 @@ class Thumber
         } else {
             if(!$dummy){
                 throw new Exception\IOException(sprintf(
-                    "Request file not find in %s", $sourcefile
+                    "Request file not find in %s", $this->getSourcefile()
                 ));
             }
         }
@@ -284,9 +286,10 @@ class Thumber
         
         $this->process();
         $image = $this->getImage();
+
         if($config->cache){
             $cacheRoot = $config->thumb_cache_path;
-            $imagePath = $this->getUrl()->getImagePath();
+            $imagePath = '/' . $this->getUrl()->getUrlKey() . $this->getUrl()->getImagePath();
             $cachePath = $cacheRoot . $imagePath . '/' . $this->getUrl()->getUrlImageName();
             $pathLevel = count(explode('/', $imagePath));
             $this->getFilesystem()->prepareDirectoryStructure($cachePath, $pathLevel);
@@ -396,43 +399,57 @@ class Thumber
 
         $width = $params->getWidth();
         $height = $params->getHeight();
-        if(!$width && !$height){
-            return $this;
-        }
+        $maxWidth = $this->config->max_width;
+        $maxHeight = $this->config->max_height;
 
         $image = $this->getImage();
         $imageWidth = $image->getSize()->getWidth();
         $imageHeight = $image->getSize()->getHeight();
 
-        if($width === $imageWidth || $height === $imageHeight){
-            return $this;
-        }
+        //No size input, require size limit from config
+        if(!$width && !$height){
+            if(!$maxWidth && !$maxHeight){
+                return $this;
+            }
 
-        //If only width or height, resize by image size radio
-        $width = $width ? $width : ceil($height * $imageWidth / $imageHeight);
-        $height = $height ? $height : ceil($width * $imageHeight / $imageWidth);
+            if($maxWidth && $imageWidth > $maxWidth || $maxHeight && $imageHeight > $maxHeight){
+                $width = $maxWidth && $imageWidth > $maxWidth ? $maxWidth : $width;
+                $height = $maxHeight && $imageHeight > $maxHeight ? $maxHeight : $height;
 
-        $crop = $params->getCrop();
-        $maxWidth = $this->config->max_width;
-        $maxHeight = $this->config->max_height;
-        $allowStretch = $this->config->allow_stretch;
+                //If only width or height, resize by image size radio
+                $width = $width ? $width : ceil($height * $imageWidth / $imageHeight);
+                $height = $height ? $height : ceil($width * $imageHeight / $imageWidth);
+            } else {
+                return $this;
+            }
 
-        if(!$allowStretch){
-            $width = $width > $maxWidth ? $maxWidth : $width;
-            $width = $width > $imageWidth ? $imageWidth : $width;
-            $height = $height > $maxHeight ? $maxHeight : $height;
-            $height = $height > $imageHeight ? $imageHeight : $height;
+        } else {
+            if($width === $imageWidth || $height === $imageHeight){
+                return $this;
+            }
+
+            //If only width or height, resize by image size radio
+            $width = $width ? $width : ceil($height * $imageWidth / $imageHeight);
+            $height = $height ? $height : ceil($width * $imageHeight / $imageWidth);
+
+            $allowStretch = $this->config->allow_stretch;
+
+            if(!$allowStretch){
+                $width = $width > $maxWidth ? $maxWidth : $width;
+                $width = $width > $imageWidth ? $imageWidth : $width;
+                $height = $height > $maxHeight ? $maxHeight : $height;
+                $height = $height > $imageHeight ? $imageHeight : $height;
+            }
         }
 
         $size    = new Imagine\Image\Box($width, $height);
+        $crop = $params->getCrop();
         if($crop === 'fill'){
             $mode    = Imagine\Image\ImageInterface::THUMBNAIL_OUTBOUND;
         } else {
             $mode    = Imagine\Image\ImageInterface::THUMBNAIL_INSET;
         }
-
         $this->image = $image->thumbnail($size, $mode);
-
         return $this;
     }
 
@@ -537,14 +554,20 @@ class Thumber
         switch($position){
             case 'tl':
             break;
+
             case 'tr':
             $x = $imageWidth - $layerWidth;
             break;
+
             case 'bl':
             $y = $imageHeight - $layerHeight;
+            break;
+
             case 'center':
             $x = ($imageWidth - $layerWidth) / 2;
             $y = ($imageHeight - $layerHeight) / 2;
+            break;
+
             case 'br':
             default:
             $x = $imageWidth - $layerWidth;

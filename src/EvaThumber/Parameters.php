@@ -396,6 +396,16 @@ class Parameters
         return $filename . $nameArray . '.' . $extension;
     }
 
+    public function disableOperates(Config\Config $disabledOperates)
+    {
+        foreach($disabledOperates as $key => $operate){
+            if(isset($this->$operate)){
+                $this->$operate = null;
+            }
+        }
+        return $this;
+    }
+
     /**
     * Constructor
     *
