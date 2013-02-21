@@ -106,7 +106,7 @@ class Parameters
     public function setFilter($filter)
     {
         $filter = strtolower($filter);
-        if(false === in_array($filter, array('gray'))){
+        if(false === in_array($filter, array('gray', 'negative', 'gamma'))){
             $this->filter = null;
             return $this;
         }

@@ -154,13 +154,6 @@ class Thumber
         }
 
         $sourcefile = $fileRootPath . $filePath . '/' . $fileName;
-
-        if(false === $this->getFilesystem()->exists($sourcefile)){
-            throw new Exception\IOException(sprintf(
-                "Request file not find in %s", $sourcefile
-            ));
-        }
-
         return $this->sourcefile = $sourcefile;
     }
 
@@ -168,6 +161,32 @@ class Thumber
     {
         $this->sourcefile = $sourcefile;
         return $this;
+    }
+
+    public function sourcefileExsit()
+    {
+        $sourcefile = $this->getSourcefile();
+        $sourcefilePath = substr($sourcefile, 0, strrpos($sourcefile, '.'));
+        $fileExist = false;
+
+        //Not use file system, instead of glob
+        foreach (glob($sourcefilePath . '.*') as $sourcefile) {
+            $this->setSourcefile($sourcefile);
+            $fileExist = true;
+            break;
+        }
+
+        /*
+        $filesystem = $this->getFilesystem();
+        foreach (glob($sourcefilePath . '.*') as $sourcefile) {
+            if(true === $filesystem->exists($sourcefile)){
+                $this->setSourcefile($sourcefile);
+                $fileExist = true;
+                break;
+            }
+        }
+        */
+        return $fileExist;
     }
 
     public function getParameters()
@@ -209,7 +228,22 @@ class Thumber
             return $this->redirect($newImageName);
         }
 
+
+        //Dummy file will replace source file
         $dummy = $params->getDummy();
+        if($this->sourcefileExsit()){
+            if($dummy){
+                throw new Exception\IOException(sprintf(
+                    "Dummy file name conflict with exsit file %s", $sourcefile
+                ));
+            }
+        } else {
+            if(!$dummy){
+                throw new Exception\IOException(sprintf(
+                    "Request file not find in %s", $sourcefile
+                ));
+            }
+        }
         if($dummy){
             $faker = $this->getFaker($dummy);
             $sourcefile = $faker->getFile();
@@ -252,7 +286,10 @@ class Thumber
         $image = $this->getImage();
         if($config->cache){
             $cacheRoot = $config->thumb_cache_path;
-            $cachePath = $cacheRoot . $this->getUrl()->getImagePath() . '/' . $this->getUrl()->getUrlImageName();
+            $imagePath = $this->getUrl()->getImagePath();
+            $cachePath = $cacheRoot . $imagePath . '/' . $this->getUrl()->getUrlImageName();
+            $pathLevel = count(explode('/', $imagePath));
+            $this->getFilesystem()->prepareDirectoryStructure($cachePath, $pathLevel);
             $image->save($cachePath, $this->getImageOptions());
         }
 
@@ -439,7 +476,13 @@ class Thumber
 
         switch($filter){
             case 'gray':
-            $this->image = $this->getImage()->mask();
+            $this->getImage()->effects()->grayscale();
+            break;
+            case 'gamma':
+            $this->getImage()->effects()->gamma(0.7);
+            break;
+            case 'negative':
+            $this->getImage()->effects()->negative();
             break;
             default:
         }
