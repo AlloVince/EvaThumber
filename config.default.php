@@ -1,5 +1,8 @@
 <?php
 return array(
+    'opencv_path' => 'c:\jpegtran.exe',
+    'jpegtran_path' => 'c:\jpegtran.exe',
+    'pngout_path' => 'c:\pngout.exe',
     'error_url' => 'http://localhost/EvaCloudImage/error.png',
     'thumbers' => array(
         '1' => array(

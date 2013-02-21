@@ -467,14 +467,26 @@ class Parameters
             $width = $this->width;
             $height = $this->height;
             if($width && $maxWidth){
-                $this->width = $width > $maxWidth ? $maxWidth : $width;
+                $this->width = $width = $width > $maxWidth ? $maxWidth : $width;
             }
             if($height && $maxHeight){
-                $this->height = $height > $maxHeight ? $maxHeight : $height;
+                $this->height = $width = $height > $maxHeight ? $maxHeight : $height;
             }
 
             if($config->allow_sizes){
-
+                $allowSizes = $config->allow_sizes;
+                $matched = false;
+                foreach($allowSizes as $allowSize){
+                    list($allowWidth, $allowHeight) = explode('*', $allowSize);
+                    if($allowWidth && $width == $allowWidth && $allowHeight && $height == $allowHeight){
+                        $matched = true;
+                        break;
+                    }
+                }
+                if(false === $matched){
+                    $this->width = $width = null;
+                    $this->height = $height = null;
+                }
             }
 
             if($config->quality){
