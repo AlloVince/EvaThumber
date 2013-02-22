@@ -6,11 +6,13 @@
     "require": {
         "php": ">=5.3.3",
         "imagine/Imagine": "dev-master",
-        "rmccue/Requests": "dev-master"
-    },
-    "require-dev": {
+        "rmccue/Requests": "dev-master",
+        "aferrandini/phpqrcode": "dev-master@dev"
     },
 	"autoload": {
-        "psr-0": {"Requests": "library/"}
+        "psr-0": {
+			"Requests": "library/",
+			"PHPQRCode": "lib/"
+		}
     }
 }

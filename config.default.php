@@ -35,6 +35,9 @@ return array(
                 'font_file' => __DIR__ . '/layers/Yahei_Mono.ttf',
                 'font_size' => 12,
                 'font_color' => '#FFFFFF',
+                'qr_code' => 0,
+                'qr_code_size' => 3,
+                'qr_code_margin' => 4,
             ),
         ),
         '2' => array(
@@ -53,11 +56,14 @@ return array(
             'watermark' => array(
                 'enable' => 1,
                 'position' => 'br', //position could be tl:TOP LEFT | tr: TOP RIGHT | bl | BOTTOM LEFT | br BOTTOM RIGHT | center
-                'text' => '@AlloVince',
+                'text' => '徐谦',
                 'layer_file' => '',
                 'font_file' => __DIR__ . '/layers/Yahei_Mono.ttf',
                 'font_size' => 12,
                 'font_color' => '#FFFFFF',
+                'qr_code' => 1,
+                'qr_code_size' => 3,
+                'qr_code_margin' => 1,
             ),
         ),
     ),

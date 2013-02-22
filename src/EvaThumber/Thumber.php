@@ -537,11 +537,19 @@ class Thumber
             if(!$text || !$config->font_file || !$config->font_size || !$config->font_color){
                 return $this;
             }
-            $font = $this->createFont($config->font_file, $config->font_size, new Imagine\Image\Color($config->font_color));
-            $layerBox = $font->box($text);
-            $layerWidth = $layerBox->getWidth();
-            $layerHeight = $layerBox->getHeight();
-            $textLayer = true;
+
+            if($config->qr_code && Feature\QRCode::isSupport()){
+                $layerFile = Feature\QRCode::generateQRCodeLayer($text, $config->qr_code_size, $config->qr_code_margin);
+                $waterLayer = $this->createThumber()->open($layerFile);
+                $layerWidth = $waterLayer->getSize()->getWidth();
+                $layerHeight = $waterLayer->getSize()->getHeight();
+            } else {
+                $font = $this->createFont($config->font_file, $config->font_size, new Imagine\Image\Color($config->font_color));
+                $layerBox = $font->box($text);
+                $layerWidth = $layerBox->getWidth();
+                $layerHeight = $layerBox->getHeight();
+                $textLayer = true;
+            }
         }
 
         $image = $this->getImage();

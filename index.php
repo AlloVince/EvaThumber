@@ -31,7 +31,6 @@ function p($r, $usePr = false)
 
 $loader->add('EvaThumber', __DIR__ . '/src');
 
-
 $config = new EvaThumber\Config\Config(include __DIR__ . '/config.default.php');
 $localConfig = __DIR__ . '/config.local.php';
 if(file_exists($localConfig)){
