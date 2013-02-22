@@ -65,6 +65,11 @@ EvaThumber的处理：裁剪为宽100，高100，加黑白滤镜，输出为png�
 基本功能 (URL API)
 ========
 
+URL基本构成
+-----------
+
+
+
 影子模式
 --------------
 
@@ -98,123 +103,155 @@ EvaThumber的处理：裁剪为宽100，高100，加黑白滤镜，输出为png�
 EvaThumber支持的图片格式有：
 
 - [GIF (Graphics Interchange Format)](http://en.wikipedia.org/wiki/Graphics_Interchange_Format)
-- jpg
-- png
-- wbmp
-- xbm
+- [JPEG](http://en.wikipedia.org/wiki/JPEG)
+- [PNG (Portable Network Graphics)](http://en.wikipedia.org/wiki/Portable_Network_Graphics)
+- [WBMP (Wireless Application Protocol Bitmap Format)](http://en.wikipedia.org/wiki/Wireless_Application_Protocol_Bitmap_Format)
+- [XBM (X BitMap)](http://en.wikipedia.org/wiki/X_BitMap)
 
 支持在任意两种格式间转换，只需要更改URL最后的扩展名即可，比如
 
-   
+    http://www.zf2.local/thumb/d/demo,w_100.gif
+    http://www.zf2.local/thumb/d/demo,w_100.xbm
+
+![EvaThumber Image Demo](http://www.zf2.local/thumb/d/demo,w_100.gif)
 
 图片缩放
 -----------------
 
-这里是[原图](http://EvaThumber.avnpc.com/upload/demo.jpg): 
-
-    http://EvaThumber.avnpc.com/upload/demo.jpg
-
 EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片的文件名末尾加入以逗号分隔的参数即可：
 
-###根据宽度缩放:
+###根据宽度缩放 `w_[int Width]`:
 
-'*w*'参数是Width的缩写，可以控制图片按宽度缩放。下面的URL会生成一张300px宽的图片：
+`w_`允许输入一个数字，控制图片按宽度缩放，下面的URL会生成一张100px宽的图片：
 
-    http://EvaThumber.avnpc.com/thumb/demo,w_300.jpg
+    http://www.zf2.local/thumb/d/demo,w_100.jpg
 
-![EvaThumber Resized Image](http://EvaThumber.avnpc.com/thumb/demo,w_300.jpg)
+![EvaThumber Resized Image](http://www.zf2.local/thumb/d/demo,w_100.jpg)
 
-###根据高度缩放:
+###根据高度缩放 `h_[int Height]`:
 
-同理通过更改'*h*'（Height），根据高度缩放图片：
+同理`h_`允许输入一个数字，控制图片按高度缩放，下面的URL会生成一张50px高的图片：
 
-    http://EvaThumber.avnpc.com/thumb/demo,h_150.jpg
+    http://www.zf2.local/thumb/d/demo,h_50.jpg
 
-![EvaThumber Resized Image](http://EvaThumber.avnpc.com/thumb/demo,h_150.jpg)
+![EvaThumber Resized Image](http://www.zf2.local/thumb/d/demo,h_50.jpg)
 
-###按百分比缩放:
+###按百分比缩放 `p_[int Percent]`:
 
-当w或h为小数时，图片会按照百分比缩放，比如w_0.4会将图片缩放至原尺寸的40%：
+`p_`允许输入一个1-100的数字，图片会按照百分比缩放，比如p_30会将图片缩放至原尺寸的30%：
 
-    http://EvaThumber.avnpc.com/thumb/demo,w_0.4.jpg
+    http://www.zf2.local/thumb/d/demo,p_30.jpg
 
-![EvaThumber Resized Image](http://EvaThumber.avnpc.com/thumb/demo,w_0.4.jpg)
+![EvaThumber Resized Image](http://www.zf2.local/thumb/d/demo,p_30.jpg)
 
-注意：
+###允许拉伸：
 
- - 当w与h既有整数又有小数时，以整数为准
- - 当w与h同时为小数时，以w为准
+在缩放图片时，如果缩放尺寸大于图片本身的尺寸，操作默认会被忽略，但是也可以在配置文件中强制开启
+
+    'thumbers' => array(
+        'stretch' => array(
+            'allow_stretch' => true,
+        ),
+    ）,
+
+此时图片允许被强制拉伸。
+
+    http://www.zf2.local/thumb/stretch/demo,w_310.jpg
+
+###最大/最小尺寸限制：
+
+###允许尺寸：
 
 图片剪裁
 ----
 
-使用'*c*'参数（Crop）可以剪裁图片，比如c_100会从图片的中心位置截取出一张100px的缩略图。
+###基本正方形剪裁 `c_[int Crop]`:
 
-    http://EvaThumber.avnpc.com/thumb/demo,c_100.jpg
+`c_` 允许输入一个数字，如`c_50`会从图片的中心位置截取出一张50px*50px的缩略图。
 
-![EvaThumber Resized Image](http://EvaThumber.avnpc.com/thumb/demo,c_100.jpg)
+    http://www.zf2.local/thumb/d/demo,c_50.jpg
 
-'*g*'参数（gravity）代表剪裁范围或高度，需要配合c参数一起使用。比如下例，代表从图片中心位置剪裁一张100px*200px的缩略图。
+![EvaThumber Resized Image](http://www.zf2.local/thumb/d/demo,c_50.jpg)
 
-    http://EvaThumber.avnpc.com/thumb/demo,c_200,g_100.jpg
+###指定尺寸的剪裁 `c_[int Crop]` + `g_[int Gracity]`:
 
-![EvaThumber Resized Image](http://EvaThumber.avnpc.com/thumb/demo,c_200,g_100.jpg)
+配合`c_`输入`g_`，代表指定剪裁的宽度与高度，比如`c_50,g_30`，代表从图片中心位置剪裁一张50px*30px的缩略图。
 
-如果想要指定剪裁的精确位置，需要用'x'和'y'参数指定起点坐标，比如下面的例子，代表以距离图片左边80px，上边10px为起点，剪裁一张100px*200px的图片。
+    http://www.zf2.local/thumb/d/demo,c_50,g_30.jpg
+
+![EvaThumber Resized Image](http://www.zf2.local/thumb/d/demo,c_50,g_30.jpg)
+
+###指定坐标 `x_[int X]` + `y_[int y]`:
+
+如果想要指定剪裁的精确位置，需要用`x_`和`y_`参数指定起点坐标，`x_0,y_0` 以图片左上角为坐标原点。
+
+比如 `c_50,g_60,x_40,y_30` 代表以距离图片左边40px，上边30px为起点，剪裁一张50px*60px的图片。
 
     http://EvaThumber.avnpc.com/thumb/demo,c_100,g_200,x_80,y_10.jpg
 
-![EvaThumber Resized Image](http://EvaThumber.avnpc.com/thumb/demo,c_100,g_200,x_80,y_10.jpg)
+![EvaThumber Resized Image](http://www.zf2.local/thumb/d/demo,c_50,g_60,x_40,y_30.jpg)
 
 图片的剪裁与缩放可以混用，EvaThumber始终会先进行剪裁，然后再对剪裁后的图片缩放。
 
-    http://EvaThumber.avnpc.com/thumb/demo,c_100,g_200,w_50.jpg
+    http://www.zf2.local/thumb/d/demo,c_50,g_60,x_40,y_30,w_30.jpg
 
-![EvaThumber Resized Image](http://EvaThumber.avnpc.com/thumb/demo,c_100,g_200,w_50.jpg)
+![EvaThumber Resized Image](http://www.zf2.local/thumb/d/demo,c_50,g_60,x_40,y_30,w_30.jpg)
 
-###填充模式
+###填充模式 `c_fill` + `w_[int Width]` + `h_[int Height]`
 
-在实际使用中，我们经常会遇到这样的场景：需要截取并缩放图片以适应网页布局，此时我们可以使用剪裁中的填充模式，在填充模式下，需要指定剪裁参数为c_fill，同时设定填充的宽度与高度，然后可以得到一张完全吻合设定尺寸，同时经过缩放与剪裁处理的图片。
+在实际使用中，我们经常会遇到这样的场景：需要截取并缩放图片以适应网页布局，此时我们可以使用剪裁中的填充模式，在填充模式下，需要指定剪裁参数为`c_fill`，同时设定填充的宽度与高度，然后可以得到一张完全吻合设定尺寸，同时经过缩放与剪裁处理的图片。
 
-    http://EvaThumber.avnpc.com/thumb/demo,c_fill,w_250,h_50.jpg
+    http://www.zf2.local/thumb/d/demo,c_fill,w_50,h_50.jpg
 
-![EvaThumber Resized Image](http://EvaThumber.avnpc.com/thumb/demo,c_fill,w_250,h_50.jpg)
+![EvaThumber Resized Image](http://www.zf2.local/thumb/d/demo,c_fill,w_50,h_50.jpg)
 
-在填充模式下还可以设定剪裁范围，允许的剪裁范围包括'top'（从上方）, 'bottom'（从下方）, 'left'（从左）， 'right'（从右）。
+在填充模式下还可以用`g_`设定剪裁范围，允许的剪裁范围包括`g_top`（从上方）, `g_bottom`（从下方）, `g_left`（从左）， `g_right`（从右）。
 
-    http://EvaThumber.avnpc.com/thumb/demo,c_fill,g_top,w_250,h_60.jpg
+    http://www.zf2.local/thumb/d/demo,c_fill,g_left,h_50,w_50.jpg
 
-![EvaThumber Resized Image](http://EvaThumber.avnpc.com/thumb/demo,c_fill,g_top,w_250,h_60.jpg)
+![EvaThumber Resized Image](http://www.zf2.local/thumb/d/demo,c_fill,g_left,h_50,w_50.jpg)
 
-旋转
+图片旋转 `r_[int Rotate]`
 -----------------
 
-旋转参数为'*r*' (rotate) ，传递一个数字作为图片旋转的角度，比如让图片按照逆时针旋转90度：
+`r_` 允许指定一个1-360的数字作为图片旋转的角度，比如`r_90`让图片按照*顺时针*旋转90度：
 
-    http://EvaThumber.avnpc.com/thumb/demo,h_200,r_90.jpg
+    http://www.zf2.local/thumb/d/demo,r_90,w_50.png
 
-![EvaThumber Resized Image](http://EvaThumber.avnpc.com/thumb/demo,h_200,r_90.jpg)
+![EvaThumber Resized Image](http://www.zf2.local/thumb/d/demo,r_90,w_50.png)
 
-图片滤镜
+图片滤镜 `f_[string Filter]`
 -------------
 
 图片边线
 ------------
 
+
+图片压缩质量  `q_[int Quality]`
+------------
+
+`q_` 允许指定一个1-100的参数设置jpg图片的压缩质量:
+
+    http://www.zf2.local/thumb/d/demo,w_100,q_10.jpg
+
+![EvaThumber Resized Image](http://www.zf2.local/thumb/d/demo,w_100,q_10.jpg)
+
+也可以在配置文件中设置一个全局压缩质量：
+
+    'thumbers' => array(
+        'd' => array(
+            'quality' => 70,
+        ),
+    ）,
+
 图片水印
 ------------
 
+###图片水印
 
+###文字水印
 
-图片压缩质量
-------------
-
-通过'*q*'(quality)可以指定jpg图片的压缩质量，默认为100:
-
-    http://EvaThumber.avnpc.com/thumb/demo,h_200,q_10.jpg
-
-![EvaThumber Resized Image](http://EvaThumber.avnpc.com/thumb/demo,h_200,q_10.jpg)
-
+###二维码水印
 
 魔术功能
 ============
@@ -245,7 +282,8 @@ URL唯一化
 只允许子域名访问静态缓存
 ----------
 
-
+出错处理
+--------
 
 
 安装与设置

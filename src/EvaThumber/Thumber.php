@@ -436,10 +436,16 @@ class Thumber
             return $this;
         }
 
+        $gravity = $params->getGravity();
         if(false === is_numeric($crop)){
+
+            //Fill mode
+
+
+
             return $this;
         }
-        $gravity = $params->getGravity();
+
         $gravity = $gravity ? $gravity : $crop;
 
         $x = $params->getX();

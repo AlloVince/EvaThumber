@@ -103,6 +103,11 @@ class Parameters
         return $this->dummy;
     }
 
+    public function getFilter()
+    {
+        return $this->filter;
+    }
+
     public function setFilter($filter)
     {
         $filter = strtolower($filter);
@@ -114,10 +119,6 @@ class Parameters
         return $this;
     }
 
-    public function getFilter()
-    {
-        return $this->filter;
-    }
 
     public function getGravity()
     {
@@ -126,7 +127,16 @@ class Parameters
 
     public function setGravity($gravity)
     {
-        $this->gravity = (int) $gravity;
+        $gravities = array('top', 'bottom', 'left', 'right');
+        if(is_numeric($gravity)){
+            $gravity = (int) $gravity; 
+        } elseif(is_string($gravity)){
+            $gravity = strtolower($gravity);
+            if(false === in_array($gravity, $gravities)){
+                $gravity = null;
+            }
+        }
+        $this->gravity = $gravity;
         return $this;
     }
 
@@ -510,6 +520,17 @@ class Parameters
             if($this->x === null || $this->y === null){
                 $this->x = null;
                 $this->y = null;
+            }
+        }
+
+        //In fill mode, gravity could only be a string
+        if('fill' === $this->crop){
+            //fill mode not allow x/y
+            $this->x = null;
+            $this->y = null;
+
+            if($this->gravity && is_numeric($this->gravity)){
+                $this->gravity = null;
             }
         }
 
