@@ -1,4 +1,4 @@
-[EvaThumber](http://avnpc.com/pages/EvaThumber) 是一个基于URL的轻量级图片处理库，支持缩放/旋转/截取/滤镜等多种常用图片处理，可以设置全局水印，所有处理仅仅需要通过更改图片的URL。
+[EvaThumber](http://avnpc.com/pages/evathumber) 是一个基于URL的轻量级图片处理库，支持缩放/旋转/截取/滤镜等多种常用图片处理，支持设置水印/二维码，并且可以进行面部识别以及PNG优化压缩，所有处理仅仅需要通过更改图片的URL。
 
 EvaThumber基于PHP实现，可以一键安装在任何主流系统，由于基于URL实现接口，所以其他编程语言也可以使用EvaThumber作为前端组件。
 
@@ -6,54 +6,106 @@ EvaThumber is a light-weight & opensource url based image transformation php lib
 
 EvaThumber的源代码存放于[Github](https://github.com/AlloVince/EvaThumber)，完全开源，欢迎[Fork](https://github.com/AlloVince/EvaThumber)或[关注我](https://github.com/AlloVince)。
 
-下面是一个实例：
+下面是几个实例：
 
 原图：
 
-EvaThumber的处理：裁剪为宽200，高200，加黑白滤镜，压缩质量70，输出为png格式
+    http://www.zf2.local/upload/demo.jpg
 
+![EvaThumber Image Demo](http://www.zf2.local/upload/demo.jpg)
+
+EvaThumber的处理：裁剪为宽100，高100，加黑白滤镜，输出为png格式
+
+    http://www.zf2.local/thumb/d/demo,c_fill,f_gray,h_100,w_100.png
+
+![EvaThumber Image Demo](http://www.zf2.local/thumb/d/demo,c_fill,f_gray,h_100,w_100.png)
+
+按宽度缩小到150px，旋转180度，加上水印，压缩质量为60%。
+
+    http://www.zf2.local/thumb/watermark/demo,q_70,r_180,w_150.jpg
+
+![EvaThumber Image Demo](http://www.zf2.local/thumb/watermark/demo,q_70,r_180,w_150.jpg)
+
+拿二维码当水印，水印放在图片中央，缩小到原图的50%
+
+    http://www.zf2.local/thumb/watermark2/demo,p_50.jpg
+
+![EvaThumber Image Demo](http://www.zf2.local/thumb/watermark2/demo,p_50.jpg)
+
+前端人员想要设计一个图片墙功能，想用一些高质量的图片作为素材，还需要去一张一张找？EvaThumber只需要这样：
+
+    <ul class="thumbnails">
+        <li class="span4"><a href="#" class="thumbnail"><img src="http://www.zf2.local/thumb/d/01,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
+        <li class="span4"><a href="#" class="thumbnail"><img src="http://www.zf2.local/thumb/d/02,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
+        <li class="span4"><a href="#" class="thumbnail"><img src="http://www.zf2.local/thumb/d/03,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
+    </ul>
+
+<ul class="thumbnails">
+<li class="span4"><a href="#" class="thumbnail"><img src="http://www.zf2.local/thumb/d/01,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
+<li class="span4"><a href="#" class="thumbnail"><img src="http://www.zf2.local/thumb/d/02,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
+<li class="span4"><a href="#" class="thumbnail"><img src="http://www.zf2.local/thumb/d/03,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
+</ul>
 
 
 为什么用EvaThumber
 ===================
 
-一切基于URL，人人可用
----------------------
+- 一切基于URL，人人可用，任何项目均可集成
+- 所见即所得，前端人员无痛调试
+- 设计人员在项目前期大量图片素材自动获取
+- 同时支持GD/Imagick/Gmagick三大主流图片处理库，几乎可在所有服务器上部署
+- 面部识别/水印/PNG优化压缩等更多有趣功能
 
 
-所见即所得，前端人员无痛调试
-----------------------------
-
-
-项目前期大量图片素材自动获取
----------------------------
-
-同时支持GD/Imagick/Gmagick
-----------------------------
-
-
-
-基本功能
+目录结构
 ========
 
 
+
+基本功能 (URL API)
+========
 
 影子模式
 --------------
 
 很多时候我们不希望暴露原图片的地址，此时可以通过EvaThumber自动生成原图片的影子图片，保护原图片URL不被泄露，比如
 
- - 原图片地址为 : [http://EvaThumber.avnpc.com/upload/demo.jpg](http://EvaThumber.avnpc.com/upload/demo.jpg)
- - 影子图片地址为 : [http://EvaThumber.avnpc.com/thumb/demo.jpg](http://EvaThumber.avnpc.com/thumb/demo.jpg)，在网站中只需要公布影子图片即可
+ - 原图片地址为 : [http://www.zf2.local/upload/demo.jpg](http://www.zf2.local/upload/demo.jpg)
+ - 影子图片地址为 : [http://www.zf2.local/thumb/d/demo.jpg](http://www.zf2.local/thumb/d/demo.jpg)，在网站中只需要公布影子图片即可
 
 假如原图片位于多级的树形目录下，影子图片也会保持与原图片同样的目录结构，从原切换到影子只需要更改域名或者根目录。
 
 ###图片尺寸限制
 
+如果图片由用户上传，那么可能会遇到非常大的图片，此时可以在配置文件中设置最大尺寸限制。比如
 
+    'thumbers' => array(
+        'max' => array(
+            'max_width' => 100,
+            'max_height' => 100,
+        ),
+    ）,
+
+访问当前配置下的图片，图片宽度已经被限制为100：
+
+    http://www.zf2.local/thumb/max/demo.jpg
+
+![EvaThumber Image Demo](http://www.zf2.local/thumb/max/demo.jpg)
 
 图片格式转换
 -------------
+
+EvaThumber支持的图片格式有：
+
+- [GIF (Graphics Interchange Format)](http://en.wikipedia.org/wiki/Graphics_Interchange_Format)
+- jpg
+- png
+- wbmp
+- xbm
+
+支持在任意两种格式间转换，只需要更改URL最后的扩展名即可，比如
+
+   
 
 图片缩放
 -----------------
@@ -294,3 +346,4 @@ EvaThumber 是 [EvaEngine](https://github.com/AlloVince/eva-engine)项目的一�
 -------
 
 EvaThumber由[EvaImageCloud](http://avnpc.com/pages/evacloudimage)更名而来，基本兼容旧版的API并作了完全的重构。旧版本代码[在此](https://github.com/AlloVince/EvaCloudImage/tree/42941a86af2b5fe92a5a3376010cfad607cce555)
+

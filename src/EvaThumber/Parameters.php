@@ -474,7 +474,7 @@ class Parameters
             }
 
 
-            if($config->allow_sizes->count() > 0){
+            if($config->allow_sizes && $config->allow_sizes->count() > 0){
                 $allowSizes = $config->allow_sizes;
                 $matched = false;
                 foreach($allowSizes as $allowSize){

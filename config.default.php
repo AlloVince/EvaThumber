@@ -1,7 +1,7 @@
 <?php
 return array(
     'thumbers' => array(
-        '1' => array(
+        'd' => array(
             'debug' => 0, //0: redirect to error png | 1: redirect to error png with error url msg | 2: throw an exception
             'source_path' => __DIR__ . '/upload',
             'thumb_cache_path' => __DIR__ . '/thumb',
@@ -24,18 +24,19 @@ return array(
                     'bin' => __DIR__ . '/bin/pngout.exe',
                 ),
             ),
-            'jpg_optimize' => array(
-                'enable' => 1,
-                'adapter' => 'jpegtran',
-                'jpegtran' => array(
-                    'bin' => __DIR__ . '/bin/jpegtran.exe',
-                ),
+            'allow_extensions' => array(
+            
             ),
             'allow_sizes' => array(
-            //Suggest keep empty here to be overwrite
+                //Suggest keep empty here to be overwrite
+                //'200*100',
+                //'100*100',
             ),
             'disable_operates' => array(
                 //Suggest keep empty here to be overwrite
+                //'filter',
+                //'crop',
+                //'dummy',
             ),
             'watermark' => array(
                 'enable' => 0,
@@ -48,36 +49,6 @@ return array(
                 'qr_code' => 0,
                 'qr_code_size' => 3,
                 'qr_code_margin' => 4,
-            ),
-        ),
-        '2' => array(
-            'source_path' => 'E:\WallPaper',
-            'max_width' => 800,
-            'max_height' => 600,
-            'quality' => 70,
-            'cache' => 1,
-            'allow_sizes' => array(
-                //'200*100',
-                //'100*100',
-            ),
-            'disable_operates' => array(
-                /*
-                'filter',
-                'crop',
-                'dummy'
-                */
-            ),
-            'watermark' => array(
-                'enable' => 1,
-                'position' => 'br', //position could be tl:TOP LEFT | tr: TOP RIGHT | bl | BOTTOM LEFT | br BOTTOM RIGHT | center
-                'text' => '徐谦',
-                'layer_file' => '',
-                'font_file' => __DIR__ . '/layers/Yahei_Mono.ttf',
-                'font_size' => 12,
-                'font_color' => '#FFFFFF',
-                'qr_code' => 1,
-                'qr_code_size' => 3,
-                'qr_code_margin' => 1,
             ),
         ),
     ),
