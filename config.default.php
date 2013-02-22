@@ -1,9 +1,5 @@
 <?php
 return array(
-    'opencv_path' => 'c:\jpegtran.exe',
-    'jpegtran_path' => 'c:\jpegtran.exe',
-    'pngout_path' => 'c:\pngout.exe',
-    'error_url' => 'http://localhost/EvaCloudImage/error.png',
     'thumbers' => array(
         '1' => array(
             'debug' => 0, //0: redirect to error png | 1: redirect to error png with error url msg | 2: throw an exception
@@ -17,12 +13,26 @@ return array(
             'allow_stretch' => false,
             'min_width' => 10,
             'min_height' => 10,
-            'max_width' => 800,
-            'max_height' => 400,
-            'quality' => 70,
+            'max_width' => 2000,
+            'max_height' => 2000,
+            'quality' => 100,
             'redirect_referer' => true, 
+            'png_optimize' => array(
+                'enable' => 1,
+                'adapter' => 'pngout',
+                'pngout' => array(
+                    'bin' => __DIR__ . '/bin/pngout.exe',
+                ),
+            ),
+            'jpg_optimize' => array(
+                'enable' => 1,
+                'adapter' => 'jpegtran',
+                'jpegtran' => array(
+                    'bin' => __DIR__ . '/bin/jpegtran.exe',
+                ),
+            ),
             'allow_sizes' => array(
-                //Suggest keep empty here to be overwrite
+            //Suggest keep empty here to be overwrite
             ),
             'disable_operates' => array(
                 //Suggest keep empty here to be overwrite
@@ -42,9 +52,13 @@ return array(
         ),
         '2' => array(
             'source_path' => 'E:\WallPaper',
+            'max_width' => 800,
+            'max_height' => 600,
+            'quality' => 70,
+            'cache' => 1,
             'allow_sizes' => array(
-                '200*100',
-                '100*100',
+                //'200*100',
+                //'100*100',
             ),
             'disable_operates' => array(
                 /*

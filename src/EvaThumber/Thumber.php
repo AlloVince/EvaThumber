@@ -51,6 +51,10 @@ class Thumber
 
     protected $cacher;
 
+    protected $processed = false;
+    protected $optimized = false;
+    protected $optimizedImage;
+
     public function getCacher()
     {
         if($this->cacher){
@@ -215,9 +219,126 @@ class Thumber
         return header("location:$newUrl"); //+old url + server referer
     }
 
+    public function save($path = null)
+    {
+        return $this->saveImage($path);
+    }
+
+    public function show()
+    {
+        $config = $this->getConfig();
+        $extension = $this->getParameters()->getExtension();
+        
+        $this->process();
+        $image = $this->getImage();
+
+        if($config->cache){
+            $this->saveImage();
+        }
+
+        return $this->showImage($extension);
+    }
+
+
+
+    public function __construct($config, $url = null)
+    {
+        if($config instanceof Config\Config){
+            $config = $config; 
+        } else {
+            $config = new Config\Config($config);
+        }
+        $this->url = $url = new Url($url);
+        $configKey = $url->getUrlKey();
+        $defaultConfig = $config->thumbers->current();
+        $defaultKey = $config->thumbers->key();
+        if(isset($config->thumbers->$configKey)){
+            if($defaultKey == $configKey){
+                $this->config = $config->thumbers->$configKey;
+            } else {
+                $this->config = $defaultConfig->merge($config->thumbers->$configKey);
+            }
+        } else {
+            throw new Exception\InvalidArgumentException(sprintf(
+                'No config found by key %s', $configKey
+            ));
+        }
+    }
+
+    public function __destruct()
+    {
+        if($this->optimizedImage){
+            unlink($this->optimizedImage);
+        }
+    }
+
+    protected function saveImage($path = null)
+    {
+        if(!$path){
+            $config = $this->getConfig();
+            $cacheRoot = $config->thumb_cache_path;
+            $imagePath = '/' . $this->getUrl()->getUrlKey() . $this->getUrl()->getImagePath();
+            $cachePath = $cacheRoot . $imagePath . '/' . $this->getUrl()->getUrlImageName();
+            $pathLevel = count(explode('/', $imagePath));
+            $this->getFilesystem()->prepareDirectoryStructure($cachePath, $pathLevel);
+            $path = $cachePath;
+        }
+
+        if(true === $this->optimized){
+            return $this->saveOptimizedImage($path);
+        }
+
+        return $this->saveNormalImage($path);
+    }
+
+    protected function saveNormalImage($path = null)
+    {
+        return $this->getImage()->save($path, $this->getImageOptions());
+    }
+
+    protected function saveOptimizedImage($path = null)
+    {
+        copy($this->optimizedImage, $path);
+        return true;
+    }
+
+    protected function showImage($extension)
+    {
+        if(true === $this->optimized){
+            return $this->showOptimizedImage($extension);
+        }
+
+        return $this->showNormalImage($extension);
+    }
+
+    protected function showNormalImage($extension)
+    {
+        return $this->getImage()->show($extension, $this->getImageOptions());
+    }
+
+    protected function showOptimizedImage($extension)
+    {
+        $mimeTypes = array(
+            'jpeg' => 'image/jpeg',
+            'jpg'  => 'image/jpeg',
+            'gif'  => 'image/gif',
+            'png'  => 'image/png',
+            'wbmp' => 'image/vnd.wap.wbmp',
+            'xbm'  => 'image/xbm',
+        );
+        header('Content-type: ' . $mimeTypes[$extension]);
+        $handle = fopen ($this->optimizedImage, "r");
+        echo stream_get_contents($handle);
+        unlink($this->optimizedImage);
+        fclose($handle);
+    }
 
     protected function process()
     {
+        if(true === $this->processed){
+            return $this;
+        }
+
         $config = $this->getConfig();
         $params = $this->getParameters();
         $params->disableOperates($config->disable_operates);
@@ -269,59 +390,14 @@ class Thumber
             ->rotate()
             ->filter()
             ->layer() 
-            ->quality();
+            ->quality()
+            ->optimize();
+
+        $this->processed = true;
 
         return $this;
     }
 
-
-    public function save()
-    {
-    }
-
-    public function show()
-    {
-        $config = $this->getConfig();
-        $extension = $this->getParameters()->getExtension();
-        
-        $this->process();
-        $image = $this->getImage();
-
-        if($config->cache){
-            $cacheRoot = $config->thumb_cache_path;
-            $imagePath = '/' . $this->getUrl()->getUrlKey() . $this->getUrl()->getImagePath();
-            $cachePath = $cacheRoot . $imagePath . '/' . $this->getUrl()->getUrlImageName();
-            $pathLevel = count(explode('/', $imagePath));
-            $this->getFilesystem()->prepareDirectoryStructure($cachePath, $pathLevel);
-            $image->save($cachePath, $this->getImageOptions());
-        }
-
-        return $image->show($extension, $this->getImageOptions());
-    }
-
-    public function __construct($config, $url = null)
-    {
-        if($config instanceof Config\Config){
-            $config = $config; 
-        } else {
-            $config = new Config\Config($config);
-        }
-        $this->url = $url = new Url($url);
-        $configKey = $url->getUrlKey();
-        $defaultConfig = $config->thumbers->current();
-        $defaultKey = $config->thumbers->key();
-        if(isset($config->thumbers->$configKey)){
-            if($defaultKey == $configKey){
-                $this->config = $config->thumbers->$configKey;
-            } else {
-                $this->config = $defaultConfig->merge($config->thumbers->$configKey);
-            }
-        } else {
-            throw new Exception\InvalidArgumentException(sprintf(
-                'No config found by key %s', $configKey
-            ));
-        }
-    }
 
     protected function createThumber($adapter = null)
     {
@@ -592,5 +668,28 @@ class Thumber
         return $this;
     }
 
+    protected function optimize()
+    {
+        $extension = $this->getParameters()->getExtension();
+        if($extension === 'gif'){
+            return $this;
+        }
+
+        $config = $this->getConfig();
+        if($extension === 'png' && $config->png_optimize->enable){
+            $featureClass = 'EvaThumber\Feature\Pngout';
+            if(false === $featureClass::isSupport()){
+                return $this;
+            }
+
+            $feature = new $featureClass($config->png_optimize->pngout->bin);
+            $this->optimizedImage = $feature->filterDump($this->getImage());
+            if($this->optimizedImage){
+                $this->optimized = true;
+            }
+        }
+
+        return $this;
+    }
 
 }

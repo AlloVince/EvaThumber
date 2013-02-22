@@ -473,7 +473,8 @@ class Parameters
                 $this->height = $width = $height > $maxHeight ? $maxHeight : $height;
             }
 
-            if($config->allow_sizes){
+
+            if($config->allow_sizes->count() > 0){
                 $allowSizes = $config->allow_sizes;
                 $matched = false;
                 foreach($allowSizes as $allowSize){

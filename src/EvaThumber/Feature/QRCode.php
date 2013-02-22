@@ -5,7 +5,7 @@ namespace EvaThumber\Feature;
 
 use PHPQRCode;
 
-class QRCode
+class QRCode implements FeatureInterface
 {
 
     public static function isSupport()
