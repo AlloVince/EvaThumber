@@ -26,7 +26,7 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 /** Debug functions */
 function p($r, $usePr = false)
 {
-    echo '<pre>' . var_dump($r) . '</pre>';
+    echo '<pre>' . var_dump($r); 
 }
 
 $loader->add('EvaThumber', __DIR__ . '/src');

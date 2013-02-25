@@ -120,8 +120,23 @@ class Url
             return $this->urlScriptName;
         }
 
-        if(isset($_SERVER['SCRIPT_NAME'])){
-            return $this->urlScriptName = $_SERVER['SCRIPT_NAME'];
+        if(isset($_SERVER['SCRIPT_NAME']) && $_SERVER['SCRIPT_NAME']){
+            $scriptName = $_SERVER['SCRIPT_NAME'];
+
+            //Nginx maybe set SCRIPT_NAME as pull url path
+            if(($scriptNameEnd = substr($scriptName, -4)) && $scriptNameEnd === '.php'){
+                return $this->urlScriptName = $scriptName;
+            } else {
+                $scriptNameArray = explode('/', $scriptName);
+                $scriptName = array();
+                foreach($scriptNameArray as $scriptNamePart){
+                    $scriptName[] = $scriptNamePart;
+                    if(false !== strpos($scriptNamePart, '.php')){
+                        break;
+                    }
+                }
+                return $this->urlScriptName = implode('/', $scriptName);
+            }
         }
 
         return '';
