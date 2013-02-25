@@ -26,7 +26,7 @@ EvaThumber的处理：裁剪为宽100，高100，加黑白滤镜，输出为png�
 
 ![EvaThumber Image Demo](http://www.zf2.local/thumb/watermark/demo,q_70,r_180,w_150.jpg)
 
-拿二维码当水印，水印放在图片中央，缩小到原图的50%
+使用二维码作为水印，水印放在图片中央，缩小到原图的50%
 
     http://www.zf2.local/thumb/watermark2/demo,p_50.jpg
 
@@ -223,6 +223,11 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
 图片滤镜 `f_[string Filter]`
 -------------
 
+目前支持的滤镜有：
+
+- `f_gray` 黑白滤镜
+- `f_gamma` 
+
 图片边线
 ------------
 
@@ -260,6 +265,9 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
 自动获得随机高质量图片素材
 ---------------
 
+读取压缩包
+-----------
+
 面部识别
 ----------------
 
@@ -277,6 +285,9 @@ URL唯一化
 ----------
 
 设置允许尺寸
+------------
+
+设置允许操作
 ------------
 
 只允许子域名访问静态缓存
@@ -322,7 +333,7 @@ URL唯一化
                     root  /usr/www/EvaThumber/;
                     index index.php index.html index.htm;
                     if (!-e $request_filename){
-                       rewrite ^/(.*)$ /index.php?$1& last;
+                       rewrite ^/(.*)$ /index.php last;
                     }
             }
             location ~ \.php$ {
@@ -337,18 +348,13 @@ URL唯一化
 
 编辑源代码中的config.inc.php文件：
 
-    array(
-        'libPath' => __DIR__ . '/lib',  //依赖库的存放路径，一般无需更改
-        'sourceRootPath' => __DIR__ . '/upload',  //原图片的存放路径，需要读取权限
-        'thumbFileRootPath' => __DIR__ . '/thumb', //缩略图的存放路径，需要读写权限
-        'thumbUrlRootPath' => __DIR__, //缩略域名绑定的根目录
-        'saveImage' => false,  //如果开启，所有缩略图会自动保存，在正式环境推荐打开。
-    );
 
 
 复写配置文件
 ------------
 
+大规模部署
+===========
 
 其他
 =======
