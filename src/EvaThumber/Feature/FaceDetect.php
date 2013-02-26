@@ -59,12 +59,15 @@ class FaceDetect extends AbstractProcess implements FeatureInterface
         if (0 < $code) {
             unlink($input);
             return false;
-            //return $image;
         }
 
-
         unlink($input);
-        return $output;
+        $res = array();
+        if(file_exists($output)){
+            $res = json_decode(file_get_contents($output));
+            unlink($output);
+        }
+        return $res;
     }
 }
 

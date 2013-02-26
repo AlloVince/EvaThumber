@@ -258,18 +258,38 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
 
 ###二维码水印
 
-魔术功能
+实验室功能
 ============
-
 
 自动获得随机高质量图片素材
 ---------------
+
+
 
 读取压缩包
 -----------
 
 面部识别
 ----------------
+
+剪裁图片时默认的方式是通过指定`x_`和`y_`坐标来选择剪裁的区域，不过如果是带有人物的图片，可以试试使用`c_face`去自动识别人物面部坐标，比如下图
+
+    http://www.zf2.local/index.php/thumb/d/face,w_100.jpg
+
+![EvaThumber Resized Image](http://www.zf2.local/index.php/thumb/d/face,w_100.jpg)
+
+使用默认的剪裁方式：
+
+    http://www.zf2.local/index.php/thumb/d/face,c_100.jpg
+
+![EvaThumber Resized Image](http://www.zf2.local/index.php/thumb/d/face,c_100.jpg)
+
+使用面部识别：
+
+    http://www.zf2.local/index.php/thumb/d/face,c_face,w_100,h_100.jpg
+
+![EvaThumber Resized Image](http://www.zf2.local/index.php/thumb/d/face,c_face,w_100,h_100.jpg)
+
 
 图片优化
 --------------
@@ -390,4 +410,5 @@ EvaThumber 是 [EvaEngine](https://github.com/AlloVince/eva-engine)项目的一�
 -------
 
 EvaThumber由[EvaImageCloud](http://avnpc.com/pages/evacloudimage)更名而来，基本兼容旧版的API并作了完全的重构。旧版本代码[在此](https://github.com/AlloVince/EvaCloudImage/tree/42941a86af2b5fe92a5a3376010cfad607cce555)
+
 
