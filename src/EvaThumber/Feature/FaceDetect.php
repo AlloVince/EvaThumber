@@ -43,7 +43,7 @@ class FaceDetect extends AbstractProcess implements FeatureInterface
 
     public function filterDump(ImageInterface $image)
     {
-        $pb = $this->createProcessBuilder(array('python ' . $this->facedetectBin));
+        $pb = $this->createProcessBuilder(array('' . $this->facedetectBin));
 
         $uniq = uniqid();
         $input = sys_get_temp_dir() . '/evathumber_facedetect_' . $uniq . '_in.png';
@@ -57,16 +57,16 @@ class FaceDetect extends AbstractProcess implements FeatureInterface
         $code = $proc->run();
 
         if (0 < $code) {
-            unlink($input);
-            return false;
+            //unlink($input);
+            //return false;
         }
 
-        unlink($input);
         $res = array();
         if(file_exists($output)){
             $res = json_decode(file_get_contents($output));
-            unlink($output);
+            @unlink($output);
         }
+        @unlink($input);
         return $res;
     }
 }

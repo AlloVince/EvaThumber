@@ -21,7 +21,7 @@ from optparse import OptionParser
 # min_size=<minimum possible face size
 
 min_size = (20, 20)
-image_scale = 2
+image_scale = 1
 haar_scale = 1.2
 min_neighbors = 2
 haar_flags = 0
@@ -77,10 +77,10 @@ def detect_and_draw(img, out_put, cascade):
 #print image_path
 #print xml_path
 #detect_and_draw(image_path, save_path, xml_path)
-xml_path = sys_path + r'/../data/haarcascades/haarcascade_frontalface_alt.xml'
 
 if __name__ == '__main__':
 
+    xml_path = r'/opt/htdocs/EvaCloudImage/data/haarcascades/haarcascade_frontalface_alt.xml'
     parser = OptionParser(usage = "usage: %prog [options] [inputfile] [outputfile]")
     parser.add_option("-c", "--cascade", action="store", dest="cascade", type="str", help="Haar cascade file, default %default", default = xml_path)
     (options, args) = parser.parse_args()

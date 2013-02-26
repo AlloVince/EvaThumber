@@ -13,6 +13,9 @@ namespace EvaThumber;
 
 use Imagine;
 use Imagine\Image\ImagineInterface;
+use Imagine\Image\Box;
+use Imagine\Image\Color;
+use Imagine\Image\Point;
 
 class Thumber
 {
@@ -456,14 +459,35 @@ class Thumber
             return $this;
         }
 
+        $image = $this->getImage();
         if($crop === 'face'){
             if(false === Feature\FaceDetect::isSupport()){
                 throw new Exception\BadFunctionCallException(sprintf('No support face detection feature'));
             }
 
-
             $feature = new Feature\FaceDetect($this->config->face_detect->bin, $this->config->face_detect->cascade);
             $faceData = $feature->filterDump($this->getImage());
+
+            if(!$faceData || $faceData->faces < 1){
+                return $this;
+            }
+
+            if($this->config->face_detect->draw_border){
+                foreach($faceData->data as $data){
+                    $x = $data->x + $data->w / 2;
+                    $y = $data->y + $data->h / 2;
+                    $image->draw()->ellipse(new Point($x, $y), new Box($data->w, $data->h), new Color('fff'));
+                }
+            }
+
+            $width = $params->getWidth();
+            $height = $params->getHeight();
+            if($width && $height){
+                $newX = $x - $width / 2 > 0 ? $x - $width / 2 : 0;
+                $newY = $y - $height / 2 > 0 ? $y - $height / 2 : 0;
+                $this->image = $image->crop(new Imagine\Image\Point($newX, $newY), new Imagine\Image\Box($width, $height));
+            
+            }
             return $this;
         }
 
@@ -477,7 +501,6 @@ class Thumber
         $x = $params->getX();
         $y = $params->getY();
 
-        $image = $this->getImage();
         $imageWidth = $image->getSize()->getWidth();
         $imageHeight = $image->getSize()->getHeight();
 
