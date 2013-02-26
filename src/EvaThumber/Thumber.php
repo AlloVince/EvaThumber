@@ -456,13 +456,19 @@ class Thumber
             return $this;
         }
 
+        if($crop === 'face'){
+            if(false === Feature\FaceDetect::isSupport()){
+                throw new Exception\BadFunctionCallException(sprintf('No support face detection feature'));
+            }
+
+
+            $feature = new Feature\FaceDetect($this->config->face_detect->bin, $this->config->face_detect->cascade);
+            $faceData = $feature->filterDump($this->getImage());
+            return $this;
+        }
+
         $gravity = $params->getGravity();
         if(false === is_numeric($crop)){
-
-            //Fill mode
-
-
-
             return $this;
         }
 

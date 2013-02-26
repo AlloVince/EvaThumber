@@ -18,6 +18,12 @@ return array(
             'max_height' => 2000,
             'quality' => 100,
             'redirect_referer' => true, 
+            'face_detect' => array(
+                'enable' => 1,
+                'draw_border' => 1,
+                'cascade' => '',
+                'bin' => __DIR__ . '/bin/opencv.py',
+            ),
             'png_optimize' => array(
                 'enable' => 1,
                 'adapter' => 'pngout',
