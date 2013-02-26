@@ -153,11 +153,30 @@ class Thumber
         $filePath = $this->url->getImagePath();
         $fileName = $this->url->getImageName();
 
-        if(!$fileName){
-            throw new Exception\InvalidArgumentException(sprintf("Request an empty filename"));
+        if(is_dir($fileRootPath)){
+
+            if(!$fileName){
+                throw new Exception\InvalidArgumentException(sprintf("Request an empty filename"));
+            }
+            $sourcefile = $fileRootPath . $filePath . '/' . $fileName;
+
+        } elseif(is_file($fileRootPath)){
+
+            if(!Feature\ZipReader::isSupport()){
+                throw new Exception\BadFunctionCallException(sprintf("Your system not support ZipArchive feature"));
+            }
+
+            $sourcefile =  Feature\ZipReader::getStreamPath(urldecode($filePath . '/' . $fileName), $fileRootPath, $this->config->zip_file_encoding);
+            //$sourcefile = Feature\ZipReader::read(urldecode($filePath . '/' . $fileName), $fileRootPath, $this->config->zip_file_encoding);
+
+        } else {
+
+            throw new Exception\IOException(sprintf(
+                "Source file not readable %s", $fileRootPath
+            ));
+
         }
 
-        $sourcefile = $fileRootPath . $filePath . '/' . $fileName;
         return $this->sourcefile = $sourcefile;
     }
 
@@ -173,23 +192,24 @@ class Thumber
         $sourcefilePath = substr($sourcefile, 0, strrpos($sourcefile, '.'));
         $fileExist = false;
 
-        //Not use file system, instead of glob
-        foreach (glob($sourcefilePath . '.*') as $sourcefile) {
-            $this->setSourcefile($sourcefile);
-            $fileExist = true;
-            break;
-        }
+        if(0 === strpos($sourcefilePath, 'zip://')){
 
-        /*
-        $filesystem = $this->getFilesystem();
-        foreach (glob($sourcefilePath . '.*') as $sourcefile) {
-            if(true === $filesystem->exists($sourcefile)){
+            $files = Feature\ZipReader::glob($sourcefilePath . '.*');
+            if($files){
+                $streamPath = Feature\ZipReader::parseStreamPath($sourcefile);
+                $sourcefile = Feature\ZipReader::getStreamPath($files[0]['name'], $streamPath['zipfile']);
+                $this->setSourcefile($sourcefile);
+                $fileExist = true;
+            }
+
+        } else {
+            //Not use file system, instead of glob
+            foreach (glob($sourcefilePath . '.*') as $sourcefile) {
                 $this->setSourcefile($sourcefile);
                 $fileExist = true;
                 break;
             }
         }
-        */
         return $fileExist;
     }
 
