@@ -170,7 +170,6 @@ class Thumber
             }
 
             $sourcefile =  Feature\ZipReader::getStreamPath(urldecode($filePath . '/' . $fileName), $fileRootPath, $this->config->zip_file_encoding);
-            //$sourcefile = Feature\ZipReader::read(urldecode($filePath . '/' . $fileName), $fileRootPath, $this->config->zip_file_encoding);
 
         } else {
 

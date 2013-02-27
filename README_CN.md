@@ -68,7 +68,41 @@ EvaThumber的处理：裁剪为宽100，高100，加黑白滤镜，输出为png�
 URL基本构成
 -----------
 
+一个典型的EvaThumber的URL形如：
 
+http://www.zf2.local/<span class="label label-info">thumb</span>/<span class="label label-success">default</span>/<span class="label">abc/demo</span><span class="label label-important">,c_fill,w_100,h_100</span><span class="label label-inverse">.gif</span>
+
+高亮的部分分别是：
+
+- <span class="label label-info">前缀 prefix</span> 可在配置文件中设置，一般是缓存存放的文件夹名
+- <span class="label label-success">配置文件名 configKey</span> 因为一个EvaThumber可以对应多组配置文件，这里用来区分当前正在使用哪一组配置。
+- <span class="label">图片路径</span> 根据图片路径才能找到源文件，如果是压缩包内文件也需要完整的路径
+- <span class="label label-important">操作参数</span> 多个参数以逗号分隔，参数内以下划线区别参数名和值
+- <span class="label label-inverse">输出格式</span> 更改文件扩展名即可更改图片输出格式
+
+举例说明，我们的配置文件为：
+
+    'thumbers' => array(
+        'default' => array(
+            'source_path' => '/usr/www/upload',
+            'prefix' => 'thumb',
+        ),
+        'another' => array(
+            'source_path' => '/usr/www/another',
+        ),
+    ),
+
+此时访问
+
+    http://www.zf2.local/thumb/default/abc/demo,c_fill,w_100,h_100.gif
+
+首先会找到配置文件的`default`片段，然后在`/usr/www/upload/abc`下查找文件名为`demo`的图片文件。
+
+同理
+
+    http://www.zf2.local/thumb/another/foo.png
+
+会搜索`/usr/www/another`下的`foo.*`文件
 
 影子模式
 --------------
@@ -228,9 +262,6 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
 - `f_gray` 黑白滤镜
 - `f_gamma` 
 
-图片边线
-------------
-
 
 图片压缩质量  `q_[int Quality]`
 ------------
@@ -256,18 +287,52 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
 
 ###文字水印
 
-###二维码水印
 
-实验室功能
+
+扩展功能
 ============
 
-自动获得随机高质量图片素材
----------------
+二维码水印
+-----------
 
+自动素材
+-----------
+
+通过设置`d_dummy`可以自动获得优质的图片素材，EvaThumber内置了两个默认图片源：
+
+- `d_picasa`， 从[Picasa](https://picasaweb.google.com/lh/explore)获得图片
+- `d_flickr`，从[Flickr](http://www.flickr.com/explore)获得图片
 
 
 读取压缩包
 -----------
+
+如果在配置文件中指定`source_path`为一个ZIP压缩包文件，则可以直接从压缩包中读取图片信息无需解压。比如
+
+    'thumbers' => array(
+        'zip' => array(
+            'source_path' => __DIR__ . '/upload/archive.zip',
+            'zip_file_encoding' => 'GB2312',
+        ),
+    ）,
+
+如果压缩包中路径或文件名含有非英语字符，则需要制定压缩包压缩时的系统编码，一般来说中文系统需要指定为`GB2312`。
+
+如压缩包内文件结构为
+
+    - archive.zip
+        - archive/
+            zipimage.jpg
+            中文.jpg
+
+
+    http://www.zf2.local/thumb/zip/archive/zipimage,w_100.jpg
+
+![EvaThumber Resized Image](http://www.zf2.local/thumb/zip/archive/zipimage,w_100.jpg)
+
+    http://www.zf2.local/thumb/zip/archive/中文,w_100.jpg
+
+![EvaThumber Resized Image](http://www.zf2.local/index.php/thumb/zip/archive/%E4%B8%AD%E6%96%87,w_100.jpg)
 
 面部识别
 ----------------
@@ -320,9 +385,52 @@ URL唯一化
 安装与设置
 ========
 
-下载
+基础功能
 ------------
 
+基础功能包括：
+
+- 图片缩放/剪裁/旋转等基础操作
+- 图片滤镜
+- 水印 （文字水印与图片水印）
+
+如果已经有Composer，再EvaThumber目录下直接运行即可支持基础功能：
+
+    composer install
+
+如果没有安装，参考下文：
+
+###Windows下安装Composer
+
+###Linux下安装Composer
+
+以Ubuntu为例
+
+~~~~
+apt-get install curl
+cd /usr/local/bin
+curl -s http://getcomposer.org/installer | php
+chmod a+x composer.phar
+alias composer='/usr/local/bin/composer.phar'
+~~~~
+
+扩展功能
+---------
+
+扩展功能包括：
+
+- 二维码水印
+- 随机素材
+- 面部识别
+
+除面部识别以外，只需要运行
+
+    composer install --dev
+
+
+###面部识别功能安装
+
+面部识别基于[OpenCV](http://opencv.org/)项目，可以参考官方网站的[OpenCV安装指南](http://docs.opencv.org/doc/tutorials/introduction/table_of_content_introduction/table_of_content_introduction.html)
 
 下载 [最新版本的EvaThumber](https://github.com/AlloVince/EvaThumber/zipball/master)，解压即可使用。
 
@@ -410,5 +518,6 @@ EvaThumber 是 [EvaEngine](https://github.com/AlloVince/eva-engine)项目的一�
 -------
 
 EvaThumber由[EvaImageCloud](http://avnpc.com/pages/evacloudimage)更名而来，基本兼容旧版的API并作了完全的重构。旧版本代码[在此](https://github.com/AlloVince/EvaCloudImage/tree/42941a86af2b5fe92a5a3376010cfad607cce555)
+
 
 
