@@ -21,7 +21,7 @@ return array(
             'face_detect' => array(
                 'enable' => 0,
                 'draw_border' => 1,
-                'cascade' => '',
+                'cascade' => __DIR__ . '/data/haarcascades/haarcascade_frontalface_alt.xml',
                 'bin' => __DIR__ . '/bin/opencv.py',
             ),
             'png_optimize' => array(

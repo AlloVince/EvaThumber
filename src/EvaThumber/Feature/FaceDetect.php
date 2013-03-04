@@ -3,6 +3,7 @@
 namespace EvaThumber\Feature;
 
 use Imagine\Image\ImageInterface;
+use EvaThumber\Filesystem;
 
 
 class FaceDetect extends AbstractProcess implements FeatureInterface
@@ -23,7 +24,8 @@ class FaceDetect extends AbstractProcess implements FeatureInterface
 
     public static function isSupport()
     {
-        if(file_exists(__DIR__ . '/../../../data/haarcascades/haarcascade_frontalface_alt.xml')){
+        $cascadeFile = __DIR__ . '/../../../data/haarcascades/haarcascade_frontalface_alt.xml';
+        if(file_exists($cascadeFile) && is_readable($cascadeFile)){
             return true;
         }
         return false;
@@ -52,6 +54,8 @@ class FaceDetect extends AbstractProcess implements FeatureInterface
 
         $output = sys_get_temp_dir() . '/evathumber_facedetect_' . $uniq . '_out.json';
         $pb->add($output);
+
+        $pb->add($this->cascade);
 
         $proc = $pb->getProcess();
         $code = $proc->run();

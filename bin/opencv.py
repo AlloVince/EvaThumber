@@ -77,18 +77,19 @@ def detect_and_draw(img, out_put, cascade):
 #print image_path
 #print xml_path
 #detect_and_draw(image_path, save_path, xml_path)
+#xml_path = r'/opt/htdocs/EvaCloudImage/data/haarcascades/haarcascade_frontalface_alt.xml'
 
 if __name__ == '__main__':
 
-    xml_path = r'/opt/htdocs/EvaCloudImage/data/haarcascades/haarcascade_frontalface_alt.xml'
-    parser = OptionParser(usage = "usage: %prog [options] [inputfile] [outputfile]")
-    parser.add_option("-c", "--cascade", action="store", dest="cascade", type="str", help="Haar cascade file, default %default", default = xml_path)
+    parser = OptionParser(usage = "usage: %prog [options] [inputfile] [outputfile] [xmlpath]")
+    #parser.add_option("-c", "--cascade", action="store", dest="cascade", type="str", help="Haar cascade file, default %default", default = xml_path)
     (options, args) = parser.parse_args()
 
-    if len(args) != 2:
+    if len(args) != 3:
         parser.print_help()
         sys.exit(1)
 
     image_path = args[0]
     save_path = args[1]
+    xml_path = args[2]
     detect_and_draw(image_path, save_path, xml_path)
