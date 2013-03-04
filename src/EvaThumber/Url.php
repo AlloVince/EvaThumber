@@ -66,6 +66,24 @@ class Url
         return $this->query;
     }
 
+    public function getUrlString()
+    {
+        return $this->urlString;
+    }
+
+    public function setUrlString($urlString)
+    {
+        $this->urlString = $urlString;
+        if($urlString){
+            $url = parse_url($urlString);
+            $this->scheme = isset($url['scheme']) ? $url['scheme'] : null;
+            $this->host = isset($url['host']) ? $url['host'] : null;
+            $this->query = isset($url['query']) ? $url['query'] : null;
+            $this->urlPath = isset($url['path']) ? $url['path'] : null;
+        }
+        return $this;
+    }
+
     public function getUrlRewriteEnabled()
     {
         if($this->urlRewriteEnabled !== null){
@@ -114,6 +132,12 @@ class Url
         return $this->urlKey = $urlImagePathArray[1];
     }
 
+    public function setUrlScriptName($urlScriptName)
+    {
+        $this->urlScriptName = (string) $urlScriptName;
+        return $this;
+    }
+
     public function getUrlScriptName()
     {
         if($this->urlScriptName){
@@ -123,7 +147,7 @@ class Url
         if(isset($_SERVER['SCRIPT_NAME']) && $_SERVER['SCRIPT_NAME']){
             $scriptName = $_SERVER['SCRIPT_NAME'];
 
-            //Nginx maybe set SCRIPT_NAME as pull url path
+            //Nginx maybe set SCRIPT_NAME as full url path
             if(($scriptNameEnd = substr($scriptName, -4)) && $scriptNameEnd === '.php'){
                 return $this->urlScriptName = $scriptName;
             } else {
@@ -263,31 +287,30 @@ class Url
     public function __construct($url = null)
     {
         $url = $url ? $url : $this->getCurrentUrl();
-        $this->urlString = $url;
-        if($url){
-            $url = parse_url($url);
-            $this->scheme = isset($url['scheme']) ? $url['scheme'] : null;
-            $this->host = isset($url['host']) ? $url['host'] : null;
-            $this->query = isset($url['query']) ? $url['query'] : null;
-            $this->urlPath = isset($url['path']) ? $url['path'] : null;
-        }
+        $this->setUrlString($url);
     }
 
     public function getCurrentUrl()
     {
+        $serverName = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '';
+        $requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
+
+        if(!$serverName){
+            return '';
+        }
+
         $pageURL = 'http';
-
-        if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on"){
-            $pageURL .= "s";
+        if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on'){
+            $pageURL .= 's';
         }
-        $pageURL .= "://";
+        $pageURL .= '://';
 
-        if ($_SERVER["SERVER_PORT"] != "80"){
-            $pageURL .= $_SERVER["SERVER_NAME"] . ":" . $_SERVER["SERVER_PORT"] . $_SERVER["REQUEST_URI"];
-        }
-        else {
-            $pageURL .= $_SERVER["SERVER_NAME"] . $_SERVER["REQUEST_URI"];
+        if (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != '80'){
+            $pageURL .= $serverName . ':' . $_SERVER['SERVER_PORT'] . $requestUri;
+        } else {
+            $pageURL .= $serverName . $requestUri;
         }
         return $pageURL;
     }
+
 }

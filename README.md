@@ -2,7 +2,7 @@
 
 EvaThumber基于PHP实现，可以一键安装在任何主流系统，由于基于URL实现接口，所以其他编程语言也可以使用EvaThumber作为前端组件。
 
-EvaThumber is a light-weight & opensource url based image transformation php library. See [English version document](https://github.com/AlloVince/EvaThumber).
+EvaThumber is a url based image transformation php library. See [English version document](https://github.com/AlloVince/EvaThumber/blob/master/README.md).
 
 EvaThumber的源代码存放于[Github](https://github.com/AlloVince/EvaThumber)，完全开源，欢迎[Fork](https://github.com/AlloVince/EvaThumber)或[关注我](https://github.com/AlloVince)。
 
@@ -22,9 +22,9 @@ EvaThumber的处理：裁剪为宽100，高100，加黑白滤镜，输出为png�
 
 按宽度缩小到150px，旋转180度，加上水印，压缩质量为60%。
 
-    http://evathumber.avnpc.com/thumb/watermark/demo,q_70,r_180,w_150.jpg
+    http://evathumber.avnpc.com/thumb/watermark/demo,q_60,r_180,w_150.jpg
 
-![EvaThumber Image Demo](http://evathumber.avnpc.com/thumb/watermark/demo,q_70,r_180,w_150.jpg)
+![EvaThumber Image Demo](http://evathumber.avnpc.com/thumb/watermark/demo,q_60,r_180,w_150.jpg)
 
 使用二维码作为水印，水印放在图片中央，缩小到原图的50%
 
@@ -32,24 +32,26 @@ EvaThumber的处理：裁剪为宽100，高100，加黑白滤镜，输出为png�
 
 ![EvaThumber Image Demo](http://evathumber.avnpc.com/thumb/watermark2/demo,p_50.jpg)
 
-前端人员想要设计一个图片墙功能，想用一些高质量的图片作为素材，还需要去一张一张找？EvaThumber只需要这样：
+在项目初期原型设计时，想要做一个图片墙功能，一般需要一些高质量的图片作为素材先看看效果，还在为一张一张找然后一张一张裁剪而感到厌烦？
 
+EvaThumber只需要直接书写HTML，高素质的图片会自动下载并剪裁为指定尺寸展示出来：
 
-    <div class="thumbnails" style="max-width:800px;">
-    <div class="span4"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/01,c_fill,d_flickr,h_270,w_360.jpg"></a></div>
-    <div class="span3"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/02,c_fill,d_picasa,h_120,w_260.jpg"></a></div>
-    <div class="span2"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/03,c_fill,d_picasa,h_120,w_160.jpg"></a></div>
-    <div class="span3"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/04,c_fill,d_picasa,h_120,w_260.jpg"></a></div>
-    <div class="span2"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/04,c_fill,d_picasa,h_120,w_160.jpg"></a></div>
-    </div>
+    <div style="max-width:800px;" class="thumbnails">
+	<div class="span4"><a class="thumbnail" href="#"><img src="http://evathumber.avnpc.com/thumb/d/01,c_fill,d_flickr,h_270,w_360.jpg"></a></div>
+	<div class="span3"><a class="thumbnail" href="#"><img src="http://evathumber.avnpc.com/thumb/d/02,c_fill,d_picasa,h_128,w_260.jpg"></a></div>
+	<div class="span2"><a class="thumbnail" href="#"><img src="http://evathumber.avnpc.com/thumb/d/03,c_fill,d_picasa,h_128,w_160.jpg"></a></div>
+	<div class="span3"><a class="thumbnail" href="#"><img src="http://evathumber.avnpc.com/thumb/d/04,c_fill,d_picasa,h_128,w_260.jpg"></a></div>
+	<div class="span2"><a class="thumbnail" href="#"><img src="http://evathumber.avnpc.com/thumb/d/05,c_fill,d_picasa,h_128,w_160.jpg"></a></div>
+	</div>
 
-<div class="thumbnails" style="max-width:800px;">
-<div class="span4"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/01,c_fill,d_flickr,h_270,w_360.jpg"></a></div>
-<div class="span3"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/02,c_fill,d_picasa,h_120,w_260.jpg"></a></div>
-<div class="span2"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/03,c_fill,d_picasa,h_120,w_160.jpg"></a></div>
-<div class="span3"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/04,c_fill,d_picasa,h_120,w_260.jpg"></a></div>
-<div class="span2"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/04,c_fill,d_picasa,h_120,w_160.jpg"></a></div>
+<div style="max-width:800px;" class="thumbnails">
+<div class="span4"><a class="thumbnail" href="#"><img src="http://evathumber.avnpc.com/thumb/d/01,c_fill,d_flickr,h_270,w_360.jpg" alt=""></a></div>
+<div class="span3"><a class="thumbnail" href="#"><img src="http://evathumber.avnpc.com/thumb/d/02,c_fill,d_picasa,h_128,w_260.jpg" alt=""></a></div>
+<div class="span2"><a class="thumbnail" href="#"><img src="http://evathumber.avnpc.com/thumb/d/03,c_fill,d_picasa,h_128,w_160.jpg" alt=""></a></div>
+<div class="span3"><a class="thumbnail" href="#"><img src="http://evathumber.avnpc.com/thumb/d/04,c_fill,d_picasa,h_128,w_260.jpg" alt=""></a></div>
+<div class="span2"><a class="thumbnail" href="#"><img src="http://evathumber.avnpc.com/thumb/d/05,c_fill,d_picasa,h_128,w_160.jpg" alt=""></a></div>
 </div>
+
 
 为什么用EvaThumber
 ===================
@@ -151,11 +153,10 @@ EvaThumber支持的图片格式有：
 图片缩放
 -----------------
 
-EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片的文件名末尾加入以逗号分隔的参数即可：
 
 ###根据宽度缩放 `w_[int Width]`:
 
-`w_`允许输入一个数字，控制图片按宽度缩放，下面的URL会生成一张100px宽的图片：
+`w_`允许输入一个整数，控制图片按宽度缩放，下面的URL会生成一张100px宽的图片：
 
     http://evathumber.avnpc.com/thumb/d/demo,w_100.jpg
 
@@ -163,7 +164,7 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
 
 ###根据高度缩放 `h_[int Height]`:
 
-同理`h_`允许输入一个数字，控制图片按高度缩放，下面的URL会生成一张50px高的图片：
+同理`h_`允许输入一个整数，控制图片按高度缩放，下面的URL会生成一张50px高的图片：
 
     http://evathumber.avnpc.com/thumb/d/demo,h_50.jpg
 
@@ -197,7 +198,7 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
 
 ###基本正方形剪裁 `c_[int Crop]`:
 
-`c_` 允许输入一个数字，如`c_50`会从图片的中心位置截取出一张50px*50px的缩略图。
+`c_` 允许输入一个整数，如`c_50`会从图片的中心位置截取出一张50px*50px的缩略图。
 
     http://evathumber.avnpc.com/thumb/d/demo,c_50.jpg
 
@@ -258,8 +259,6 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
 目前支持的滤镜有：
 
 - `f_gray` 黑白滤镜
-- `f_gamma` 
-
 
 图片压缩质量  `q_[int Quality]`
 ------------
@@ -344,9 +343,6 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
 
 作为扩展功能，二维码水印暂时只采用GD库生成，需要配置以下项目：
 
-- `qr_code` 是否启用二维码 1/0
-- `qr_code_size` 二维码大小
-- `qr_code_margin` 二维码内边距
 
     'thumbers' => array(
         'd' => array(
@@ -360,9 +356,15 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
                 'qr_code_margin' => 1,
             ),
         ),
-    ）,
+    ),
 
 ![EvaThumber Resized Image](http://evathumber.avnpc.com/thumb/watermark2/demo,p_50.jpg)
+
+- `qr_code` 是否启用二维码 1/0
+- `qr_code_size` 二维码大小
+- `qr_code_margin` 二维码内边距
+
+
 
 自动素材
 -----------
@@ -392,7 +394,7 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
         ),
     ）,
 
-如果压缩包中路径或文件名含有非英语字符，则需要制定压缩包压缩时的系统编码，一般来说中文系统需要指定为`GB2312`。
+如果压缩包中路径或文件名含有非英语字符，则需要指定压缩包压缩时的系统编码，一般来说中文系统需要指定为`GB2312`。
 
 如压缩包内文件结构为
 
@@ -401,6 +403,7 @@ EvaThumber只需要更改影子图片的URL即可实现缩放，只需要图片�
             zipimage.jpg
             中文.jpg
 
+访问
 
     http://evathumber.avnpc.com/thumb/zip/archive/zipimage,w_100.jpg
 
@@ -493,7 +496,7 @@ EvaThumber对于同样操作的请求，以及带有多余参数的请求，都�
 设置禁止操作
 ------------
 
-EvaThumber所提供的功能并一定能全部用到，可以在配置文件中禁用某些操作
+EvaThumber所提供的功能并不一定能全部用到，可以在配置文件中禁用某些操作
 
     'thumbers' => array(
         'd' => array(
@@ -520,7 +523,7 @@ EvaThumber所提供的功能并一定能全部用到，可以在配置文件中�
 - 'y' 选取剪裁位置
 - 'extension' 更改输出格式
 
-在正式环境中，可以同时设置允许尺寸以及禁用操作，比如典型的场景，用户上传头像，配置文件设置为：
+在正式环境中，可以同时设置允许尺寸以及禁用操作。典型的场景如用户上传头像，配置文件设置为：
 
     'thumbers' => array(
         'd' => array(
@@ -558,7 +561,7 @@ EvaThumber所提供的功能并一定能全部用到，可以在配置文件中�
 5. 开启EvaThumber缓存，缓存路径指定为`/usr/www/EvaThumber/thumb`，同时向消息队列发送消息，消息的内容都是EvaThumber URL，如`http://evathumber.local/thumb/d/demo,w_100.jpg`
 6. 运行消息队列，因为每一条消息都是一个URL，可以用cURL直接访问。此时会生成缓存`/usr/www/EvaThumber/thumb/demo,w_100.jpg`
 7. 绑定外网可以访问的域名如evathumber.avnpc.com到`/usr/www/EvaThumber/thumb`
-8. 用户可以通过<code>`http://evathumber.avnpc.com/demo,w_100.jpg`</code>访问到最终结果。
+8. 用户可以通过`http://evathumber.avnpc.com/demo,w_100.jpg`访问到最终结果。
 
 
 
@@ -713,6 +716,12 @@ Linux下载[PNGOUT的Linux版本](http://www.jonof.id.au/kenutils)，解压后�
     }
 
 
+###配置文件复写
+
+因为配置文件可能经常需要修改，如果采用了GIT或SVN这样的版本控制工具非常容易引起冲突，所以这里并不推荐直接编辑`config.default.php`文件。
+
+推荐的方法是新建一个`config.local.php`文件放于EvaThumber目录下，内容则与`config.default.php`保持同样的结构，所有的项目会自动复写默认设置。
+
 其他
 =======
 
@@ -753,8 +762,5 @@ EvaThumber 是 [EvaEngine](https://github.com/AlloVince/eva-engine)项目的一�
 旧版本
 -------
 
-EvaThumber由[EvaImageCloud](http://avnpc.com/pages/evacloudimage)更名而来，基本兼容旧版的API并作了完全的重构。旧版本代码[在此](https://github.com/AlloVince/EvaThumber/tree/42941a86af2b5fe92a5a3376010cfad607cce555)
-
-
-
+EvaThumber由[EvaCloudImage](http://avnpc.com/pages/evacloudimage)更名而来，基本兼容旧版的API并作了完全的重构。旧版本代码[在此](https://github.com/AlloVince/EvaThumber/tree/42941a86af2b5fe92a5a3376010cfad607cce555)
 
