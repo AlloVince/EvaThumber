@@ -447,7 +447,7 @@ EvaThumber可以对PNG图片进行无损优化，优化基于[PNGOut](http://adv
 对比一下有无图片优化的效果：
 
 - ![EvaThumber Resized Image](http://evathumber.avnpc.com/thumb/d/demo,w_150.png) 58.8K
-- ![EvaThumber Resized Image](http://evathumber.avnpc.com/thumb/d/demo,w_150.png) 26.5K
+- ![EvaThumber Resized Image](http://evathumber.avnpc.com/thumb/png/demo,w_150.png) 26.5K
 
 
 安全问题
@@ -475,6 +475,7 @@ EvaThumber对于同样操作的请求，以及带有多余参数的请求，都�
 ------------
 
 在大部分Web应用中，其实图片都会被缩放为固定的几个尺寸，所以可以在配置文件中指定允许被缩放的尺寸：
+
     'thumbers' => array(
         'd' => array(
             'allow_sizes' => array(
@@ -586,7 +587,7 @@ EvaThumber所提供的功能并一定能全部用到，可以在配置文件中�
 
     composer install
 
-如果没有安装，参考下文：
+如果没有安装Composer，参考下文：
 
 ###Windows下安装Composer
 
@@ -665,7 +666,17 @@ EvaThumber用Python实现了一个轻量Hook，在`bin/opencv.py`下，也可以
 
 Windows下，直接下载[PNGOut.exe](http://advsys.net/ken/util/pngout.exe)放置于bin目录下。
 
-Linux下载[PNGOUT的Linux版本](http://www.jonof.id.au/kenutils)，在配置文件中配置pngout的路径即可。
+Linux下载[PNGOUT的Linux版本](http://www.jonof.id.au/kenutils)，解压后在配置文件中配置pngout的路径即可。
+
+    wget http://static.jonof.id.au/dl/kenutils/pngout-20130221-linux.tar.gz
+    tar -xvf pngout-20130221-linux.tar.gz
+
+解压后可以看到针对各种CPU的不同编译版本，一个简单判别的方法是进入各目录直接运行
+
+   ./pngout -h
+ 
+如果有输出则支持当前CPU
+
 
 ###开启URL Rewirte
 
@@ -739,6 +750,7 @@ EvaThumber 是 [EvaEngine](https://github.com/AlloVince/eva-engine)项目的一�
 -------
 
 EvaThumber由[EvaImageCloud](http://avnpc.com/pages/evacloudimage)更名而来，基本兼容旧版的API并作了完全的重构。旧版本代码[在此](https://github.com/AlloVince/EvaThumber/tree/42941a86af2b5fe92a5a3376010cfad607cce555)
+
 
 
 
