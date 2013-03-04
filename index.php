@@ -13,12 +13,16 @@ error_reporting(E_ALL);
 
 // Check php version
 if( version_compare(phpversion(), '5.3.0', '<') ) {
-    printf('PHP 5.3.0 is required, you have %s', phpversion());
-    exit(1);
+    die(printf('PHP 5.3.0 is required, you have %s', phpversion()));
 }
 
-if (file_exists(__DIR__ . '/vendor/autoload.php')) {
-    $loader = include __DIR__ .  '/vendor/autoload.php';
+
+$dir = __DIR__;
+$autoloader = $dir . '/vendor/autoload.php';
+$localConfig = $dir . '/local.front.image.config.php';
+
+if (file_exists($autoloader)) {
+    $loader = include $autoloader;
 } else {
     die('Dependent library not found, run "composer install" first.');
 }
@@ -26,13 +30,12 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 /** Debug functions */
 function p($r, $usePr = false)
 {
-    echo '<pre>' . var_dump($r); 
+    echo sprintf("<pre>%s</pre>", var_export($r));
 }
 
-$loader->add('EvaThumber', __DIR__ . '/src');
+$loader->add('EvaThumber', $dir . '/src');
 
-$config = new EvaThumber\Config\Config(include __DIR__ . '/config.default.php');
-$localConfig = __DIR__ . '/config.local.php';
+$config = new EvaThumber\Config\Config(include $dir . '/config.default.php');
 if(file_exists($localConfig)){
     $localConfig = new EvaThumber\Config\Config(include $localConfig);
     $config = $config->merge($localConfig);
@@ -46,3 +49,4 @@ try {
     throw $e;
     //header('location:' . $config->error_url . '?msg=' . urlencode($e->getMessage()));
 }
+

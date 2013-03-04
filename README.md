@@ -34,18 +34,22 @@ EvaThumber的处理：裁剪为宽100，高100，加黑白滤镜，输出为png�
 
 前端人员想要设计一个图片墙功能，想用一些高质量的图片作为素材，还需要去一张一张找？EvaThumber只需要这样：
 
-    <ul class="thumbnails">
-        <li class="span4"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/01,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
-        <li class="span4"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/02,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
-        <li class="span4"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/03,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
-    </ul>
 
-<ul class="thumbnails">
-<li class="span4"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/01,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
-<li class="span4"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/02,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
-<li class="span4"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/03,c_fill,d_picasa,h_100,w_100.jpg"></a></li>
-</ul>
+    <div class="thumbnails" style="max-width:800px;">
+    <div class="span4"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/01,c_fill,d_flickr,h_270,w_360.jpg"></a></div>
+    <div class="span3"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/02,c_fill,d_picasa,h_120,w_260.jpg"></a></div>
+    <div class="span2"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/03,c_fill,d_picasa,h_120,w_160.jpg"></a></div>
+    <div class="span3"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/04,c_fill,d_picasa,h_120,w_260.jpg"></a></div>
+    <div class="span2"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/04,c_fill,d_picasa,h_120,w_160.jpg"></a></div>
+    </div>
 
+<div class="thumbnails" style="max-width:800px;">
+<div class="span4"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/01,c_fill,d_flickr,h_270,w_360.jpg"></a></div>
+<div class="span3"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/02,c_fill,d_picasa,h_120,w_260.jpg"></a></div>
+<div class="span2"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/03,c_fill,d_picasa,h_120,w_160.jpg"></a></div>
+<div class="span3"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/04,c_fill,d_picasa,h_120,w_260.jpg"></a></div>
+<div class="span2"><a href="#" class="thumbnail"><img src="http://evathumber.avnpc.com/thumb/d/04,c_fill,d_picasa,h_120,w_160.jpg"></a></div>
+</div>
 
 为什么用EvaThumber
 ===================
