@@ -30,7 +30,7 @@ if (file_exists($autoloader)) {
 /** Debug functions */
 function p($r, $usePr = false)
 {
-    echo sprintf("<pre>%s</pre>", var_export($r));
+    echo sprintf("<pre>%s</pre>", var_dump($r));
 }
 
 $loader->add('EvaThumber', $dir . '/src');
@@ -42,6 +42,8 @@ if(file_exists($localConfig)){
 }
 
 $thumber = new EvaThumber\Thumber($config);
+
+//p($_SERVER);exit;
 
 try {
     $thumber->show();

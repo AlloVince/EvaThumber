@@ -636,6 +636,7 @@ alias composer='/usr/local/bin/composer.phar'
 - 二维码水印
 - 随机素材
 - 面部识别
+- PNG压缩
 
 除面部识别以外，只需要运行
 

@@ -51,6 +51,48 @@ class UrlTest extends \PHPUnit_Framework_TestCase
 
     public function testGetUrlScriptName()
     {
-    
+        $_SERVER = array(
+            'SCRIPT_NAME' => '/EvaThumber/index.php',
+        );
+        $url = new Url();
+        $this->assertEquals('/EvaThumber/index.php', $url->getUrlScriptName());
+
+        $_SERVER = array(
+            'SCRIPT_NAME' => '/EvaThumber/index.php/thumb/d/demo.jpg',
+        );
+        $url = new Url();
+        $this->assertEquals('/EvaThumber/index.php', $url->getUrlScriptName());
+
+
+        $_SERVER = array(
+            'SCRIPT_NAME' => '/index.php',
+        );
+        $url = new Url();
+        $this->assertEquals('/index.php', $url->getUrlScriptName());
+
+        $_SERVER = array(
+            'SCRIPT_NAME' => '/thumb/d/demo.jpg',
+        );
+        $url = new Url();
+        $this->assertEquals('', $url->getUrlScriptName());
+
+        $_SERVER = array(
+            'SCRIPT_NAME' => '/',
+        );
+        $url = new Url();
+        $this->assertEquals('', $url->getUrlScriptName());
+        $url->setUrlScriptName('foo');
+        $this->assertEquals('foo', $url->getUrlScriptName());
+
+    }
+
+
+    public function testUrlRewriting()
+    {
+        $url = new Url('http://localhost/EvaThumber/index.php/thumb/d/demo.jpg');
+        $this->assertEquals(false, $url->getUrlRewriteEnabled());
+
+        $url = new Url('http://localhost/EvaThumber/thumb/d/demo.jpg');
+        $this->assertEquals(true, $url->getUrlRewriteEnabled());
     }
 }

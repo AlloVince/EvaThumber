@@ -71,19 +71,6 @@ class Url
         return $this->urlString;
     }
 
-    public function setUrlString($urlString)
-    {
-        $this->urlString = $urlString;
-        if($urlString){
-            $url = parse_url($urlString);
-            $this->scheme = isset($url['scheme']) ? $url['scheme'] : null;
-            $this->host = isset($url['host']) ? $url['host'] : null;
-            $this->query = isset($url['query']) ? $url['query'] : null;
-            $this->urlPath = isset($url['path']) ? $url['path'] : null;
-        }
-        return $this;
-    }
-
     public function getUrlRewriteEnabled()
     {
         if($this->urlRewriteEnabled !== null){
@@ -146,6 +133,9 @@ class Url
 
         if(isset($_SERVER['SCRIPT_NAME']) && $_SERVER['SCRIPT_NAME']){
             $scriptName = $_SERVER['SCRIPT_NAME'];
+            if(false === strpos($scriptName, '.php')){
+                return $this->urlScriptName = '';
+            }
 
             //Nginx maybe set SCRIPT_NAME as full url path
             if(($scriptNameEnd = substr($scriptName, -4)) && $scriptNameEnd === '.php'){
@@ -284,11 +274,7 @@ class Url
         return $url;
     }
 
-    public function __construct($url = null)
-    {
-        $url = $url ? $url : $this->getCurrentUrl();
-        $this->setUrlString($url);
-    }
+
 
     public function getCurrentUrl()
     {
@@ -313,4 +299,16 @@ class Url
         return $pageURL;
     }
 
+    public function __construct($url = null)
+    {
+        $urlString = $url ? $url : $this->getCurrentUrl();
+        $this->urlString = $urlString;
+        if($urlString){
+            $url = parse_url($urlString);
+            $this->scheme = isset($url['scheme']) ? $url['scheme'] : null;
+            $this->host = isset($url['host']) ? $url['host'] : null;
+            $this->query = isset($url['query']) ? $url['query'] : null;
+            $this->urlPath = isset($url['path']) ? $url['path'] : null;
+        }
+    }
 }
