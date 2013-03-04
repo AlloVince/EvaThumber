@@ -159,17 +159,10 @@ class Url
         if($urlScriptName){
             $urlRewriteEnabled = $this->getUrlRewriteEnabled();
             if($urlRewriteEnabled) {
-                $rewitePath = $this->getUrlRewritePath();
-                $pos = strpos($urlPath, $rewitePath);
-                //replace first match only
-                if ($pos === 0) {
-                    return $this->urlImagePath = substr_replace($urlPath, '', $pos, strlen($rewitePath));
-                }
+            
+                return $this->urlImagePath = str_replace($this->getUrlRewritePath(), '', $urlPath);
             } else {
-                $pos = strpos($urlPath, $urlScriptName);
-                if ($pos === 0) {
-                    return $this->urlImagePath = substr_replace($urlPath, '', $pos, strlen($urlScriptName));
-                }
+                return $this->urlImagePath = str_replace($urlScriptName, '', $urlPath);
             }
         } else {
             return $this->urlImagePath = $urlPath;
