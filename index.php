@@ -19,7 +19,7 @@ if( version_compare(phpversion(), '5.3.0', '<') ) {
 
 $dir = __DIR__;
 $autoloader = $dir . '/vendor/autoload.php';
-$localConfig = $dir . '/local.front.image.config.php';
+$localConfig = $dir . '/config.local.php';
 
 if (file_exists($autoloader)) {
     $loader = include $autoloader;
