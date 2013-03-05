@@ -1,11 +1,11 @@
 <?php
 /**
  * EvaThumber
- * light-weight url based image transformation php library
+ * URL based image transformation php library
  *
- * @link      https://github.com/AlloVince/EvaCloudImage
- * @copyright Copyright (c) 2013 AlloVince (http://avnpc.com/)
- * @license   New BSD License
+ * @link      https://github.com/AlloVince/EvaThumber
+ * @copyright Copyright (c) 2012-2013 AlloVince (http://avnpc.com/)
+ * @license   http://framework.zend.com/license/new-bsd New BSD License
  * @author    AlloVince
  */
 
@@ -29,6 +29,9 @@ class Thumber
     */
     protected $image;
 
+    /**
+    * @var array
+    */
     protected $imageOptions = array();
 
     /**
@@ -48,6 +51,9 @@ class Thumber
 
     protected $filesystem;
 
+    /**
+    * @var mixed
+    */
     protected $sourcefile;
 
     protected $faker;

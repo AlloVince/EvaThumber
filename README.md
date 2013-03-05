@@ -411,28 +411,28 @@ EvaThumber支持的图片格式有：
 
     http://evathumber.avnpc.com/thumb/zip/archive/中文,w_100.jpg
 
-![EvaThumber Resized Image](http://evathumber.avnpc.com/index.php/thumb/zip/archive/%E4%B8%AD%E6%96%87,w_100.jpg)
+![EvaThumber Resized Image](http://evathumber.avnpc.com/thumb/zip/archive/%E4%B8%AD%E6%96%87,w_100.jpg)
 
 面部识别
 ----------------
 
 剪裁图片时默认的方式是通过指定`x_`和`y_`坐标来选择剪裁的区域，不过如果是带有人物的图片，可以试试使用`c_face`去自动识别人物面部坐标，比如下图
 
-    http://evathumber.avnpc.com/index.php/thumb/d/face,w_100.jpg
+    http://evathumber.avnpc.com/thumb/d/face,w_100.jpg
 
-![EvaThumber Resized Image](http://evathumber.avnpc.com/index.php/thumb/d/face,w_100.jpg)
+![EvaThumber Resized Image](http://evathumber.avnpc.com/thumb/d/face,w_100.jpg)
 
 使用默认的剪裁方式：
 
-    http://evathumber.avnpc.com/index.php/thumb/d/face,c_100.jpg
+    http://evathumber.avnpc.com/thumb/d/face,c_100.jpg
 
-![EvaThumber Resized Image](http://evathumber.avnpc.com/index.php/thumb/d/face,c_100.jpg)
+![EvaThumber Resized Image](http://evathumber.avnpc.com/thumb/d/face,c_100.jpg)
 
 使用面部识别：
 
-    http://evathumber.avnpc.com/index.php/thumb/d/face,c_face,w_100,h_100.jpg
+    http://evathumber.avnpc.com/thumb/d/face,c_face,w_100,h_100.jpg
 
-![EvaThumber Resized Image](http://evathumber.avnpc.com/index.php/thumb/d/face,c_face,w_100,h_100.jpg)
+![EvaThumber Resized Image](http://evathumber.avnpc.com/thumb/d/face,c_face,w_100,h_100.jpg)
 
 
 PNG图片优化
@@ -628,6 +628,70 @@ chmod a+x composer.phar
 alias composer='/usr/local/bin/composer.phar'
 ~~~~
 
+###开启URL Rewirte
+
+开启URL Rewirte之后，可以省略URL中的`index.php`部分，如果已经生成缓存，则会优先显示缓存，所以在生产环境中是必须要打开的。
+
+####Apache开启URL Rewirte
+
+如果服务器为Apache并且已经开启[mod_rewrite](http://httpd.apache.org/docs/current/mod/mod_rewrite.html)模块，则无需任何设置，重写规则已经写入.htaccess文件。
+
+####Nginx开启URL Rewirte
+
+请参考以下配置调整路径
+
+    server {
+            listen   80;
+            server_name  evathumber.avnpc.com;
+            location / {
+                    root  /usr/www/EvaThumber/;
+                    index index.php index.html index.htm;
+                    if (!-e $request_filename){
+                       rewrite ^/(.*)$ /index.php last;
+                    }
+            }
+            location ~ \.php$ {
+                    include fastcgi_params;
+                    fastcgi_pass   127.0.0.1:9000;
+                    fastcgi_index  index.php;
+                    fastcgi_param  SCRIPT_FILENAME  /usr/www/EvaThumber/$fastcgi_script_name;
+            }
+    }
+
+
+###配置文件复写
+
+因为配置文件可能经常需要修改，如果采用了GIT或SVN这样的版本控制工具非常容易引起冲突，所以这里并不推荐直接编辑`config.default.php`文件。
+
+推荐的方法是新建一个`config.local.php`文件放于EvaThumber目录下，内容则与`config.default.php`保持同样的结构，所有的项目会自动复写默认设置。
+
+
+###开启缓存
+
+缓存启用依赖于URL Rewrite已经启用。对于每一组配置文件，都可以通过`'thumb_cache_path'`指定一个缓存放置的路径，同时将该组的`'cache'`设置为1。
+
+以上文的Nginx配置为例
+
+    'thumbers' => array(
+        'd' => array(
+			'thumb_cache_path' => '/usr/www/EvaThumber/thumb',
+            'cache' => 1,
+        ),
+    ）,
+
+
+缓存开启后，需要把URL中的`index.php/`部分去掉。
+
+    http://evathumber.avnpc.com/index.php/thumb/d/demo,w_100.jpg
+
+需要更改为：
+
+    http://evathumber.avnpc.com/thumb/d/demo,w_100.jpg
+
+用户第一次访问时，Nginx会将请求重写到`index.php`并生成缓存；当用户第二次访问时，会由Nginx优先命中`/usr/www/EvaThumber/thumb/d/demo,w_100.jpg`，不会访问到php。
+
+
+
 安装扩展功能
 ---------
 
@@ -686,42 +750,6 @@ Linux下载[PNGOUT的Linux版本](http://www.jonof.id.au/kenutils)，解压后�
 如果有输出则支持当前CPU
 
 
-###开启URL Rewirte
-
-开启URL Rewirte之后，可以省略URL中的`index.php`部分，如果已经生成缓存，则会优先显示缓存，所以在生产环境中是必须要打开的。
-
-####Apache开启URL Rewirte
-
-如果服务器为Apache并且已经开启[mod_rewrite](http://httpd.apache.org/docs/current/mod/mod_rewrite.html)模块，则无需任何设置，重写规则已经写入.htaccess文件。
-
-####Nginx开启URL Rewirte
-
-请参考以下配置调整路径
-
-    server {
-            listen   80;
-            server_name  evathumber.avnpc.com;
-            location / {
-                    root  /usr/www/EvaThumber/;
-                    index index.php index.html index.htm;
-                    if (!-e $request_filename){
-                       rewrite ^/(.*)$ /index.php last;
-                    }
-            }
-            location ~ \.php$ {
-                    include fastcgi_params;
-                    fastcgi_pass   127.0.0.1:9000;
-                    fastcgi_index  index.php;
-                    fastcgi_param  SCRIPT_FILENAME  /usr/www/EvaThumber/$fastcgi_script_name;
-            }
-    }
-
-
-###配置文件复写
-
-因为配置文件可能经常需要修改，如果采用了GIT或SVN这样的版本控制工具非常容易引起冲突，所以这里并不推荐直接编辑`config.default.php`文件。
-
-推荐的方法是新建一个`config.local.php`文件放于EvaThumber目录下，内容则与`config.default.php`保持同样的结构，所有的项目会自动复写默认设置。
 
 其他
 =======
@@ -729,7 +757,7 @@ Linux下载[PNGOUT的Linux版本](http://www.jonof.id.au/kenutils)，解压后�
 寻求帮助
 ----
 
-如果有任何问题，请移步至[EvaThumber的Issues页面](https://github.com/dashboard/issues)提交BUG
+如果有任何问题，请移步至[EvaThumber的Issues页面](https://github.com/AlloVince/EvaThumber/issues)提交BUG
 
 贡献代码
 ----

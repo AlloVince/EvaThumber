@@ -1,10 +1,10 @@
 <?php
 /**
- * EvaCloudImage
- * light-weight url based image transformation php library
+ * EvaThumber
+ * URL based image transformation php library
  *
- * @link      https://github.com/AlloVince/EvaCloudImage
- * @copyright Copyright (c) 2012 AlloVince (http://avnpc.com/)
+ * @link      https://github.com/AlloVince/EvaThumber
+ * @copyright Copyright (c) 2012-2013 AlloVince (http://avnpc.com/)
  * @license   http://framework.zend.com/license/new-bsd New BSD License
  * @author    AlloVince
  */
