@@ -9,35 +9,91 @@
  * @author    AlloVince
  */
 
-
 namespace EvaThumber;
 
+/**
+ * Parse Url as EvaThumber necessary parts
+ * - Example : http://localhost/EvaThumber/thumb/zip/archive/zipimage,w_100.jpg?query=123
+ * Will be parse to :
+ * -- scheme : http
+ * -- host : localhost
+ * -- query : query=123
+ * -- urlScriptName : /EvaThumber/index.php
+ * -- urlRewritePath : /EvaThumber
+ * -- urlPrefix : thumb
+ * -- urlKey : zip
+ * -- urlImagePath : /thumb/zip/archive/zipimage,w_100.jpg
+ * -- urlImageName : zipimage,w_100.jpg
+ * -- urlRewriteEnabled : true
+ * -- imagePath : /archive
+ * -- imageName : zipimage.jpg
+ * 
+ */
 class Url
 {
+    /**
+    * @var string
+    */
     protected $scheme;
 
+    /**
+    * @var string
+    */
     protected $host;
 
+    /**
+    * @var string
+    */
     protected $query;
 
+    /**
+    * @var string Original URL
+    */
     protected $urlString;
 
+    /**
+    * @var string
+    */
     protected $urlPath;
 
+    /**
+    * @var string
+    */
     protected $urlPrefix;
 
+    /**
+    * @var string
+    */
     protected $urlScriptName;
 
+    /**
+    * @var string
+    */
     protected $urlImagePath;
 
+    /**
+    * @var string
+    */
     protected $urlImageName;
 
+    /**
+    * @var boolean
+    */
     protected $urlRewriteEnabled;
 
+    /**
+    * @var string
+    */
     protected $urlRewritePath;
 
+    /**
+    * @var string
+    */
     protected $imagePath;
 
+    /**
+    * @var string
+    */
     protected $imageName;
 
     public function toArray()
@@ -182,7 +238,6 @@ class Url
         if($urlScriptName){
             $urlRewriteEnabled = $this->getUrlRewriteEnabled();
             if($urlRewriteEnabled) {
-            
                 return $this->urlImagePath = str_replace($this->getUrlRewritePath(), '', $urlPath);
             } else {
                 return $this->urlImagePath = str_replace($urlScriptName, '', $urlPath);
@@ -199,8 +254,20 @@ class Url
         }
 
         $urlImagePath = $this->getUrlImagePath();
+        if(!$urlImagePath){
+            return $this->urlImageName = '';
+        }
+
         $urlImagePathArray = explode('/', $urlImagePath);
-        return $this->urlImageName = array_pop($urlImagePathArray);
+        $urlImageName = array_pop($urlImagePathArray);
+
+        //urlImageName must have extension part
+        $urlImageNameArray = explode('.', $urlImageName);
+        $urlImageNameCount = count($urlImageNameArray);
+        if($urlImageNameCount < 2 || !$urlImageNameArray[$urlImageNameCount - 1]){
+            return $this->urlImageName = '';
+        }
+        return $this->urlImageName = $urlImageName;
     }
 
     public function setUrlImageName($imageName)
@@ -231,18 +298,18 @@ class Url
     {
         $urlImageName = $this->getUrlImageName();
         if(!$urlImageName){
-            return '';
+            return $this->imageName = '';
         }
 
         $fileNameArray = explode('.', $urlImageName);
         if(!$fileNameArray || count($fileNameArray) < 2){
-            throw new Exception\InvalidArgumentException('File name not correct');
+            return $this->imageName = '';
         }
         $fileExt = array_pop($fileNameArray);
         $fileNameMain = implode('.', $fileNameArray);
         $fileNameArray = explode(',', $fileNameMain);
         if(!$fileExt || !$fileNameArray || !$fileNameArray[0]){
-            throw new Exception\InvalidArgumentException('File name not correct');
+            return $this->imageName = '';
         }
         $fileNameMain = array_shift($fileNameArray);
 
@@ -252,6 +319,10 @@ class Url
     public function getUrlRewritePath()
     {
         $scriptName = $this->getUrlScriptName();
+        if(!$scriptName){
+            return $this->urlRewritePath = '';
+        }
+
         if(false === $this->getUrlRewriteEnabled()){
             return $this->urlRewritePath = $scriptName;
         }

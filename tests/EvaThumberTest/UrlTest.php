@@ -104,5 +104,166 @@ class UrlTest extends \PHPUnit_Framework_TestCase
 
         $url = new Url('http://localhost/EvaThumber/thumb/d/demo.jpg');
         $this->assertEquals(true, $url->getUrlRewriteEnabled());
+
+        $url = new Url('http://localhost.php/EvaThumber/thumb/d/demo.jpg');
+        $this->assertEquals(true, $url->getUrlRewriteEnabled());
     }
+
+
+    public function testGetUrlRewritePath()
+    {
+        $_SERVER = array(
+            'SCRIPT_NAME' => '/EvaThumber/index.php',
+        );
+        $url = new Url('http://localhost/EvaThumber/index.php/thumb/d/demo.jpg');
+        $this->assertEquals('/EvaThumber/index.php', $url->getUrlRewritePath());
+
+        $url = new Url('http://localhost/EvaThumber/thumb/d/demo.jpg');
+        $this->assertEquals('/EvaThumber', $url->getUrlRewritePath());
+
+
+        $_SERVER = array(
+            'SCRIPT_NAME' => 'index.php',
+        );
+        $url = new Url('http://localhost/thumb/d/demo.jpg');
+        $this->assertEquals('', $url->getUrlRewritePath());
+
+        $_SERVER = array(
+            'SCRIPT_NAME' => '',
+        );
+        $url = new Url('http://localhost/thumb/d/demo.jpg');
+        $this->assertEquals('', $url->getUrlRewritePath());
+    }
+
+    public function testGetUrlImagePath()
+    {
+        $_SERVER = array(
+            'SCRIPT_NAME' => '/EvaThumber/index.php',
+        );
+        $url = new Url('http://localhost/EvaThumber/index.php/thumb/d/demo.jpg');
+        $this->assertEquals('/thumb/d/demo.jpg', $url->getUrlImagePath());
+
+
+        $_SERVER = array(
+            'SCRIPT_NAME' => '/index.php',
+        );
+        $url = new Url('http://localhost/EvaThumber/index.php/thumb/d/demo.jpg');
+        $this->assertEquals('/EvaThumber/thumb/d/demo.jpg', $url->getUrlImagePath());
+    }
+
+    public function testGetUrlPrefix()
+    {
+        $url = new Url('http://localhost/EvaThumber/index.php/thumb/d/demo.jpg');
+        $url->setUrlScriptName('/EvaThumber/index.php');
+        $this->assertEquals('thumb', $url->getUrlPrefix());
+
+
+        $url = new Url('http://localhost/EvaThumber/thumb/d/demo.jpg');
+        $url->setUrlScriptName('/EvaThumber/index.php');
+        $this->assertEquals('thumb', $url->getUrlPrefix());
+    
+        $url = new Url('http://localhost/');
+        $this->assertEquals('', $url->getUrlPrefix());
+
+        $url = new Url('http://localhost/thumb');
+        $this->assertEquals('', $url->getUrlPrefix());
+
+        $url = new Url('http://localhost/thumb/');
+        $this->assertEquals('thumb', $url->getUrlPrefix());
+
+        $url = new Url('http://localhost/index.php/abc.jpg');
+        $this->assertEquals('index.php', $url->getUrlPrefix());
+    }
+
+    public function testGetUrlKey()
+    {
+        $url = new Url('http://localhost/EvaThumber/index.php/thumb/d/demo.jpg');
+        $url->setUrlScriptName('/EvaThumber/index.php');
+        $this->assertEquals('d', $url->getUrlKey());
+
+
+        $url = new Url('http://localhost/EvaThumber/thumb/d/demo.jpg');
+        $url->setUrlScriptName('/EvaThumber/index.php');
+        $this->assertEquals('d', $url->getUrlKey());
+    
+        $url = new Url('http://localhost/');
+        $this->assertEquals('', $url->getUrlKey());
+
+        $url = new Url('http://localhost/thumb');
+        $this->assertEquals('', $url->getUrlKey());
+
+        $url = new Url('http://localhost/thumb/');
+        $this->assertEquals('', $url->getUrlKey());
+
+        $url = new Url('http://localhost/thumb/d');
+        $this->assertEquals('', $url->getUrlKey());
+
+        $url = new Url('http://localhost/thumb/d/');
+        $this->assertEquals('d', $url->getUrlKey());
+
+        $url = new Url('http://localhost/thumb/d/foo/bar/demo.jpg');
+        $this->assertEquals('d', $url->getUrlKey());
+    }
+
+
+    public function testGetImagePath()
+    {
+        $url = new Url('http://localhost/EvaThumber/thumb/d/demo.jpg');
+        $url->setUrlScriptName('/EvaThumber/index.php');
+        $this->assertEquals('', $url->getImagePath());
+    
+        $url = new Url('http://localhost/EvaThumber/thumb/d/foo/demo.jpg');
+        $url->setUrlScriptName('/EvaThumber/index.php');
+        $this->assertEquals('/foo', $url->getImagePath());
+
+        $url = new Url('http://localhost/EvaThumber/thumb/d/foo/bar/demo.jpg');
+        $url->setUrlScriptName('/EvaThumber/index.php');
+        $this->assertEquals('/foo/bar', $url->getImagePath());
+
+        $url = new Url('http://localhost/thumb/d/foo');
+        $this->assertEquals('', $url->getImagePath());
+
+        $url = new Url('http://localhost/thumb/d/foo/');
+        $this->assertEquals('/foo', $url->getImagePath());
+    }
+
+    public function testGetUrlImageName()
+    {
+        $url = new Url('http://localhost/EvaThumber/thumb/d/demo,w_100.jpg');
+        $url->setUrlScriptName('/EvaThumber/index.php');
+        $this->assertEquals('demo,w_100.jpg', $url->getUrlImageName());
+
+        $url = new Url('http://localhost/');
+        $this->assertEquals('', $url->getUrlImageName());
+
+        $url = new Url('http://localhost/thumb/d/foo/bar');
+        $this->assertEquals('', $url->getUrlImageName());
+    
+        $url = new Url('http://localhost/thumb/d/foo/bar.');
+        $this->assertEquals('', $url->getUrlImageName());
+    }
+
+    public function testGetImageName()
+    {
+        $url = new Url('http://localhost/EvaThumber/thumb/d/demo,w_100.jpg');
+        $url->setUrlScriptName('/EvaThumber/index.php');
+        $this->assertEquals('demo.jpg', $url->getImageName());
+
+        $url = new Url('http://localhost/');
+        $this->assertEquals('', $url->getImageName());
+
+        $url = new Url('http://localhost/thumb/d/demo.jpg');
+        $this->assertEquals('demo.jpg', $url->getImageName());
+    
+        $url = new Url('http://localhost/thumb/d/demo,w_100,,,.jpg');
+        $this->assertEquals('demo.jpg', $url->getImageName());
+    
+        $url = new Url('http://localhost/thumb/d/demo...,w_100,,,.jpg');
+        $this->assertEquals('demo....jpg', $url->getImageName());
+    
+        $url = new Url('http://localhost/thumb/d/demo,w_100....jpg');
+        $this->assertEquals('demo.jpg', $url->getImageName());
+    
+    }
+
 }
