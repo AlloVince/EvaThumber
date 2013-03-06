@@ -161,7 +161,7 @@ class Url
 
         $url = $this->urlString;
         $url = parse_url($url);
-        return $this->urlPath = $url['path'];
+        return $this->urlPath = isset($url['path']) ? $url['path'] : '';
     }
 
     public function getUrlPrefix()
@@ -332,8 +332,36 @@ class Url
         return $this->urlRewritePath = implode('/', $rewitePathArray);
     }
 
+
+    public function isValid()
+    {
+        $host = $this->getHost();
+        if(!$host){
+            return false;
+        }
+
+        if(!$this->getUrlPrefix()){
+            return false;
+        }
+
+        if(!$this->getUrlKey()){
+            return false;
+        }
+
+        if(!$this->getImageName()){
+            return false;
+        }
+
+        return true;
+    }
+
     public function toString()
     {
+        $host = $this->getHost();
+        if(!$host){
+            return '';
+        }
+
         $path = $this->getUrlRewritePath();
         if($prefix = $this->getUrlPrefix()){
             $path .= "/$prefix"; 
@@ -347,9 +375,11 @@ class Url
             $path .= $imagePath;
         }
 
-        $path .= '/' . $this->getUrlImageName();
+        if($imageName = $this->getUrlImageName()){
+            $path .= '/' . $imageName;
+        }
 
-        $url = $this->getScheme() . '://' . $this->getHost() . $path;
+        $url = $this->getScheme() . '://' . $host . $path;
         $url .= $this->getQuery() ? '?' . $this->getQuery() : '';
         return $url;
     }

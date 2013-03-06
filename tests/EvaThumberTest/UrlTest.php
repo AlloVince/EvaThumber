@@ -266,4 +266,43 @@ class UrlTest extends \PHPUnit_Framework_TestCase
     
     }
 
+
+    public function testToString()
+    {
+        $url = new Url('');
+        $this->assertEquals('', $url->toString());
+
+        $url = new Url('foo');
+        $this->assertEquals('', $url->toString());
+
+        $url = new Url('http://localhost');
+        $this->assertEquals('http://localhost', $url->toString());
+
+        $url = new Url('http://localhost/thumb/d/foo/bar/demo,w_100.jpg');
+        $url->setUrlImageName('demo,w_200.jpg');
+        $this->assertEquals('http://localhost/thumb/d/foo/bar/demo,w_200.jpg', $url->toString());
+    }
+
+    public function testIsValid()
+    {
+    
+        $url = new Url('');
+        $this->assertEquals(false, $url->isValid());
+
+        $url = new Url('foo');
+        $this->assertEquals(false, $url->isValid());
+
+        $url = new Url('http://localhost');
+        $this->assertEquals(false, $url->isValid());
+
+        $url = new Url('http://localhost/thumb/test.jpg');
+        $this->assertEquals(false, $url->isValid());
+
+        $url = new Url('http://localhost/thumb/d/test');
+        $this->assertEquals(false, $url->isValid());
+
+        $url = new Url('http://localhost/thumb/d/test.jpg');
+        $this->assertEquals(true, $url->isValid());
+
+    }
 }
