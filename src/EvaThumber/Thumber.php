@@ -649,6 +649,14 @@ class Thumber
             //only in imagine develop version
             $effects->sharpen();
             break;
+            case 'lomo':
+            $effects->contrast(10);
+            //$effects->brightness(10);
+            //$effects->gaussBlur();
+            //$effects->mosaic();
+            //$effects->borderline();
+            //$effects->emboss();
+            break;
             default:
         }
         return $this;
