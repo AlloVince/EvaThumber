@@ -30,7 +30,8 @@ if (file_exists($autoloader)) {
 /** Debug functions */
 function p($r, $usePr = false)
 {
-    echo sprintf("<pre>%s</pre>", var_dump($r));
+   FB::log($r);
+    //echo sprintf("<pre>%s</pre>", var_dump($r));
 }
 
 $loader->add('EvaThumber', $dir . '/src');

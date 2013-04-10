@@ -633,19 +633,21 @@ class Thumber
             return $this;
         }
 
+        $effects = $this->getImage()->effects('EvaThumber\\'.get_class($this->image) . '\\Effects');
+
         switch($filter){
-            case 'gray':
-            $this->getImage()->effects()->grayscale();
-            break;
-            case 'gamma':
-            $this->getImage()->effects()->gamma(0.7);
-            break;
-            case 'negative':
-            $this->getImage()->effects()->negative();
+           case 'gray':
+           $effects->grayscale();
+           break;
+           case 'gamma':
+           $effects->gamma(0.7);
+           break;
+           case 'negative':
+            $effects->negative();
             break;
             case 'sharp':
             //only in imagine develop version
-            $this->getImage()->effects()->sharpen();
+            $effects->sharpen();
             break;
             default:
         }

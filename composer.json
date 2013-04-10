@@ -3,9 +3,15 @@
     "description": "EvaThumber",
     "license": "BSD-3-Clause",
     "homepage": "http://avnpc.com/",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/AlloVince/Imagine"
+        }
+    ],
     "require": {
         "php": ">=5.3.3",
-        "imagine/Imagine": "dev-develop"
+        "imagine/Imagine": "dev-custom_effect"
     },
     "require-dev": {
         "firephp/firephp-core": "dev-master",

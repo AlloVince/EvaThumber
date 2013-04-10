@@ -9,11 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace EvaThumber\Imagine\Imagick;
+namespace EvaThumber\Imagine\Gd\Image;
 
 /**
  * Effects implementation using the GD library
  */
-class Effects extends \Imagine\Imagick\Effects
+class Effects extends \Imagine\Gd\Effects
 {
 }
