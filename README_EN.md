@@ -1,7 +1,7 @@
 EvaCloudImage - Light-weight url based image transformation php library
 ================================================================
 
-Master: [![Build Status](https://secure.travis-ci.org/AlloVince/EvaCloudImage.png?branch=master)](http://travis-ci.org/AlloVince/EvaCloudImage)
+Master: [![Build Status](https://secure.travis-ci.org/AlloVince/EvaThumber.png?branch=master)](http://travis-ci.org/AlloVince/EvaThumber)
 
 EvaCloudImage is a url based image transformation php library.
 

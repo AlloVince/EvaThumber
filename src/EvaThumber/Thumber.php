@@ -113,6 +113,12 @@ class Thumber
         return $this->image;
     }
 
+    public function getEffect()
+    {
+       $className = get_class($this->image);
+       return 'EvaThumber\\' . $className($this->image);
+    }
+
     public function getUrl()
     {
         return $this->url;
@@ -636,6 +642,10 @@ class Thumber
             break;
             case 'negative':
             $this->getImage()->effects()->negative();
+            break;
+            case 'sharp':
+            //only in imagine develop version
+            $this->getImage()->effects()->sharpen();
             break;
             default:
         }
