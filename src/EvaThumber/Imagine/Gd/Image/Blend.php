@@ -19,6 +19,7 @@ use EvaThumber\Imagine\Blend\AbstractBlend;
  */
 class Blend extends AbstractBlend
 {
+    /*
     public static function layerOverlay($dstImage, $srcImage, $dstSource, $srcSource)
     {
         //叠加
@@ -40,4 +41,5 @@ class Blend extends AbstractBlend
             }
         }
     }
+    */
 }

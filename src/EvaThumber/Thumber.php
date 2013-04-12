@@ -652,7 +652,13 @@ class Thumber
             break;
             case 'lomo':
             $layer = $this->createThumber()->open(__DIR__ . '/../../upload/zz150.jpg');
-            $this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerOverlay');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerOverlay');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLighten');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerMultiply');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLinearDodge');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLinearBurn');
+            $this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLinearLight');
+
 
             //$drawer->layerNormal();
             //$drawer->layerOverlay();
