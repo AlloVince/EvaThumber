@@ -633,7 +633,8 @@ class Thumber
             return $this;
         }
 
-        $effects = $this->getImage()->effects('EvaThumber\\'.get_class($this->image) . '\\Effects');
+        $effects = $this->getImage()->effects('EvaThumber\\' . get_class($this->image) . '\\Effects');
+        $blendClass = 'EvaThumber\\' . get_class($this->image) . '\\Blend::';
 
         switch($filter){
            case 'gray':
@@ -650,7 +651,13 @@ class Thumber
             $effects->sharpen();
             break;
             case 'lomo':
-            $effects->contrast(10);
+            $layer = $this->createThumber()->open(__DIR__ . '/../../upload/zz150.jpg');
+            $this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerOverlay');
+
+            //$drawer->layerNormal();
+            //$drawer->layerOverlay();
+
+            //$effects->contrast(10);
             //$effects->brightness(10);
             //$effects->gaussBlur();
             //$effects->mosaic();
