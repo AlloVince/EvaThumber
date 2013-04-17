@@ -633,8 +633,9 @@ class Thumber
             return $this;
         }
 
-        $effects = $this->getImage()->effects('EvaThumber\\' . get_class($this->image) . '\\Effects');
-        $blendClass = 'EvaThumber\\' . get_class($this->image) . '\\Blend::';
+        $image = $this->getImage();
+        $effects = $this->getImage()->effects('EvaThumber\\' . get_class($image) . '\\Effects');
+        $blend = 'EvaThumber\\' . get_class($image) . '\\Blend::layer';
 
         switch($filter){
            case 'gray':
@@ -650,14 +651,35 @@ class Thumber
             //only in imagine develop version
             $effects->sharpen();
             break;
+            case 'carve':
+            $layer = $image->copy();
+            $image->effects('EvaThumber\\' . get_class($layer) . '\\Effects')->mosaic()->borderline()->emboss();
+            $image->paste($layer, new Point(0, 0), 100, $blend . 'VividLight');
+            break;
+
+            case 'softenface':
+            $layer = $image->copy();
+            $image->effects('EvaThumber\\' . get_class($layer) . '\\Effects')->gaussBlur();
+            $image->paste($layer, new Point(0, 0), 100, $blend . 'Screen');
+            $effects->brightness(-10);
+
+            break;
             case 'lomo':
-            $layer = $this->createThumber()->open(__DIR__ . '/../../upload/zz150.jpg');
+            $layer = $this->createThumber()->open(__DIR__ . '/../../upload/blend.png');
+            
+            $this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLighten');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerDarken');
             //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerOverlay');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLighten');
             //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerMultiply');
             //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLinearDodge');
             //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLinearBurn');
-            $this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLinearLight');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLinearLight');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerColorBurn');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerHardMix');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerDiference');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerExclusion');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerHardLight');
+            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerPhoenix');
 
 
             //$drawer->layerNormal();

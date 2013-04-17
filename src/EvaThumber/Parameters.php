@@ -127,6 +127,8 @@ class Parameters
            'gamma',
            'sharp',
            'lomo',
+           'carve',
+           'softenface',
         ))){
             $this->filter = null;
             return $this;

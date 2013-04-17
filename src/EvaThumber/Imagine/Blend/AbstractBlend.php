@@ -228,7 +228,9 @@ abstract class AbstractBlend
         self::pixelHandler($topImage, $bottomImage, function($A, $B) {
             return $B < 128 ? 
                 min(255, ($A + 2 * $B)) :
-                $A + (2 * ($B - 128)) < 255 ? 0 : $A + (2 * ($B - 128)) - 255
+                (
+                    $A + (2 * ($B - 128)) < 255 ? 0 : $A + (2 * ($B - 128)) - 255
+                )
             ;
         });
     }
