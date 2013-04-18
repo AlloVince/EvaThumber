@@ -762,6 +762,10 @@ class Thumber
     protected function blending()
     {
         $blendingFile = $this->config->blending_layer;
+        $blendingEffect = $this->getParameters()->getLayer();
+        if(!$blendingEffect){
+            return $this;
+        }
         if(!$blendingFile){
             throw new Exception\InvalidArgumentException(sprintf(
                 'Blending file not found'
@@ -769,7 +773,6 @@ class Thumber
         }
 
         $image = $this->getImage();
-        $blendingEffect = $this->getParameters()->getLayer();
         $layer = $this->createThumber()->open($blendingFile);
 
         $blendFunc = 'EvaThumber\\' . get_class($image) . '\\Blend::layer' . $blendingEffect;
