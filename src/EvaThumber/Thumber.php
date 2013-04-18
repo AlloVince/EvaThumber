@@ -423,7 +423,8 @@ class Thumber
             ->resize()
             ->rotate()
             ->filter()
-            ->layer() 
+            ->blending()
+            ->layer()
             ->quality()
             ->optimize();
 
@@ -665,32 +666,7 @@ class Thumber
 
             break;
             case 'lomo':
-            $layer = $this->createThumber()->open(__DIR__ . '/../../upload/blend.png');
-            
-            $this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLighten');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerDarken');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerOverlay');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerMultiply');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLinearDodge');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLinearBurn');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerLinearLight');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerColorBurn');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerHardMix');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerDiference');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerExclusion');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerHardLight');
-            //$this->getImage()->paste($layer, new Point(0, 0), 100, $blendClass . 'layerPhoenix');
 
-
-            //$drawer->layerNormal();
-            //$drawer->layerOverlay();
-
-            //$effects->contrast(10);
-            //$effects->brightness(10);
-            //$effects->gaussBlur();
-            //$effects->mosaic();
-            //$effects->borderline();
-            //$effects->emboss();
             break;
             default:
         }
@@ -779,6 +755,32 @@ class Thumber
         } else {
             $this->image = $this->getImage()->paste($waterLayer, $point);
         }
+
+        return $this;
+    }
+
+    protected function blending()
+    {
+        $blendingFile = $this->config->blending_layer;
+        if(!$blendingFile){
+            throw new Exception\InvalidArgumentException(sprintf(
+                'Blending file not found'
+            ));
+        }
+
+        $image = $this->getImage();
+        $blendingEffect = $this->getParameters()->getLayer();
+        $layer = $this->createThumber()->open($blendingFile);
+
+        $blendFunc = 'EvaThumber\\' . get_class($image) . '\\Blend::layer' . $blendingEffect;
+
+        if(true !== is_callable($blendFunc)){
+            throw new Exception\InvalidArgumentException(sprintf(
+                'Request blending effect %s not exist', $blendingEffect
+            ));
+        }
+
+        $image->paste($layer, new Point(0, 0), 100, $blendFunc);
 
         return $this;
     }

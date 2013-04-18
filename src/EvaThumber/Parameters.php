@@ -22,6 +22,7 @@ class Parameters
     protected $gravity;
     protected $height;
     protected $width;
+    protected $layer;
     protected $percent;
     protected $quality;
     protected $rotate;
@@ -40,6 +41,7 @@ class Parameters
         'f' => 'filter',
         'g' => 'gravity',
         'h' => 'height',
+        'l' => 'layer',
         'p' => 'percent',
         'q' => 'quality',
         'r' => 'rotate',
@@ -59,6 +61,7 @@ class Parameters
         'quality' => 100,
         'rotate' => 360,
         'width' => null,
+        'layer' => null,
         'x' => null,
         'y' => null,
     );
@@ -155,6 +158,17 @@ class Parameters
             }
         }
         $this->gravity = $gravity;
+        return $this;
+    }
+
+    public function getLayer()
+    {
+        return $this->layer;
+    }
+
+    public function setLayer($layer)
+    {
+        $this->layer = $layer;
         return $this;
     }
 
@@ -386,6 +400,7 @@ class Parameters
             'percent' => $this->getPercent(),
             'dummy' => $this->getDummy(),
             'border' => $this->getBorder(),
+            'layer' => $this->getLayer(),
             'quality' => $this->getQuality(), 
             'crop' => $this->getCrop(),
             'x' => $this->getX(),
@@ -458,7 +473,6 @@ class Parameters
         //set default here;
         $defaults = $this->argDefaults;
         $config = $this->getConfig();
-
 
         //Max width & height from config
         if($config){

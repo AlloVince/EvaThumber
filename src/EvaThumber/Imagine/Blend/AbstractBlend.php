@@ -123,7 +123,7 @@ abstract class AbstractBlend
         });
     }
 
-    public static function layerDiference($topImage, $bottomImage)
+    public static function layerDifference($topImage, $bottomImage)
     {
         //差值
         //abs(A - B)
@@ -200,8 +200,14 @@ abstract class AbstractBlend
     {
         //颜色加深
         //(B == 0) ? B:max(0, (255 - ((255 - A) << 8 ) / B)))
+        //A + B < 255 ? 0 : ( A > 0 ? ( 255 - (255 - B) / A)  : 255)
         self::pixelHandler($topImage, $bottomImage, function($A, $B) {
-            return $B == 0 ? $B : max(0, (255 - ((255 - $A) << 8 ) / $B));
+
+            //Normal color burn
+            //return ($B == 0) ? $B : (max(0, (255 - ((255 - $A) << 8) / $B)));
+
+            //Photoshop using inverse color burn
+            return $A == 0 ? 0 : max(0, (255 - ((255 - $B) << 8) / $A));
         });
     }
 
@@ -221,17 +227,11 @@ abstract class AbstractBlend
     public static function layerLinearLight($topImage, $bottomImage)
     {
         //线性光
-        //(B < 128) ? LinearBurn(A,(2 * B)) : LinearDodge(A,(2 * (B - 128)))
-        
-        //min(255, (A + B))
-        //(A + B < 255) ? 0:(A + B - 255)
+        //min(255, max(0, ($B + 2 * $A) - 1)) 
         self::pixelHandler($topImage, $bottomImage, function($A, $B) {
-            return $B < 128 ? 
-                min(255, ($A + 2 * $B)) :
-                (
-                    $A + (2 * ($B - 128)) < 255 ? 0 : $A + (2 * ($B - 128)) - 255
-                )
-            ;
+            return min(255, max(
+                0, (($B + 2 * $A) - 255)
+            ));
         });
     }
 
@@ -253,15 +253,9 @@ abstract class AbstractBlend
     public static function layerPinLight($topImage, $bottomImage)
     {
         //点光
-        //(B < 128) ? Darken(A,(2 * B)) : Lighten(A,(2 * (B - 128))
+        //max(0, max(2 * B - 255, min(B, 2*A))) 
         self::pixelHandler($topImage, $bottomImage, function($A, $B) {
-            return $B < 128 ? 
-            (
-                2 * $B > $A ? $A : 2 * $B
-            ) :
-            (
-                (2 * ($B - 128)) > $A ? (2 * ($B - 128)) : $A
-            ) ;
+            return max(0, max(2 * $A - 255, min($B, 2 * $A)));
         });
     }
 

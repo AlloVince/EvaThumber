@@ -17,6 +17,7 @@ return array(
             'max_width' => 2000,
             'max_height' => 2000,
             'quality' => 100,
+            'blending_layer' => __DIR__ . '/upload/blend.png',
             'redirect_referer' => true, 
             'face_detect' => array(
                 'enable' => 0,
