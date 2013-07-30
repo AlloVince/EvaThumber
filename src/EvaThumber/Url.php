@@ -372,7 +372,12 @@ class Url
             return '';
         }
 
-        $port = $this->getPort() == 80 ? '' : ':' . $this->getPort();
+        $port = $this->getPort();
+        if($port != ''){
+            $host .= ':'.$port;
+        }
+
+        $port = $this->getPort() ? '' : ':' . $this->getPort();
 
         $path = $this->getUrlRewritePath();
         if($prefix = $this->getUrlPrefix()){
@@ -429,7 +434,7 @@ class Url
             $url = parse_url($urlString);
             $this->scheme = isset($url['scheme']) ? $url['scheme'] : null;
             $this->host = isset($url['host']) ? $url['host'] : null;
-            $this->port = isset($url['port']) ? $url['port'] : 80;
+            $this->port = isset($url['port']) ? $url['port'] : '';
             $this->query = isset($url['query']) ? $url['query'] : null;
             $this->urlPath = isset($url['path']) ? $url['path'] : null;
         }
