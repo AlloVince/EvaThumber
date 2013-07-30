@@ -44,6 +44,11 @@ class Url
     /**
     * @var string
     */
+    protected $port;
+
+    /**
+    * @var string
+    */
     protected $query;
 
     /**
@@ -124,6 +129,11 @@ class Url
     public function getHost()
     {
         return $this->host;
+    }
+
+    public function getPort()
+    {
+        return $this->port;
     }
 
     public function getQuery()
@@ -362,6 +372,8 @@ class Url
             return '';
         }
 
+        $port = $this->getPort() == 80 ? '' : ':' . $this->getPort();
+
         $path = $this->getUrlRewritePath();
         if($prefix = $this->getUrlPrefix()){
             $path .= "/$prefix"; 
@@ -379,7 +391,7 @@ class Url
             $path .= '/' . $imageName;
         }
 
-        $url = $this->getScheme() . '://' . $host . $path;
+        $url = $this->getScheme() . '://' . $host . $port . $path;
         $url .= $this->getQuery() ? '?' . $this->getQuery() : '';
         return $url;
     }
@@ -417,6 +429,7 @@ class Url
             $url = parse_url($urlString);
             $this->scheme = isset($url['scheme']) ? $url['scheme'] : null;
             $this->host = isset($url['host']) ? $url['host'] : null;
+            $this->port = isset($url['port']) ? $url['port'] : 80;
             $this->query = isset($url['query']) ? $url['query'] : null;
             $this->urlPath = isset($url['path']) ? $url['path'] : null;
         }
