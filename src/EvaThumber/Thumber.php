@@ -174,6 +174,10 @@ class Thumber
                 throw new Exception\InvalidArgumentException(sprintf("Request an empty filename"));
             }
             $sourcefile = $fileRootPath . $filePath . '/' . $fileName;
+            $systemEncoding =  $this->config->system_file_encoding;
+            if($systemEncoding || $systemEncoding != 'UTF-8') {
+                $sourcefile = iconv('UTF-8', $this->config->system_file_encoding, urldecode($sourcefile));
+            }
 
         } elseif(is_file($fileRootPath)){
 
