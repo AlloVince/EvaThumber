@@ -372,12 +372,7 @@ class Url
             return '';
         }
 
-        $port = $this->getPort();
-        if($port != ''){
-            $host .= ':'.$port;
-        }
-
-        $port = $this->getPort() ? '' : ':' . $this->getPort();
+        $port = $this->getPort() ? ':' . $this->getPort() : '';
 
         $path = $this->getUrlRewritePath();
         if($prefix = $this->getUrlPrefix()){

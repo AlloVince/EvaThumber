@@ -512,7 +512,7 @@ class Parameters
                 $this->width = $width = $width > $maxWidth ? $maxWidth : $width;
             }
             if($height && $maxHeight){
-                $this->height = $width = $height > $maxHeight ? $maxHeight : $height;
+                $this->height = $height = $height > $maxHeight ? $maxHeight : $height;
             }
 
 
