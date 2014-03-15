@@ -793,3 +793,7 @@ EvaThumber 是 [EvaEngine](https://github.com/AlloVince/eva-engine)项目的一�
 
 EvaThumber由[EvaCloudImage](http://avnpc.com/pages/evacloudimage)更名而来，基本兼容旧版的API并作了完全的重构。旧版本代码[在此](https://github.com/AlloVince/EvaThumber/tree/42941a86af2b5fe92a5a3376010cfad607cce555)
 
+
+
+[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/AlloVince/evathumber/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
+
