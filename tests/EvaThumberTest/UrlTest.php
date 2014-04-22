@@ -276,34 +276,12 @@ class UrlTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('', $url->toString());
 
 
+        $_SERVER['SCRIPT_NAME'] = '/home/travis/index.php';
         $url = new Url('http://localhost/thumb/d/foo/bar/demo,w_100.jpg');
         $url->setUrlImageName('demo,w_200.jpg');
         $this->assertEquals('http://localhost/thumb/d/foo/bar/demo,w_200.jpg', $url->toString());
-        /*
-        There was 1 failure:
-
-        1) EvaThumberTest\UrlTest::testToString
-
-        Failed asserting that two strings are equal.
-
-        --- Expected
-
-        +++ Actual
-
-        @@ @@
-
-        -'http://localhost'
-
-        +'http://localhost/home/travis'
-
-        /home/travis/build/AlloVince/EvaThumber/tests/EvaThumberTest/UrlTest.php:279
-
-        FAILURES!
-
-        Tests: 55, Assertions: 216, Failures: 1.
-        */
-        //$url = new Url('http://localhost');
-        //$this->assertEquals('http://localhost', $url->toString());
+        $url = new Url('http://localhost');
+        $this->assertEquals('http://localhost', $url->toString());
 
         $_SERVER['SCRIPT_NAME'] = '/home/index.php';
         $url = new Url('http://localhost/thumb/d/foo/bar/demo,w_100.jpg');
