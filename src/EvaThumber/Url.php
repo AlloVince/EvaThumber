@@ -208,12 +208,23 @@ class Url
 
         if(isset($_SERVER['SCRIPT_NAME']) && $_SERVER['SCRIPT_NAME']){
             $scriptName = $_SERVER['SCRIPT_NAME'];
+
             if(false === strpos($scriptName, '.php')){
                 return $this->urlScriptName = '';
             }
 
+
             //Nginx maybe set SCRIPT_NAME as full url path
             if(($scriptNameEnd = substr($scriptName, -4)) && $scriptNameEnd === '.php'){
+                $scriptNameArray = explode('/', $scriptName);
+                array_shift($scriptNameArray); //remove start slash
+                array_pop($scriptNameArray);
+                $scriptNameFront = implode('/', $scriptNameArray);
+
+                //not find server script_name in url, drop script_name, because script_name maybe not correct
+                if($scriptNameFront && $this->urlString && false === strpos($this->urlString, $scriptNameFront)) {
+                    return $this->urlScriptName = '';
+                }
                 return $this->urlScriptName = $scriptName;
             } else {
                 $scriptNameArray = explode('/', $scriptName);
