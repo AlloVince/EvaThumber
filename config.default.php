@@ -4,7 +4,7 @@ return array(
         'd' => array(
             'debug' => 0, //0: redirect to error png | 1: redirect to error png with error url msg | 2: throw an exception
             'source_path' => __DIR__ . '/upload',
-            'system_file_encoding' => '',
+            'system_file_encoding' => 'UTF-8',
             'zip_file_encoding' => 'GB2312',
             'thumb_cache_path' => __DIR__ . '/thumb',
             'system_cache_path' => null,
