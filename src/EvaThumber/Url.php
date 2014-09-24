@@ -178,6 +178,7 @@ class Url
 
     public function getUrlPrefix()
     {
+
         $urlImagePath = $this->getUrlImagePath();
         $urlImagePathArray = explode('/', ltrim($urlImagePath, '/'));
         if (count($urlImagePathArray) < 2) {
@@ -246,6 +247,7 @@ class Url
 
     public function getUrlImagePath()
     {
+
         if ($this->urlImagePath) {
             return $this->urlImagePath;
         }
@@ -292,7 +294,11 @@ class Url
         }
 
         // url with class
-        if (isset($this->config->class_separator) && strpos($urlImageName, $this->config->class_separator) !== false) {
+        if (is_object($this->config) && isset($this->config->class_separator) && strpos(
+                $urlImageName,
+                $this->config->class_separator
+            ) !== false
+        ) {
             list($urlImageName, $className) = explode($this->config->class_separator, $urlImageName);
             if (!isset($this->config->classes->$className)) {
                 throw new Exception\InvalidArgumentException(
@@ -355,7 +361,11 @@ class Url
             return $this->imageName = '';
         }
         // url with class
-        if (isset($this->config->class_separator) && strpos($fileExt, $this->config->class_separator) !== false) {
+        if (is_object($this->config) && isset($this->config->class_separator) && strpos(
+                $fileExt,
+                $this->config->class_separator
+            ) !== false
+        ) {
             $fileExt = substr($fileExt, 0, strpos($fileExt, $this->config->class_separator));
 
         }
@@ -466,7 +476,7 @@ class Url
         return $this->config;
     }
 
-    public function __construct($url = null, $config)
+    public function __construct($url = null, $config = null)
     {
         $this->config = $config;
         $urlString = $url ? $url : $this->getCurrentUrl();
@@ -479,7 +489,11 @@ class Url
             $this->query = isset($url['query']) ? $url['query'] : null;
             $this->urlPath = isset($url['path']) ? $url['path'] : null;
         }
+        if ($config == null) {
+            return;
+        }
         $configKey = $this->getUrlKey();
+
         $defaultConfig = $config->thumbers->current();
         $defaultKey = $config->thumbers->key();
         if (isset($config->thumbers->$configKey)) {
