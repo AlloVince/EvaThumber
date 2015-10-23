@@ -2,14 +2,17 @@
 return array(
     'thumbers' => array(
         'd' => array(
-            'debug' => 0, //0: redirect to error png | 1: redirect to error png with error url msg | 2: throw an exception
+            'debug' => 0,
+            //0: redirect to error png | 1: redirect to error png with error url msg | 2: throw an exception
             'source_path' => __DIR__ . '/upload',
             'system_file_encoding' => 'UTF-8',
             'zip_file_encoding' => 'GB2312',
             'thumb_cache_path' => __DIR__ . '/thumb',
             'system_cache_path' => null,
-            'adapter' => 'GD', //GD | Imagick | Gmagick
-            'prefix' => 'thumb', //if no prefix, will use array key
+            'adapter' => 'GD',
+            //GD | Imagick | Gmagick
+            'prefix' => 'thumb',
+            //if no prefix, will use array key
             'cache' => 0,
             'error_url' => 'http://localhost/EvaCloudImage/error.png',
             'allow_stretch' => false,
@@ -19,7 +22,7 @@ return array(
             'max_height' => 2000,
             'quality' => 100,
             'blending_layer' => __DIR__ . '/upload/blend.png',
-            'redirect_referer' => true, 
+            'redirect_referer' => true,
             'face_detect' => array(
                 'enable' => 0,
                 'draw_border' => 1,
@@ -33,9 +36,7 @@ return array(
                     'bin' => __DIR__ . '/bin/pngout.exe',
                 ),
             ),
-            'allow_extensions' => array(
-            
-            ),
+            'allow_extensions' => array(),
             'allow_sizes' => array(
                 //Suggest keep empty here to be overwrite
                 //'200*100',
@@ -49,7 +50,8 @@ return array(
             ),
             'watermark' => array(
                 'enable' => 0,
-                'position' => 'br', //position could be tl:TOP LEFT | tr: TOP RIGHT | bl | BOTTOM LEFT | br BOTTOM RIGHT | center
+                'position' => 'br',
+                //position could be tl:TOP LEFT | tr: TOP RIGHT | bl | BOTTOM LEFT | br BOTTOM RIGHT | center
                 'text' => '@AlloVince',
                 'layer_file' => __DIR__ . '/layers/watermark.png',
                 'font_file' => __DIR__ . '/layers/Yahei_Mono.ttf',
@@ -59,6 +61,13 @@ return array(
                 'qr_code_size' => 3,
                 'qr_code_margin' => 4,
             ),
+            // disable dynamic url
+            'dynamicUrlDisabled' => false,
+            // separator of class in url
+            'class_separator' => '!',
+            'classes' => array(
+                'cover' => 'w_120,h_200'
+            )
         ),
     ),
 );

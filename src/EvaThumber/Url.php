@@ -27,79 +27,81 @@ namespace EvaThumber;
  * -- urlRewriteEnabled : true
  * -- imagePath : /archive
  * -- imageName : zipimage.jpg
- * 
+ *
  */
 class Url
 {
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $scheme;
 
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $host;
 
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $port;
 
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $query;
 
     /**
-    * @var string Original URL
-    */
+     * @var string Original URL
+     */
     protected $urlString;
 
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $urlPath;
 
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $urlPrefix;
 
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $urlScriptName;
 
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $urlImagePath;
 
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $urlImageName;
 
     /**
-    * @var boolean
-    */
+     * @var boolean
+     */
     protected $urlRewriteEnabled;
 
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $urlRewritePath;
 
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $imagePath;
 
     /**
-    * @var string
-    */
+     * @var string
+     */
     protected $imageName;
+
+    protected $config;
 
     public function toArray()
     {
@@ -148,12 +150,12 @@ class Url
 
     public function getUrlRewriteEnabled()
     {
-        if($this->urlRewriteEnabled !== null){
+        if ($this->urlRewriteEnabled !== null) {
             return $this->urlRewriteEnabled;
         }
 
         $urlPath = $this->getUrlPath();
-        if(false === strpos($urlPath, '.php')){
+        if (false === strpos($urlPath, '.php')) {
             return $this->urlRewriteEnabled = true;
         }
         return $this->urlRewriteEnabled = false;
@@ -161,11 +163,11 @@ class Url
 
     public function getUrlPath()
     {
-        if($this->urlPath){
+        if ($this->urlPath) {
             return $this->urlPath;
         }
 
-        if(!$this->urlString){
+        if (!$this->urlString) {
             return '';
         }
 
@@ -176,9 +178,10 @@ class Url
 
     public function getUrlPrefix()
     {
+
         $urlImagePath = $this->getUrlImagePath();
         $urlImagePathArray = explode('/', ltrim($urlImagePath, '/'));
-        if(count($urlImagePathArray) < 2){
+        if (count($urlImagePathArray) < 2) {
             return '';
         }
         return $this->urlPrefix = array_shift($urlImagePathArray);
@@ -188,7 +191,7 @@ class Url
     {
         $urlImagePath = $this->getUrlImagePath();
         $urlImagePathArray = explode('/', ltrim($urlImagePath, '/'));
-        if(count($urlImagePathArray) < 3){
+        if (count($urlImagePathArray) < 3) {
             return '';
         }
         return $this->urlKey = $urlImagePathArray[1];
@@ -196,42 +199,42 @@ class Url
 
     public function setUrlScriptName($urlScriptName)
     {
-        $this->urlScriptName = (string) $urlScriptName;
+        $this->urlScriptName = (string)$urlScriptName;
         return $this;
     }
 
     public function getUrlScriptName()
     {
-        if($this->urlScriptName){
+        if ($this->urlScriptName) {
             return $this->urlScriptName;
         }
 
-        if(isset($_SERVER['SCRIPT_NAME']) && $_SERVER['SCRIPT_NAME']){
+        if (isset($_SERVER['SCRIPT_NAME']) && $_SERVER['SCRIPT_NAME']) {
             $scriptName = $_SERVER['SCRIPT_NAME'];
 
-            if(false === strpos($scriptName, '.php')){
+            if (false === strpos($scriptName, '.php')) {
                 return $this->urlScriptName = '';
             }
 
 
             //Nginx maybe set SCRIPT_NAME as full url path
-            if(($scriptNameEnd = substr($scriptName, -4)) && $scriptNameEnd === '.php'){
+            if (($scriptNameEnd = substr($scriptName, -4)) && $scriptNameEnd === '.php') {
                 $scriptNameArray = explode('/', $scriptName);
                 array_shift($scriptNameArray); //remove start slash
                 array_pop($scriptNameArray);
                 $scriptNameFront = implode('/', $scriptNameArray);
 
                 //not find server script_name in url, drop script_name, because script_name maybe not correct
-                if($scriptNameFront && $this->urlString && false === strpos($this->urlString, $scriptNameFront)) {
+                if ($scriptNameFront && $this->urlString && false === strpos($this->urlString, $scriptNameFront)) {
                     return $this->urlScriptName = '';
                 }
                 return $this->urlScriptName = $scriptName;
             } else {
                 $scriptNameArray = explode('/', $scriptName);
                 $scriptName = array();
-                foreach($scriptNameArray as $scriptNamePart){
+                foreach ($scriptNameArray as $scriptNamePart) {
                     $scriptName[] = $scriptNamePart;
-                    if(false !== strpos($scriptNamePart, '.php')){
+                    if (false !== strpos($scriptNamePart, '.php')) {
                         break;
                     }
                 }
@@ -244,21 +247,22 @@ class Url
 
     public function getUrlImagePath()
     {
-        if($this->urlImagePath){
+
+        if ($this->urlImagePath) {
             return $this->urlImagePath;
         }
 
         $urlPath = $this->getUrlPath();
-        if(!$urlPath){
+        if (!$urlPath) {
             return '';
         }
 
         $urlScriptName = $this->getUrlScriptName();
 
 
-        if($urlScriptName){
+        if ($urlScriptName) {
             $urlRewriteEnabled = $this->getUrlRewriteEnabled();
-            if($urlRewriteEnabled) {
+            if ($urlRewriteEnabled) {
                 return $this->urlImagePath = str_replace($this->getUrlRewritePath(), '', $urlPath);
             } else {
                 return $this->urlImagePath = str_replace($urlScriptName, '', $urlPath);
@@ -270,12 +274,12 @@ class Url
 
     public function getUrlImageName()
     {
-        if($this->urlImageName){
+        if ($this->urlImageName) {
             return $this->urlImageName;
         }
 
         $urlImagePath = $this->getUrlImagePath();
-        if(!$urlImagePath){
+        if (!$urlImagePath) {
             return $this->urlImageName = '';
         }
 
@@ -285,9 +289,31 @@ class Url
         //urlImageName must have extension part
         $urlImageNameArray = explode('.', $urlImageName);
         $urlImageNameCount = count($urlImageNameArray);
-        if($urlImageNameCount < 2 || !$urlImageNameArray[$urlImageNameCount - 1]){
+        if ($urlImageNameCount < 2 || !$urlImageNameArray[$urlImageNameCount - 1]) {
             return $this->urlImageName = '';
         }
+
+        // url with class
+        if (is_object($this->config) && isset($this->config->class_separator) && strpos(
+                $urlImageName,
+                $this->config->class_separator
+            ) !== false
+        ) {
+            list($urlImageName, $className) = explode($this->config->class_separator, $urlImageName);
+            if (!isset($this->config->classes->$className)) {
+                throw new Exception\InvalidArgumentException(
+                    sprintf(
+                        'class [%s] has not been set',
+                        $className
+                    )
+                );
+            }
+
+            $_urlNameArr = explode('.', $urlImageName);
+            $fileExt = array_pop($_urlNameArr);
+            $urlImageName = implode('.', $_urlNameArr) . ',' . $this->config->classes->$className . '.' . $fileExt;
+        }
+
         return $this->urlImageName = $urlImageName;
     }
 
@@ -301,7 +327,7 @@ class Url
     {
         $urlImagePath = $this->getUrlImagePath();
         $urlImagePathArray = explode('/', ltrim($urlImagePath, '/'));
-        if(count($urlImagePathArray) < 4){
+        if (count($urlImagePathArray) < 4) {
             return '';
         }
 
@@ -311,26 +337,37 @@ class Url
         array_shift($urlImagePathArray);
         //remove imagename
         array_pop($urlImagePathArray);
-        return $this->imagePath = '/'. implode('/', $urlImagePathArray);
-    
+        return $this->imagePath = '/' . implode('/', $urlImagePathArray);
+
     }
 
     public function getImageName()
     {
         $urlImageName = $this->getUrlImageName();
-        if(!$urlImageName){
+        if (!$urlImageName) {
             return $this->imageName = '';
         }
 
         $fileNameArray = explode('.', $urlImageName);
-        if(!$fileNameArray || count($fileNameArray) < 2){
+        if (!$fileNameArray || count($fileNameArray) < 2) {
             return $this->imageName = '';
         }
         $fileExt = array_pop($fileNameArray);
+
         $fileNameMain = implode('.', $fileNameArray);
+
         $fileNameArray = explode(',', $fileNameMain);
-        if(!$fileExt || !$fileNameArray || !$fileNameArray[0]){
+        if (!$fileExt || !$fileNameArray || !$fileNameArray[0]) {
             return $this->imageName = '';
+        }
+        // url with class
+        if (is_object($this->config) && isset($this->config->class_separator) && strpos(
+                $fileExt,
+                $this->config->class_separator
+            ) !== false
+        ) {
+            $fileExt = substr($fileExt, 0, strpos($fileExt, $this->config->class_separator));
+
         }
         $fileNameMain = array_shift($fileNameArray);
 
@@ -340,11 +377,11 @@ class Url
     public function getUrlRewritePath()
     {
         $scriptName = $this->getUrlScriptName();
-        if(!$scriptName){
+        if (!$scriptName) {
             return $this->urlRewritePath = '';
         }
 
-        if(false === $this->getUrlRewriteEnabled()){
+        if (false === $this->getUrlRewriteEnabled()) {
             return $this->urlRewritePath = $scriptName;
         }
 
@@ -357,19 +394,19 @@ class Url
     public function isValid()
     {
         $host = $this->getHost();
-        if(!$host){
+        if (!$host) {
             return false;
         }
 
-        if(!$this->getUrlPrefix()){
+        if (!$this->getUrlPrefix()) {
             return false;
         }
 
-        if(!$this->getUrlKey()){
+        if (!$this->getUrlKey()) {
             return false;
         }
 
-        if(!$this->getImageName()){
+        if (!$this->getImageName()) {
             return false;
         }
 
@@ -379,26 +416,26 @@ class Url
     public function toString()
     {
         $host = $this->getHost();
-        if(!$host){
+        if (!$host) {
             return '';
         }
 
         $port = $this->getPort() ? ':' . $this->getPort() : '';
 
         $path = $this->getUrlRewritePath();
-        if($prefix = $this->getUrlPrefix()){
-            $path .= "/$prefix"; 
+        if ($prefix = $this->getUrlPrefix()) {
+            $path .= "/$prefix";
         }
 
-        if($urlKey = $this->getUrlKey()){
+        if ($urlKey = $this->getUrlKey()) {
             $path .= "/$urlKey";
         }
 
-        if($imagePath = $this->getImagePath()){
+        if ($imagePath = $this->getImagePath()) {
             $path .= $imagePath;
         }
 
-        if($imageName = $this->getUrlImageName()){
+        if ($imageName = $this->getUrlImageName()) {
             $path .= '/' . $imageName;
         }
 
@@ -408,23 +445,22 @@ class Url
     }
 
 
-
     public function getCurrentUrl()
     {
         $serverName = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : '';
         $requestUri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : '';
 
-        if(!$serverName){
+        if (!$serverName) {
             return '';
         }
 
         $pageURL = 'http';
-        if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on'){
+        if (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on') {
             $pageURL .= 's';
         }
         $pageURL .= '://';
 
-        if (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != '80'){
+        if (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != '80') {
             $pageURL .= $serverName . ':' . $_SERVER['SERVER_PORT'] . $requestUri;
         } else {
             $pageURL .= $serverName . $requestUri;
@@ -432,17 +468,47 @@ class Url
         return $pageURL;
     }
 
-    public function __construct($url = null)
+    /**
+     * @return Config\Config
+     */
+    public function getConfig()
     {
+        return $this->config;
+    }
+
+    public function __construct($url = null, $config = null)
+    {
+        $this->config = $config;
         $urlString = $url ? $url : $this->getCurrentUrl();
         $this->urlString = $urlString;
-        if($urlString){
+        if ($urlString) {
             $url = parse_url($urlString);
             $this->scheme = isset($url['scheme']) ? $url['scheme'] : null;
             $this->host = isset($url['host']) ? $url['host'] : null;
             $this->port = isset($url['port']) ? $url['port'] : '';
             $this->query = isset($url['query']) ? $url['query'] : null;
             $this->urlPath = isset($url['path']) ? $url['path'] : null;
+        }
+        if ($config == null) {
+            return;
+        }
+        $configKey = $this->getUrlKey();
+
+        $defaultConfig = $config->thumbers->current();
+        $defaultKey = $config->thumbers->key();
+        if (isset($config->thumbers->$configKey)) {
+            if ($defaultKey == $configKey) {
+                $this->config = $config->thumbers->$configKey;
+            } else {
+                $this->config = $defaultConfig->merge($config->thumbers->$configKey);
+            }
+        } else {
+            throw new Exception\InvalidArgumentException(
+                sprintf(
+                    'No config found by key %s',
+                    $configKey
+                )
+            );
         }
     }
 }

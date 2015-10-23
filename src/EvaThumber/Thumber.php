@@ -282,26 +282,11 @@ class Thumber
 
     public function __construct($config, $url = null)
     {
-        if($config instanceof Config\Config){
-            $config = $config; 
-        } else {
+        if(!$config instanceof Config\Config){
             $config = new Config\Config($config);
         }
-        $this->url = $url = new Url($url);
-        $configKey = $url->getUrlKey();
-        $defaultConfig = $config->thumbers->current();
-        $defaultKey = $config->thumbers->key();
-        if(isset($config->thumbers->$configKey)){
-            if($defaultKey == $configKey){
-                $this->config = $config->thumbers->$configKey;
-            } else {
-                $this->config = $defaultConfig->merge($config->thumbers->$configKey);
-            }
-        } else {
-            throw new Exception\InvalidArgumentException(sprintf(
-                'No config found by key %s', $configKey
-            ));
-        }
+        $this->url  = new Url($url, $config);
+        $this->config = $this->url->getConfig();
     }
 
     public function __destruct()
