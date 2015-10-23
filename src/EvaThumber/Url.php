@@ -460,10 +460,14 @@ class Url
         }
         $pageURL .= '://';
 
-        if (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != '80') {
-            $pageURL .= $serverName . ':' . $_SERVER['SERVER_PORT'] . $requestUri;
+        if (isset($_SERVER['HTTP_HOST'])) {
+            $pageURL .= $_SERVER['HTTP_HOST'] . $requestUri;
         } else {
-            $pageURL .= $serverName . $requestUri;
+            if (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] != '80') {
+                $pageURL .= $serverName . ':' . $_SERVER['SERVER_PORT'] . $requestUri;
+            } else {
+                $pageURL .= $serverName . $requestUri;
+            }
         }
         return $pageURL;
     }
