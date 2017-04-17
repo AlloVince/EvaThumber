@@ -26,7 +26,7 @@ Here is the [original image](http://evacloudimage.avnpc.com/upload/demo.jpg):
 
 EvaCloudImage could resize the image by simply passing in the width and height parameters in URL. 
 
-###Resize by width:
+### Resize by width:
 
 The following URL points to a 300px width dynamically created image, pass the '*w*' parameter by '*w_300*':
 
@@ -34,7 +34,7 @@ The following URL points to a 300px width dynamically created image, pass the '*
 
 ![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,w_300.jpg)
 
-###Resize by height:
+### Resize by height:
 
 The following URL points to a 150px height dynamically created image, pass the '*h*' parameter by '*h_150*':
 
@@ -42,7 +42,7 @@ The following URL points to a 150px height dynamically created image, pass the '
 
 ![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,h_150.jpg)
 
-###Resize by percent:
+### Resize by percent:
 
 By passing integer values for resizing images by fixed width and height. You can also change the dimension of an image using percents. 
 
@@ -84,7 +84,7 @@ EvaCloudImage support both cropping and resizing on same time, below example wil
 
 ![EvaCloudImage Resized Image](http://evacloudimage.avnpc.com/thumb/demo,c_100,g_200,w_50.jpg)
 
-###Fill Mode
+### Fill Mode
 
 We always use resized images with exact given dimensions to meet web page layouts, EvaCloudImage support set crop to 'fill' by 'c_fill', then set the image width and height will get the part of the image which fills the given dimensions:
 
@@ -129,22 +129,22 @@ Ready to get started? Well then, download the [latest release](https://github.co
 Installation
 ------------
 
-###Requirements
+### Requirements
 
 1. PHP version must greater than 5.3.0
 2. GD 2.0+
 3. Mod-rewrite module enabled in webserver.
 
 
-###Enable Url Re-write
+### Enable Url Re-write
 
-####Apache Setting
+#### Apache Setting
 
 Apache setting is already wroten in .htaccess.
 
 Please make sure the [mod_rewrite](http://httpd.apache.org/docs/current/mod/mod_rewrite.html) Module is already enabled.
 
-####Nginx
+#### Nginx
 
 Config as below
 
@@ -166,7 +166,7 @@ Config as below
             }
     }
 
-###Configuration
+### Configuration
 
 Edit config.inc.php to change image paths.
 
