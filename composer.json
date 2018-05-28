@@ -1,23 +1,23 @@
 {
-    "name": "allovince/evathumber",
-    "description": "EvaThumber, A light-weight url based image transformation php library",
-    "license": "BSD-3-Clause",
-    "homepage": "http://avnpc.com/pages/evathumber",
-    "require": {
-        "php": ">=5.3.3",
-        "imagine/imagine": "0.6.2"
-    },
-    "require-dev": {
-        "firephp/firephp-core": "dev-master",
-        "rmccue/Requests": "dev-master",
-        "aferrandini/phpqrcode": "dev-master",
-	"symfony/process": "dev-master"
-    },
-    "autoload": {
-        "psr-0": {
-            "EvaThumber": "src/",
-            "Requests": "library/",
-            "PHPQRCode": "lib/"
-        }
+  "name": "allovince/evathumber",
+  "description": "EvaThumber, A light-weight url based image transformation php library",
+  "license": "BSD-3-Clause",
+  "homepage": "http://avnpc.com/pages/evathumber",
+  "require": {
+    "php": ">=5.3.3",
+    "imagine/imagine": "0.6.2"
+  },
+  "require-dev": {
+    "firephp/firephp-core": "dev-master",
+    "rmccue/Requests": "dev-master",
+    "aferrandini/phpqrcode": "dev-master",
+    "symfony/process": "^3.4.11"
+  },
+  "autoload": {
+    "psr-0": {
+      "EvaThumber": "src/",
+      "Requests": "library/",
+      "PHPQRCode": "lib/"
     }
+  }
 }

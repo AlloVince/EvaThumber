@@ -1,8 +1,24 @@
+sudo: false
+
 language: php
 php:
-  - 5.3
-  - 5.4
+  - 5.6
+  - 7
 before_script:
   - composer install
   - cd tests
 script: phpunit -v
+
+
+jobs:
+  include:
+    - stage: docker release
+      php: 7
+      if: tag IS present
+      script:
+        - docker build -t allovince/evathumber .
+        - docker tag allovince/evathumber allovince/evathumber:$TRAVIS_TAG
+        - docker images
+        - docker login -u="$DOCKER_USERNAME" -p="$DOCKER_PASSWORD";
+        - docker push allovince/evathumber:latest;
+        - docker push allovince/evathumber:$TRAVIS_TAG;

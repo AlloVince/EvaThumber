@@ -1,0 +1,61 @@
+<?php
+return array(
+    'thumbers' => array(
+        'd' => array(
+            'cache' => 1,
+        ),
+        'watermark' => array(
+            'cache' => 1,
+            'watermark' => array(
+                'enable' => 1,
+            ),
+        ),
+        'watermark2' => array(
+            'cache' => 1,
+            'watermark' => array(
+                'enable' => 1,
+                'position' => 'center',
+                'layer_file' => '',
+                'text' => 'http://avnpc.com/pages/evathumber',
+                'qr_code' => 1,
+                'qr_code_size' => 2,
+                'qr_code_margin' => 1,
+            ),
+        ),
+        'watermark3' => array(
+            'cache' => 1,
+            'watermark' => array(
+                'enable' => 1,
+                'position' => 'bl',
+                'layer_file' => '',
+                'text' => 'EvaThumber',
+            ),
+        ),
+        'stretch' => array(
+            'cache' => 1,
+            'allow_stretch' => true,
+            'allow_sizes' => array(
+                '310*207',
+            ),
+        ),
+        'max' => array(
+            'cache' => 1,
+            'max_width' => 100,
+            'max_height' => 100,
+        ),
+        'zip' => array(
+            'cache' => 1,
+            'source_path' => __DIR__ . '/upload/archive.zip',
+            'zip_file_encoding' => 'GB2312',
+        ),
+        'png' => array(
+            'cache' => 1,
+            'png_optimize' => array(
+                'enable' => 1,
+                'pngout' => array(
+                    'bin' => __DIR__ . '/bin/pngout',
+                ),
+            ),
+        ),
+    ),
+);
