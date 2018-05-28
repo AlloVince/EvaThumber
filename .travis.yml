@@ -9,9 +9,6 @@ before_script:
   - composer install
   - cd tests
 script: phpunit -v
-after_script:
-  - cd ..
-
 
 jobs:
   include:
@@ -19,6 +16,7 @@ jobs:
       php: 7.2
       if: tag IS present
       script:
+        - cd ..
         - docker build -t allovince/evathumber .
         - docker tag allovince/evathumber allovince/evathumber:$TRAVIS_TAG
         - docker images
