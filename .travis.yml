@@ -9,6 +9,8 @@ before_script:
   - composer install
   - cd tests
 script: phpunit -v
+after_script:
+  - cd ..
 
 
 jobs:
