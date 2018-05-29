@@ -85,25 +85,25 @@ class Faker
 
     protected function process()
     {
-        $sourceSite = $this->getSourceSite();
-        $json = $this->getRss();
-        $request = Requests::get($json);
-        $data = json_decode($request->body);
-
-        switch($sourceSite){
-            case 'flickr':
-            $entry = $data->photos;
-            $count = count($entry);
-            $url = $entry[rand(0, $count - 1)]->sizes->c->url; //use medium size
-            break;
-            case 'picasa':
-            default:
-            $entry = $data->feed->entry;
-            $count = count($entry);
-            $url = $entry[rand(0, $count - 1)]->content->src;
-        }
-        return $url;
-
+//        $sourceSite = $this->getSourceSite();
+//        $json = $this->getRss();
+//        $request = Requests::get($json);
+//        $data = json_decode($request->body);
+//
+//        switch($sourceSite){
+//            case 'flickr':
+//            $entry = $data->photos;
+//            $count = count($entry);
+//            $url = $entry[rand(0, $count - 1)]->sizes->c->url; //use medium size
+//            break;
+//            case 'picasa':
+//            default:
+//            $entry = $data->feed->entry;
+//            $count = count($entry);
+//            $url = $entry[rand(0, $count - 1)]->content->src;
+//        }
+//        return $url;
+        return 'https://source.unsplash.com/random';
     }
 
     public function getFile()
