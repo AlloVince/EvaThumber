@@ -4,7 +4,7 @@
 
 EvaThumber基于PHP实现，可以一键安装在任何主流系统，由于基于URL实现接口，所以其他编程语言也可以使用EvaThumber作为前端组件。
 
-EvaThumber is a url based image transformation php library. See [English version document](https://github.com/AlloVince/EvaThumber/blob/master/README.md).
+EvaThumber is a url based image transformation php library. See [English version document](https://github.com/AlloVince/EvaThumber/blob/master/README_EN.md).
 
 EvaThumber的源代码存放于[Github](https://github.com/AlloVince/EvaThumber)，完全开源，欢迎[Fork](https://github.com/AlloVince/EvaThumber)或[关注我](https://github.com/AlloVince)。
 
