@@ -1,5 +1,7 @@
 # Migration from EvaThumber 1.x to 2.0
 
+> 2026-09-17 首扫说明：保留本文的历史迁移映射；本次未重新审计 v1 历史代码。文中 Planned/Not planned 属历史陈述，未来路线图待维护者确认，不是交付承诺。当前实现以 [架构边界](architecture/boundaries.md) 为准，部署验收与文件追踪缺口见 [部署](operations/deploy.md)。下文“index.php 不再存在”指旧根目录入口；当前 HTTP 入口是 `public/index.php`。
+
 EvaThumber 2 is a complete rewrite. The URL API, engine, configuration and deployment model have all changed. There is no compatibility mode.
 
 ## URL structure
