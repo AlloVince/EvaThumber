@@ -1,0 +1,34 @@
+services:
+  evathumber:
+    build:
+      context: .
+      target: production
+    image: evathumber:2
+    ports:
+      - "${EVATHUMBER_PORT:-8081}:8081"
+    environment:
+      EVATHUMBER_SOURCE: /data/images
+      EVATHUMBER_CACHE: /data/cache
+      EVATHUMBER_PHP_BINARY: /usr/local/bin/php
+    volumes:
+      - ./data/images:/data/images:ro
+      - evathumber-cache:/data/cache
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /config/caddy
+      - /data/caddy
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 2
+    pids_limit: 128
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+
+volumes:
+  evathumber-cache:

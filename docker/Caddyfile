@@ -1,0 +1,20 @@
+{
+    auto_https off
+    admin off
+    frankenphp {
+        worker /app/public/index.php 2
+    }
+}
+
+:8081 {
+    root * /app/public
+    encode zstd gzip
+    route {
+        rewrite * /index.php
+        php
+    }
+    log {
+        output stdout
+        format json
+    }
+}
