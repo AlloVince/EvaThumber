@@ -1,0 +1,85 @@
+#0 building with "orbstack" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.67kB done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 2.2s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32
+#3 resolve docker.io/docker/dockerfile:1@sha256:ecfaec9ed6d810b56388c508f4121597bfbba70d41a6dfeee4d8cad5f295fc32 0.0s done
+#3 CACHED
+
+#4 [internal] load metadata for docker.io/dunglas/frankenphp:1-php8.5-bookworm@sha256:7380f2c24ef9d86ad496dbc285ba66e212365c864db2797f3e7269afad100dbb
+#4 ...
+
+#5 [internal] load metadata for docker.io/library/composer:2@sha256:aaeab4b6b031e0a88efb907f0f26b563532a644fc2f4ea0d000ecf8658f7a2b8
+#5 DONE 1.6s
+
+#4 [internal] load metadata for docker.io/dunglas/frankenphp:1-php8.5-bookworm@sha256:7380f2c24ef9d86ad496dbc285ba66e212365c864db2797f3e7269afad100dbb
+#4 DONE 1.6s
+
+#6 [internal] load .dockerignore
+#6 transferring context: 217B done
+#6 DONE 0.0s
+
+#7 [base 1/5] FROM docker.io/dunglas/frankenphp:1-php8.5-bookworm@sha256:7380f2c24ef9d86ad496dbc285ba66e212365c864db2797f3e7269afad100dbb
+#7 resolve docker.io/dunglas/frankenphp:1-php8.5-bookworm@sha256:7380f2c24ef9d86ad496dbc285ba66e212365c864db2797f3e7269afad100dbb 0.0s done
+#7 DONE 0.0s
+
+#8 FROM docker.io/library/composer:2@sha256:aaeab4b6b031e0a88efb907f0f26b563532a644fc2f4ea0d000ecf8658f7a2b8
+#8 resolve docker.io/library/composer:2@sha256:aaeab4b6b031e0a88efb907f0f26b563532a644fc2f4ea0d000ecf8658f7a2b8 0.0s done
+#8 DONE 0.0s
+
+#9 [internal] load build context
+#9 transferring context: 48.53kB 0.1s done
+#9 DONE 0.1s
+
+#10 [base 3/5] COPY --from=composer:2@sha256:aaeab4b6b031e0a88efb907f0f26b563532a644fc2f4ea0d000ecf8658f7a2b8 /usr/bin/composer /usr/local/bin/composer
+#10 CACHED
+
+#11 [base 2/5] RUN apt-get update && apt-get install -y --no-install-recommends libvips42 libvips-tools libffi-dev unzip     && docker-php-ext-install ffi pcntl     && rm -rf /var/lib/apt/lists/*
+#11 CACHED
+
+#12 [base 4/5] RUN printf 'ffi.enable=true\nmemory_limit=256M\nexpose_php=Off\ndisplay_errors=Off\nlog_errors=On\nerror_log=/dev/stderr\n' > /usr/local/etc/php/conf.d/evathumber.ini
+#12 CACHED
+
+#13 [base 5/5] WORKDIR /app
+#13 CACHED
+
+#14 [production 1/7] COPY composer.json composer.lock ./
+#14 CACHED
+
+#15 [production 2/7] RUN composer install --no-dev --no-interaction --prefer-dist --classmap-authoritative --no-scripts
+#15 CACHED
+
+#16 [production 3/7] COPY src ./src
+#16 DONE 1.0s
+
+#17 [production 4/7] COPY public ./public
+#17 DONE 0.7s
+
+#18 [production 5/7] COPY bin/*.php ./bin/
+#18 DONE 0.7s
+
+#19 [production 6/7] COPY docker/Caddyfile /etc/frankenphp/Caddyfile
+#19 DONE 0.7s
+
+#20 [production 7/7] RUN composer dump-autoload --no-dev --classmap-authoritative     && setcap -r /usr/local/bin/frankenphp     && mkdir -p /data/images /data/cache /config/caddy /data/caddy     && chown -R www-data:www-data /data /config/caddy
+#20 4.337 Composer could not detect the root package (allovince/evathumber) version, defaulting to '1.0.0'. See https://getcomposer.org/root-version
+#20 4.341 Generating optimized autoload files (authoritative)
+#20 4.397 Generated optimized autoload files (authoritative) containing 597 classes
+#20 DONE 5.7s
+
+#21 exporting to image
+#21 exporting layers
+#21 exporting layers 1.5s done
+#21 exporting manifest sha256:823744c632a8d5ddfa55fe7a719c23d7f5088d1db174f32284c845abef9cbd63 0.0s done
+#21 exporting config sha256:7b3cc0cdf624618e7aed8ce2eb4f088edc08fe8d28638ac4759ef61c2ab9df08 0.0s done
+#21 exporting attestation manifest sha256:4a3a8faa64a1443ae7b3552267b2ae4cc9594c4f7c695a549874e6d454f11cdf 0.0s done
+#21 exporting manifest list sha256:7a00f74624ea693f6ad1df79d7fc453a16260379f8c52881b135b3783fbd332e 0.0s done
+#21 naming to docker.io/library/evathumber:session-arm64 done
+#21 unpacking to docker.io/library/evathumber:session-arm64
+#21 unpacking to docker.io/library/evathumber:session-arm64 0.2s done
+#21 DONE 1.8s

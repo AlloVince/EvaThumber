@@ -14,9 +14,15 @@ PHPUnit 12，vendor/autoload.php 引导；tests/v2 为唯一 suite，warning/ris
 | `tests/v2/HttpTest.php` | 直接 Kernel 调用：真实子进程变换、f_auto WebP、Vary、MISS/HIT、ETag 304、非法变换、healthz；发送租约与回收、版本隔离、analytics 白名单与 URI 限长、投递分段共享缓存、忙准入 503 Retry-After 后恢复 |
 | `tests/v2/AutoQualityTest.php` | 内容/格式自适应 Q、四档顺序、极小/透明图、三格式四档编码与显式 Q 字节一致、PNG/GIF 拒绝、HTTP 缓存身份 |
 新增 `tests/v2/ProcessorFailureTest.php`：真实 Symfony Process 的超时 504、异常退出 422、结构化拒绝 413，均验证部分文件不发布、临时清理及下一次真实变换恢复。`HttpTest` 另验证编码空格/加号在单条目淘汰后的身份与 ETag。
-当前完整 suite（`vendor/bin/phpunit`）：PHP 8.5.10，宿主机及 arm64/amd64 开发容器均 **35 tests / 387 assertions，通过**。不等于生产网络/FrankenPHP/所有格式覆盖；详细证据及本地执行模型实验见 [进度](../progress.md)。
+当前完整 suite（`vendor/bin/phpunit`）：PHP 8.5.10，宿主 **44 tests / 538 assertions，通过**。最新源码 arm64 Linux 池专项 **7 tests / 144 assertions**；当前版双架构完整 suite 尚未刷新，原 35/387 双架构记录属于切池前。详细证据见 [进度](../progress.md)。
+- `PoolQueueTest`：真实 supervisor，默认/非默认队列容量与截止、暂停 worker 硬超时、reap、恢复。
+- `PoolLifecycleTest`：删除/替换临时目标不被写回；断连回收；活动 SIGKILL 与人工部分 stage；直接 IPC 停机拒绝待处理请求、完成活动任务。人工 stage 不等于真实编码写入时刻强杀；不等于生产 HTTP drain。
+- `SourceConsistencyTest`：atime 不影响身份、producer 回调内同步替换导致 409 且不发布。尚未验证真实 worker 解码期间的并发替换。
+- `tests/pool-http.php [image] [pool|isolated]`：真实 arm64 容器 HTTP 迁移 URL、冷热/同键/混合 40 请求 burst、资源采样、超时恢复和空闲 SIGKILL/停止。设置 EVATHUMBER_EVIDENCE 保存报告与日志。不是持续固定并发 benchmark；当前接受任意 503，报告通过不意味着拒绝来源正确。
+- `tests/resource-sample.php`：Linux cgroup CPU、总进程/worker RSS 的 10ms 采样；包含观察器开销、RSS 共享页重复计数，不是精确峰值。
+只读源码挂载运行 PHPUnit 时使用 `--do-not-cache-result`，避免结果缓存写入警告。
 ## 静态分析与缺口
-`composer analyse`：**通过**；已移除 phpstan.neon 中不存在的排除路径，未加忽略规则或降低等级。
+`composer analyse`：**通过（仅 src，尚不覆盖 bin supervisor）**；已移除 phpstan.neon 中不存在的排除路径，未加忽略规则或降低等级。
 尚未完整覆盖所有 resize/codec、动画拒绝、全部 Limits 边界、Accept 各 q/通配符组合、方法限制、来源并发变更和处理中停止。HEAD/304 已由独立容器 HTTP 验收覆盖，跨进程准入与处理超时已有回归；满槽准入另经 `tests/compose-admission.php` 在真实 Compose HTTP 入口验证。新增行为时按影响选择测试，不冒称完整覆盖。
 ## CI 当前配置
 `.github/workflows/ci.yml` 在 master/main push、v* tag、PR 触发；test job 将 linux/amd64 对应 ubuntu-24.04、linux/arm64 对应 ubuntu-24.04-arm。每个 runner 构建 development 镜像（Dockerfile 安装 libvips），容器内运行完整测试与 PHPStan，再构建 production 镜像并由宿主 PHP 运行 `tests/container-smoke.php`。

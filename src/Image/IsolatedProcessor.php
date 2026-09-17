@@ -16,7 +16,7 @@ final readonly class IsolatedProcessor
     {
     }
 
-    public function write(string $publicId, Transformation $transformation, string $destination, string $format): void
+    public function write(string $publicId, Transformation $transformation, string $destination, string $format, ?string $identity = null): void
     {
         $process = new Process([
             $this->settings->phpBinary, '-d', 'ffi.enable=true',
@@ -29,6 +29,7 @@ final readonly class IsolatedProcessor
             'transformation' => $transformation->canonical(),
             'destination' => $destination,
             'format' => $format,
+            'identity' => $identity,
             'limits' => get_object_vars($this->settings->limits),
         ], JSON_THROW_ON_ERROR));
         try {

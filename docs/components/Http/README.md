@@ -7,6 +7,7 @@
 - 图片请求只接受标量 `_a`、`_i` analytics 查询参数，不影响变换/缓存身份；其他参数（包括签名）明确拒绝。完整请求 URI 受 URL 长度上限约束。
 - HTTP 缓存身份为 JSON：`evathumber-2-policy-3`、AutoQuality::POLICY、source identity、version、canonical、format、Limits；不含 cloud 或实际 libvips 版本。版本切换触发新条目，但不提供历史原图快照，不发送 immutable。q_auto 与 q_auto:good 共享身份，其他档位分键；Save-Data 不改变档位。
 - 成功 CachedFileResponse 继承 BinaryFileResponse，持有缓存租约至正文发送完成或响应销毁。携带 Content-Type、nosniff、HIT/MISS、public/max-age、ETag、Last-Modified；f_auto 加 Vary: Accept。isNotModified/prepare 处理条件请求和 HEAD。
+- `POOL_SOCKET` 非空使用 PoolProcessor，空值显式使用 IsolatedProcessor；池不可用不自动回退。缓存 generation 等待预算为 TIMEOUT + POOL_QUEUE_MS/1000 + 3 秒，8 个 miss 槽位包含同键等待者。healthz 仍只检测 HTTP 存活，不检测池 readiness。
 ## 协商
 候选依次 WebP、AVIF、JPEG、PNG；同质量优先先列格式。WebP/AVIF 必须显式接受，通配符只可选择 JPEG/PNG；具体 MIME q 优先于通配符；没有正质量候选返回 406。不协商 GIF。
 ## 错误与边界

@@ -14,8 +14,12 @@ try {
     // Trusted IPC from the service, never a public HTTP entry point.
     $job = json_decode(stream_get_contents(STDIN), true, 32, JSON_THROW_ON_ERROR);
     $limits = new Limits(...$job['limits']);
-    $source = (new LocalSource($job['root'], $limits))->resolve($job['publicId']);
+    $local = new LocalSource($job['root'], $limits);
+    $source = isset($job['identity']) ? $local->assertIdentity($job['publicId'], $job['identity']) : $local->resolve($job['publicId']);
     (new Pipeline($limits))->write($source, (new Parser($limits))->parse($job['transformation']), $job['destination'], $job['format']);
+    $identity = $source->identity;
+    unset($source); // Release encoded snapshot before allocating the final revision check.
+    $local->assertIdentity($job['publicId'], $identity);
 } catch (ImageException $error) {
     echo json_encode(['status' => $error->status, 'error' => $error->error], JSON_THROW_ON_ERROR);
     exit(1);

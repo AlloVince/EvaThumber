@@ -73,7 +73,7 @@ final class HttpTest extends TestCase
             self::assertTrue(flock($lock, LOCK_EX | LOCK_NB));
             $busy = $kernel->handle(Request::create('/image/upload/w_10/demo.png'));
             self::assertSame(503, $busy->getStatusCode());
-            self::assertSame('processor_busy', json_decode($busy->getContent(), true)['error']);
+            self::assertSame('cache_publish_timeout', json_decode($busy->getContent(), true)['error']);
             self::assertSame('1', $busy->headers->get('Retry-After'));
             self::assertTrue($busy->headers->hasCacheControlDirective('no-store'));
             self::assertSame([], glob($root . '/cache/.tmp-*'));

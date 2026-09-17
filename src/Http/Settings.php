@@ -17,7 +17,20 @@ final readonly class Settings
         public int $cacheEntries = 10000,
         public int $maxAge = 3600,
         public string $phpBinary = PHP_BINARY,
+        public string $poolSocket = '',
+        public int $poolSize = 2,
+        public int $workerMaxJobs = 500,
+        public int $workerRssMiB = 192,
+        public int $poolQueueSize = 4,
+        public int $poolQueueMilliseconds = 1000,
+        public bool $serverTiming = false,
     ) {
+        if ($poolQueueSize < 1 || $poolQueueSize > 64 || $poolQueueMilliseconds < 1 || $poolQueueMilliseconds > 30000) {
+            throw new \InvalidArgumentException('Invalid pool queue limits.');
+        }
+        if ($poolSize < 1 || $poolSize > 16 || $workerMaxJobs < 1 || $workerRssMiB < 32) {
+            throw new \InvalidArgumentException('Invalid worker limits.');
+        }
         if ($timeout < 1 || $cacheBytes < 1 || $cacheEntries < 1 || $maxAge < 0) {
             throw new \InvalidArgumentException('Invalid service limits.');
         }
@@ -43,6 +56,13 @@ final readonly class Settings
             self::integer('CACHE_ENTRIES', 10000),
             self::integer('MAX_AGE', 3600),
             getenv('EVATHUMBER_PHP_BINARY') ?: PHP_BINARY,
+            getenv('EVATHUMBER_POOL_SOCKET') ?: '',
+            self::integer('POOL_SIZE', 2),
+            self::integer('WORKER_MAX_JOBS', 500),
+            self::integer('WORKER_RSS_MIB', 192),
+            self::integer('POOL_QUEUE_SIZE', 4),
+            self::integer('POOL_QUEUE_MS', 1000),
+            getenv('EVATHUMBER_SERVER_TIMING') === '1',
         );
     }
 

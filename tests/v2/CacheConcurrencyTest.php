@@ -49,7 +49,7 @@ PHP, dirname(__DIR__, 2) . '/vendor/autoload.php', $directory], input: $input, t
                 self::fail('Full admission must reject.');
             } catch (\EvaThumber\Exception\ImageException $error) {
                 self::assertSame(503, $error->status);
-                self::assertSame('processor_busy', $error->error);
+                self::assertSame('cache_admission_full', $error->error);
             }
             self::assertLessThan(200, (hrtime(true) - $start) / 1e6);
             $holder->stop(0, 9);
@@ -98,14 +98,14 @@ try {
     $cache->remember('busy', 'png', $fail);
     exit(2);
 } catch (\EvaThumber\Exception\ImageException $error) {
-    echo json_encode(['error' => $error->getMessage(), 'elapsed_ms' => (hrtime(true) - $start) / 1e6]);
+    echo json_encode(['error' => $error->error, 'elapsed_ms' => (hrtime(true) - $start) / 1e6]);
 }
 PHP, dirname(__DIR__, 2) . '/vendor/autoload.php', $directory], timeout: 5);
         try {
             self::assertSame(0, $consumer->run(), $consumer->getErrorOutput());
             self::assertStringStartsWith("HIT\n", $consumer->getOutput());
             $result = json_decode(substr($consumer->getOutput(), 4), true, flags: JSON_THROW_ON_ERROR);
-            self::assertSame('Image processor busy. Retry shortly.', $result['error']);
+            self::assertSame('cache_publish_timeout', $result['error']);
             self::assertGreaterThanOrEqual(240, $result['elapsed_ms']);
             self::assertLessThan(1500, $result['elapsed_ms']);
             self::assertSame([], glob($directory . '/.tmp-*'));

@@ -33,49 +33,26 @@ final readonly class Pipeline
         if (!isset($loaders[$source->format], $loaders[$format])) {
             throw new ImageException('Unsupported image format.', 415, 'unsupported_format');
         }
+        // LocalSource supplies identity-bound bytes. Legacy manually constructed
+        // models are copied at entry too, but their caller-defined identity is opaque.
+        $snapshot = $source->snapshot ?? \EvaThumber\Source\SourceSnapshot::read($source->path, $this->limits->maxSourceBytes);
+        if (strlen($snapshot->content) > $this->limits->maxSourceBytes) {
+            throw new ImageException('Source exceeds byte limit.', 413, 'image_too_large');
+        }
         Config::cacheSetMax(0);
         Config::concurrencySet(2);
         try {
-            // Explicit raster loader: never allow libvips to dispatch to SVG, PDF or external delegates.
-            $image = Image::{$loaders[$source->format]}($source->path, ['access' => 'sequential', 'fail_on' => 'warning']);
-            $this->limits->source($image->width, $image->height);
-            if ($image->getType('n-pages') !== 0 && $image->get('n-pages') > 1) {
-                throw new ImageException('Animated images are not yet supported.', 415, 'unsupported_animation');
-            }
-            $image = $image->autorot()->colourspace('srgb');
-            foreach ($transform->steps as $step) {
-                if ($step->get('c') !== null) {
-                    $image = $this->resize($image, $step);
-                }
-                if (($angle = $step->get('a')) !== null) {
-                    $image = match ($angle) {
-                        '90' => $image->rot('d90'), '180' => $image->rot('d180'),
-                        '270', '-90' => $image->rot('d270'),
-                        'hflip' => $image->flip('horizontal'), 'vflip' => $image->flip('vertical'),
-                        default => $image,
-                    };
-                }
-                if (($effect = $step->get('e')) !== null) {
-                    $alpha = $image->hasAlpha() ? $image->extract_band($image->bands - 1) : null;
-                    $rgb = $alpha !== null ? $image->extract_band(0, ['n' => $image->bands - 1]) : $image;
-                    $rgb = $effect === 'grayscale' ? $rgb->colourspace('b-w')->colourspace('srgb') : $rgb->invert();
-                    $image = $alpha !== null ? $rgb->bandjoin($alpha) : $rgb;
-                }
-                $this->limits->output($image->width, $image->height);
-            }
-            $this->limits->output($image->width, $image->height);
+            $image = $this->prepare($snapshot->content, $loaders[$source->format] . '_buffer', $transform, $format);
             $qualityValue = $transform->get('q') ?? '80';
-            if ($format === 'jpg' && $image->hasAlpha()) {
-                $image = $image->flatten(['background' => [255, 255, 255]]);
-            }
             if (str_starts_with($qualityValue, 'auto')) {
                 if (!in_array($format, ['jpg', 'webp', 'avif'], true)) {
                     throw new ImageException('Automatic quality requires JPEG, WebP or AVIF output.', 400, 'unsupported_transformation');
                 }
-                // Analysis and encoding both read pixels: materialize the bounded output
-                // once, rather than traversing a sequential source twice.
-                $image = $image->copyMemory();
+                // Consume the lazy graph only for the bounded analysis sample.
+                // Rebuild from identical encoded bytes, never rewind a sequential graph.
                 $quality = (new AutoQuality())->select($image, $qualityValue, $format);
+                unset($image);
+                $image = $this->prepare($snapshot->content, $loaders[$source->format] . '_buffer', $transform, $format);
             } else {
                 $quality = (int) $qualityValue;
             }
@@ -89,6 +66,41 @@ final readonly class Pipeline
         } catch (\Jcupitt\Vips\Exception $exception) {
             throw new ImageException('Image could not be decoded or transformed.', 422, 'invalid_image');
         }
+    }
+
+    /** Build a fresh graph; callers may evaluate it once with sequential access. */
+    private function prepare(string $content, string $loader, Transformation $transform, string $format): Image
+    {
+        // Explicit raster buffer loader: no filename dispatch or mutable path reads.
+        $image = Image::{$loader}($content, ['access' => 'sequential', 'fail_on' => 'warning']);
+        $this->limits->source($image->width, $image->height);
+        if ($image->getType('n-pages') !== 0 && $image->get('n-pages') > 1) {
+            throw new ImageException('Animated images are not yet supported.', 415, 'unsupported_animation');
+        }
+        $image = $image->autorot()->colourspace('srgb');
+        foreach ($transform->steps as $step) {
+            if ($step->get('c') !== null) {
+                $image = $this->resize($image, $step);
+            }
+            if (($angle = $step->get('a')) !== null) {
+                $image = match ($angle) {
+                    '90' => $image->rot('d90'), '180' => $image->rot('d180'),
+                    '270', '-90' => $image->rot('d270'),
+                    'hflip' => $image->flip('horizontal'), 'vflip' => $image->flip('vertical'),
+                    default => $image,
+                };
+            }
+            if (($effect = $step->get('e')) !== null) {
+                $alpha = $image->hasAlpha() ? $image->extract_band($image->bands - 1) : null;
+                $rgb = $alpha !== null ? $image->extract_band(0, ['n' => $image->bands - 1]) : $image;
+                $rgb = $effect === 'grayscale' ? $rgb->colourspace('b-w')->colourspace('srgb') : $rgb->invert();
+                $image = $alpha !== null ? $rgb->bandjoin($alpha) : $rgb;
+            }
+            $this->limits->output($image->width, $image->height);
+        }
+        $this->limits->output($image->width, $image->height);
+        return $format === 'jpg' && $image->hasAlpha()
+            ? $image->flatten(['background' => [255, 255, 255]]) : $image;
     }
 
     private function resize(Image $image, Step $step): Image

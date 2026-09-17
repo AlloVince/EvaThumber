@@ -5,7 +5,7 @@
 | 产品推进、验证结果、剩余发布门槛 | [progress](progress.md) |
 | 理解项目、主数据流 | [架构概览](architecture/overview.md) |
 | 边界、耦合、职责归属 | [模块边界](architecture/boundaries.md) |
-| 固定槽位准入与全局单生产者取舍 | [准入 ADR](architecture/adr/0001-cache-admission.md) |
+| 固定槽位准入历史与当前常驻池 | [准入 ADR](architecture/adr/0001-cache-admission.md)、[常驻池 ADR](architecture/adr/0002-persistent-transform-pool.md) |
 | URL 路由、公有 ID、版本段 | [Url](components/Url/README.md) |
 | 参数/组合规则、规范化 | [Transformation](components/Transformation/README.md) |
 | 原图定位、MIME 与来源 | [Source](components/Source/README.md) |

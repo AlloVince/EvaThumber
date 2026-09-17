@@ -1,0 +1,622 @@
+{
+    "started_utc": "2026-09-17T14:20:38+00:00",
+    "options": {
+        "build": false,
+        "image": "evathumber:session-arm64",
+        "out": "bench/results/session-fresh-single-worker",
+        "seconds": "8",
+        "rounds": "1",
+        "concurrency": "1,2",
+        "scenarios": "mixed",
+        "modes": "pool",
+        "workers": "1"
+    },
+    "image_tag": "evathumber:session-arm64",
+    "initial_source": "cbdf27163b23747434eaaeb15673aace0937a6b129c4ca667f59bafd233555f7",
+    "method": {
+        "closed_loop": true,
+        "seconds_per_scenario": 8,
+        "concurrencies": [
+            1,
+            2
+        ],
+        "rounds": 1,
+        "probes": "Two extra independent health/HIT lanes every >=500ms; not included in load concurrency or throughput.",
+        "rate": "success_rps counts completed 200 within the fixed measurement window; drained_success_rps includes final in-flight drain.",
+        "same": "One initially cold key per scenario, then naturally HIT; jobs exactly 1 across the entire interval. Not sustained cold misses.",
+        "cold": "Different/mixed version segment is unique for every cold request, not an ignored query parameter.",
+        "decode": "Full libvips pixel evaluation once per unique response SHA256 after timing; dimensions/MIME validated; every successful response hashed.",
+        "limits": {
+            "memory_mib": 512,
+            "cpus": 2,
+            "pids": 256,
+            "http_workers": 16,
+            "timeout_seconds": 15
+        },
+        "rejection_phase": "Pool log errors prove pool rejection counts; residual HTTP errors are pre-pool/HTTP/cache, without unsupported exact lock-phase attribution.",
+        "fixtures_caveat": "Original local 300px photographs plus a deliberately enlarged derivative, not genuine native large-photo evidence. No downloaded fixtures."
+    },
+    "runs": [
+        {
+            "label": "pool-r1-c1-mixed",
+            "mode": "pool",
+            "round": 1,
+            "concurrency": 1,
+            "scenario": "mixed",
+            "window_seconds": 8,
+            "elapsed_seconds": 8.227817957988009,
+            "requests": 75,
+            "codes": {
+                "200": 75
+            },
+            "success_rps": 9.25,
+            "drained_success_rps": 9.115418010334801,
+            "latency_by_status": {
+                "200": {
+                    "count": 75,
+                    "p50_ms": 21.845,
+                    "p95_ms": 462.609,
+                    "p99_ms": 586.995,
+                    "max_ms": 586.995
+                }
+            },
+            "class_latency_by_status": {
+                "hot": {
+                    "200": {
+                        "count": 11,
+                        "p50_ms": 0.983,
+                        "p95_ms": 2.749,
+                        "p99_ms": 2.749,
+                        "max_ms": 2.749
+                    }
+                },
+                "small_resize": {
+                    "200": {
+                        "count": 11,
+                        "p50_ms": 19.754,
+                        "p95_ms": 20.91,
+                        "p99_ms": 20.91,
+                        "max_ms": 20.91
+                    }
+                },
+                "crop_webp": {
+                    "200": {
+                        "count": 11,
+                        "p50_ms": 21.805,
+                        "p95_ms": 23.633,
+                        "p99_ms": 23.633,
+                        "max_ms": 23.633
+                    }
+                },
+                "avif": {
+                    "200": {
+                        "count": 11,
+                        "p50_ms": 111.698,
+                        "p95_ms": 118.096,
+                        "p99_ms": 118.096,
+                        "max_ms": 118.096
+                    }
+                },
+                "large_webp": {
+                    "200": {
+                        "count": 11,
+                        "p50_ms": 458.907,
+                        "p95_ms": 586.995,
+                        "p99_ms": 586.995,
+                        "max_ms": 586.995
+                    }
+                },
+                "q_auto_webp": {
+                    "200": {
+                        "count": 10,
+                        "p50_ms": 118.832,
+                        "p95_ms": 131.618,
+                        "p99_ms": 131.618,
+                        "max_ms": 131.618
+                    }
+                },
+                "small_webp": {
+                    "200": {
+                        "count": 10,
+                        "p50_ms": 18.198,
+                        "p95_ms": 21.845,
+                        "p99_ms": 21.845,
+                        "max_ms": 21.845
+                    }
+                }
+            },
+            "latency_histogram_25ms": {
+                "0": 43,
+                "100": 18,
+                "575": 1,
+                "450": 7,
+                "425": 2,
+                "125": 3,
+                "475": 1
+            },
+            "errors": [],
+            "pool_rejection_errors": [],
+            "pre_pool_or_http_rejections": 0,
+            "hit_ratio": 0.14666666666666667,
+            "probes": {
+                "health": {
+                    "count": 16,
+                    "p50_ms": 1.392,
+                    "p95_ms": 176.743,
+                    "p99_ms": 176.743,
+                    "max_ms": 176.743,
+                    "status_counts": {
+                        "200": 16
+                    }
+                },
+                "hit": {
+                    "count": 16,
+                    "p50_ms": 1.676,
+                    "p95_ms": 176.984,
+                    "p99_ms": 176.984,
+                    "max_ms": 176.984,
+                    "status_counts": {
+                        "200": 16
+                    }
+                }
+            },
+            "pool_jobs_started": 64,
+            "pool_job_latency": {
+                "count": 64,
+                "p50_ms": 14.267,
+                "p95_ms": 181.424,
+                "p99_ms": 254.142,
+                "max_ms": 254.142
+            },
+            "max_pool_queue": 1,
+            "same_key_unique_hashes": null,
+            "unique_bodies_fully_decoded": 7,
+            "decode_evidence": {
+                "38b1069db9518bd1ec88489f5f138136d8b0a0f3ac87e907610b4478cd2bd6c9": {
+                    "width": 100,
+                    "height": 67,
+                    "pixel_average": 136.08641791044775,
+                    "class": "hot"
+                },
+                "c799abcdca4453707f8f0feff76be51e9ff17875ca456de0e6a1bf672c4ad19e": {
+                    "width": 100,
+                    "height": 144,
+                    "pixel_average": 82.03865740740741,
+                    "class": "small_resize"
+                },
+                "dae9c1acaf7b8f0aed56c6a6f0f15e6245578fe2388301d17def61a2fe7a9f59": {
+                    "width": 240,
+                    "height": 160,
+                    "pixel_average": 177.32326822916667,
+                    "class": "crop_webp"
+                },
+                "3df817e0e2a2773fd6c5e96fd87266fa5baa209c65d9d91ace07d680fa2e7926": {
+                    "width": 800,
+                    "height": 533,
+                    "pixel_average": 136.0957997185741,
+                    "class": "avif"
+                },
+                "afa5642968035c2834cdac549b905730b3dac012d63c59d5d11f1ab48d3a105e": {
+                    "width": 2400,
+                    "height": 1600,
+                    "pixel_average": 136.05224661458334,
+                    "class": "large_webp"
+                },
+                "7cc4399843179fec2301321c28a9d9cddde424a3261e0146e92c6dbe4de30479": {
+                    "width": 800,
+                    "height": 533,
+                    "pixel_average": 135.97907285803626,
+                    "class": "q_auto_webp"
+                },
+                "827c624f71563e73e45ae10768dc1c46c9a7f3d544b3f28dfbd9b163be40c562": {
+                    "width": 180,
+                    "height": 120,
+                    "pixel_average": 136.14737654320987,
+                    "class": "small_webp"
+                }
+            },
+            "cpu_seconds": 8.216144,
+            "cpu_cores_average": 0.9981487449760303,
+            "cgroup_memory_peak_bytes": 254406656,
+            "process_rss_peak_bytes": 316973056,
+            "failures": []
+        },
+        {
+            "label": "pool-r1-c2-mixed",
+            "mode": "pool",
+            "round": 1,
+            "concurrency": 2,
+            "scenario": "mixed",
+            "window_seconds": 8,
+            "elapsed_seconds": 8.278237791033462,
+            "requests": 77,
+            "codes": {
+                "200": 67,
+                "503": 10
+            },
+            "success_rps": 8.25,
+            "drained_success_rps": 8.093509958432309,
+            "latency_by_status": {
+                "200": {
+                    "count": 67,
+                    "p50_ms": 108.785,
+                    "p95_ms": 628.788,
+                    "p99_ms": 641.713,
+                    "max_ms": 641.713
+                },
+                "503": {
+                    "count": 10,
+                    "p50_ms": 443.451,
+                    "p95_ms": 459.728,
+                    "p99_ms": 459.728,
+                    "max_ms": 459.728
+                }
+            },
+            "class_latency_by_status": {
+                "hot": {
+                    "200": {
+                        "count": 11,
+                        "p50_ms": 1.239,
+                        "p95_ms": 3.597,
+                        "p99_ms": 3.597,
+                        "max_ms": 3.597
+                    }
+                },
+                "small_resize": {
+                    "200": {
+                        "count": 11,
+                        "p50_ms": 9.777,
+                        "p95_ms": 15.991,
+                        "p99_ms": 15.991,
+                        "max_ms": 15.991
+                    }
+                },
+                "crop_webp": {
+                    "200": {
+                        "count": 11,
+                        "p50_ms": 21.635,
+                        "p95_ms": 27.041,
+                        "p99_ms": 27.041,
+                        "max_ms": 27.041
+                    }
+                },
+                "avif": {
+                    "200": {
+                        "count": 11,
+                        "p50_ms": 112.725,
+                        "p95_ms": 119.332,
+                        "p99_ms": 119.332,
+                        "max_ms": 119.332
+                    }
+                },
+                "large_webp": {
+                    "200": {
+                        "count": 11,
+                        "p50_ms": 281.63,
+                        "p95_ms": 319.035,
+                        "p99_ms": 319.035,
+                        "max_ms": 319.035
+                    }
+                },
+                "q_auto_webp": {
+                    "200": {
+                        "count": 11,
+                        "p50_ms": 626.208,
+                        "p95_ms": 641.713,
+                        "p99_ms": 641.713,
+                        "max_ms": 641.713
+                    }
+                },
+                "small_webp": {
+                    "200": {
+                        "count": 1,
+                        "p50_ms": 420.655,
+                        "p95_ms": 420.655,
+                        "p99_ms": 420.655,
+                        "max_ms": 420.655
+                    },
+                    "503": {
+                        "count": 10,
+                        "p50_ms": 443.451,
+                        "p95_ms": 459.728,
+                        "p99_ms": 459.728,
+                        "max_ms": 459.728
+                    }
+                }
+            },
+            "latency_histogram_25ms": {
+                "0": 32,
+                "100": 11,
+                "300": 1,
+                "625": 6,
+                "400": 1,
+                "25": 1,
+                "275": 10,
+                "425": 9,
+                "600": 5,
+                "450": 1
+            },
+            "errors": {
+                "processor_busy": 10
+            },
+            "pool_rejection_errors": [],
+            "pre_pool_or_http_rejections": 10,
+            "hit_ratio": 0.14285714285714285,
+            "probes": {
+                "health": {
+                    "count": 16,
+                    "p50_ms": 1.127,
+                    "p95_ms": 13.747,
+                    "p99_ms": 13.747,
+                    "max_ms": 13.747,
+                    "status_counts": {
+                        "200": 16
+                    }
+                },
+                "hit": {
+                    "count": 16,
+                    "p50_ms": 1.559,
+                    "p95_ms": 14.174,
+                    "p99_ms": 14.174,
+                    "max_ms": 14.174,
+                    "status_counts": {
+                        "200": 16
+                    }
+                }
+            },
+            "pool_jobs_started": 66,
+            "pool_job_latency": {
+                "count": 66,
+                "p50_ms": 92.976,
+                "p95_ms": 181.623,
+                "p99_ms": 303.468,
+                "max_ms": 303.468
+            },
+            "max_pool_queue": 1,
+            "same_key_unique_hashes": null,
+            "unique_bodies_fully_decoded": 7,
+            "decode_evidence": {
+                "38b1069db9518bd1ec88489f5f138136d8b0a0f3ac87e907610b4478cd2bd6c9": {
+                    "width": 100,
+                    "height": 67,
+                    "pixel_average": 136.08641791044775,
+                    "class": "hot"
+                },
+                "c799abcdca4453707f8f0feff76be51e9ff17875ca456de0e6a1bf672c4ad19e": {
+                    "width": 100,
+                    "height": 144,
+                    "pixel_average": 82.03865740740741,
+                    "class": "small_resize"
+                },
+                "dae9c1acaf7b8f0aed56c6a6f0f15e6245578fe2388301d17def61a2fe7a9f59": {
+                    "width": 240,
+                    "height": 160,
+                    "pixel_average": 177.32326822916667,
+                    "class": "crop_webp"
+                },
+                "3df817e0e2a2773fd6c5e96fd87266fa5baa209c65d9d91ace07d680fa2e7926": {
+                    "width": 800,
+                    "height": 533,
+                    "pixel_average": 136.0957997185741,
+                    "class": "avif"
+                },
+                "afa5642968035c2834cdac549b905730b3dac012d63c59d5d11f1ab48d3a105e": {
+                    "width": 2400,
+                    "height": 1600,
+                    "pixel_average": 136.05224661458334,
+                    "class": "large_webp"
+                },
+                "7cc4399843179fec2301321c28a9d9cddde424a3261e0146e92c6dbe4de30479": {
+                    "width": 800,
+                    "height": 533,
+                    "pixel_average": 135.97907285803626,
+                    "class": "q_auto_webp"
+                },
+                "827c624f71563e73e45ae10768dc1c46c9a7f3d544b3f28dfbd9b163be40c562": {
+                    "width": 180,
+                    "height": 120,
+                    "pixel_average": 136.14737654320987,
+                    "class": "small_webp"
+                }
+            },
+            "cpu_seconds": 9.120646,
+            "cpu_cores_average": 1.1015872038674714,
+            "cgroup_memory_peak_bytes": 272089088,
+            "process_rss_peak_bytes": 308486144,
+            "failures": []
+        }
+    ],
+    "failures": [],
+    "source_changed_during_build": false,
+    "image_id": "sha256:f54863f1cae538e6805b8c84b63a89fd7b4a9ea9f29a8d8517be8b7edc167806",
+    "environment": {
+        "host_os": "Darwin AlloVincedeMacBook-Pro.local 25.6.0 Darwin Kernel Version 25.6.0: Fri Jul 31 19:19:08 PDT 2026; root:xnu-12377.161.14~5/RELEASE_ARM64_T6050 arm64",
+        "host_php": "8.5.10",
+        "curl": {
+            "version_number": 529920,
+            "age": 11,
+            "features": 1472137101,
+            "feature_list": {
+                "AsynchDNS": true,
+                "CharConv": false,
+                "Debug": false,
+                "GSS-Negotiate": false,
+                "IDN": true,
+                "IPv6": true,
+                "krb4": false,
+                "Largefile": true,
+                "libz": true,
+                "NTLM": false,
+                "NTLMWB": false,
+                "SPNEGO": true,
+                "SSL": true,
+                "SSPI": false,
+                "TLS-SRP": false,
+                "HTTP2": true,
+                "GSSAPI": true,
+                "KERBEROS5": true,
+                "UNIX_SOCKETS": true,
+                "PSL": true,
+                "HTTPS_PROXY": true,
+                "MULTI_SSL": false,
+                "BROTLI": true,
+                "ALTSVC": true,
+                "HTTP3": true,
+                "UNICODE": false,
+                "ZSTD": true,
+                "HSTS": true,
+                "GSASL": false
+            },
+            "ssl_version_number": 0,
+            "version": "8.22.0",
+            "host": "aarch64-apple-darwin25.6.0",
+            "ssl_version": "OpenSSL/3.6.4",
+            "libz_version": "1.2.12",
+            "protocols": [
+                "dict",
+                "file",
+                "ftp",
+                "ftps",
+                "gopher",
+                "gophers",
+                "http",
+                "https",
+                "imap",
+                "imaps",
+                "ldap",
+                "ldaps",
+                "mqtt",
+                "mqtts",
+                "pop3",
+                "pop3s",
+                "rtsp",
+                "scp",
+                "sftp",
+                "smtp",
+                "smtps",
+                "telnet",
+                "tftp",
+                "ws",
+                "wss"
+            ],
+            "ares": "",
+            "ares_num": 0,
+            "libidn": "",
+            "iconv_ver_num": 0,
+            "libssh_version": "libssh2/1.11.1",
+            "brotli_ver_num": 16785408,
+            "brotli_version": "brotli/1.2.0"
+        },
+        "docker": "OrbStack",
+        "docker_limits": "OS=linux Arch=aarch64 CPUs=15 Memory=16818823168",
+        "image_arch": "arm64",
+        "image_created": "2026-09-17T22:16:46.104735363+08:00",
+        "image_env": [
+            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "PHPIZE_DEPS=autoconf \t\tdpkg-dev \t\tfile \t\tg++ \t\tgcc \t\tlibc-dev \t\tmake \t\tpkg-config \t\tre2c",
+            "PHP_INI_DIR=/usr/local/etc/php",
+            "PHP_CFLAGS=-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64",
+            "PHP_CPPFLAGS=-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64",
+            "PHP_LDFLAGS=-Wl,-O1 -pie",
+            "GPG_KEYS=1198C0117593497A5EC5C199286AF1F9897469DC 49D9AF6BC72A80D6691719C8AA23F5BE9C7097D4 D95C03BC702BE9515344AE3374E44BC9067701A5",
+            "PHP_VERSION=8.5.10",
+            "PHP_URL=https://www.php.net/distributions/php-8.5.10.tar.xz",
+            "PHP_ASC_URL=https://www.php.net/distributions/php-8.5.10.tar.xz.asc",
+            "PHP_SHA256=6a8bebaa4d5a979a38db29a9373e9851f60c6b11f72172c585947e78f3081957",
+            "XDG_CONFIG_HOME=/config",
+            "XDG_DATA_HOME=/data",
+            "GODEBUG=cgocheck=0",
+            "VIPS_CONCURRENCY=2",
+            "VIPS_DISC_THRESHOLD=32m",
+            "SERVER_NAME=:8081",
+            "EVATHUMBER_SOURCE=/data/images",
+            "EVATHUMBER_CACHE=/data/cache",
+            "EVATHUMBER_POOL_SOCKET=/tmp/evathumber/pool.sock"
+        ]
+    },
+    "image_vs_initial_source_mismatches": [],
+    "fixtures": {
+        "demo.jpg": {
+            "provenance": "existing upload/demo.jpg; upstream author/license not established; not redistributed",
+            "sha256": "221a14a31070065a6b5e83b7e076e0d31fbcfa14edfee49172bb6038a1c54788",
+            "bytes": 24843,
+            "metadata": {
+                "0": 300,
+                "1": 200,
+                "2": 2,
+                "3": "width=\"300\" height=\"200\"",
+                "bits": 8,
+                "channels": 3,
+                "mime": "image/jpeg",
+                "width_unit": "px",
+                "height_unit": "px"
+            }
+        },
+        "face.jpg": {
+            "provenance": "existing upload/face.jpg; upstream author/license not established; not redistributed",
+            "sha256": "f8dd45e4b3e1921b2804226957d1585cdebb3b7a21aae34e46ccb6c41779aacd",
+            "bytes": 56412,
+            "metadata": {
+                "0": 300,
+                "1": 433,
+                "2": 2,
+                "3": "width=\"300\" height=\"433\"",
+                "bits": 8,
+                "channels": 3,
+                "mime": "image/jpeg",
+                "width_unit": "px",
+                "height_unit": "px"
+            }
+        },
+        "blend.png": {
+            "provenance": "existing upload/blend.png; upstream author/license not established; not redistributed",
+            "sha256": "87ed5009e86a097fce5baa9df37f8c3f47779ec360b312b1eddd326dd2e8af5a",
+            "bytes": 85640,
+            "metadata": {
+                "0": 300,
+                "1": 200,
+                "2": 3,
+                "3": "width=\"300\" height=\"200\"",
+                "bits": 8,
+                "mime": "image/png",
+                "width_unit": "px",
+                "height_unit": "px"
+            }
+        },
+        "large.jpg": {
+            "provenance": "local demo.jpg enlarged 8x via libvips resize default kernel, JPEG Q90; synthetic scale derivative",
+            "sha256": "2d153e26556880793482d2707b675d0b2f07d6ccd9ce357c8e7d97a44cfad873",
+            "bytes": 452223,
+            "metadata": {
+                "0": 2400,
+                "1": 1600,
+                "2": 2,
+                "3": "width=\"2400\" height=\"1600\"",
+                "bits": 8,
+                "channels": 3,
+                "mime": "image/jpeg",
+                "width_unit": "px",
+                "height_unit": "px"
+            }
+        }
+    },
+    "container_exits": [
+        {
+            "mode": "pool",
+            "round": 1,
+            "concurrency": 1,
+            "exit_code": 0,
+            "oom_killed": false
+        },
+        {
+            "mode": "pool",
+            "round": 1,
+            "concurrency": 2,
+            "exit_code": 0,
+            "oom_killed": false
+        }
+    ],
+    "final_source": "cbdf27163b23747434eaaeb15673aace0937a6b129c4ca667f59bafd233555f7",
+    "source_changed_during_run": false,
+    "finished_utc": "2026-09-17T14:21:38+00:00"
+}

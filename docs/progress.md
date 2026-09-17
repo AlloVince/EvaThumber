@@ -1,8 +1,52 @@
 # 产品推进状态
 ## 最终目标
 让使用 Cloudinary Image Transformation URL 的项目能够可靠迁移到高性能、自托管 EvaThumber。以可运行实现、兼容语义证据、真实基准和生产验证为验收，不以接受参数或更新 README 代替支持。
-## 当前状态
-**未达到可发布标准。六阶段均未宣称完整完成。** 当前已完成的增量：
+## 当前状态（常驻池验收中）
+### 2026-09-18 提交检查点（验收未完成）
+- 本次提交保存常驻池、崩溃退避/Linux 父死守护、来源快照、q_auto 重建 lazy 图及持续 HTTP 测量工作，不是生产验收通过声明。下方 2026-09-17 数字属于阶段历史证据。
+- 发布路径的同条件红绿对照：rename 发布 p95 356.115ms，硬链接发布及临时名清理 p95 0.091ms；HTTP p95 455.017→94.141ms。淘汰策略未改；运行文件系统须支持同目录硬链接。
+- 最新持续负载证据在 `../bench/results/final-link/report.json` 及同目录原始记录：48 场，报告含两次 unclean shutdown，尚未归因；不能用早期 `session-sustained-final` 数据冒充本版结果。
+- 提交前再次运行 `tests/pool-http.php evathumber:session-arm64 pool`，SIGKILL 目标 PID 检查失败；之前从 `/proc` 选活 PID 的修复不稳定，不能宣称该故障验收通过。预提交日志：`/tmp/evathumber-precommit-http.oRKnhu`（仅本机临时证据）。
+- 硬 OOM 隔离、真实 HTTP 活动/等待 drain、当前双架构 Compose/native CI 仍未完整通过；RSS 采样不等于硬内存隔离。此检查点不批准发布。
+
+**未达到可发布标准。下面“切池前历史基线”不是当前架构说明。** 当前生产镜像已接入 `HTTP → PoolProcessor → 有界常驻 worker → libvips`，不是仅 bench 实验；配置池失败不会退回 per-miss CLI。设计、取舍及残余风险见 [ADR 0002](architecture/adr/0002-persistent-transform-pool.md)。
+
+### 当前实现与验证（2026-09-17）
+- 缓存 generation 使用 256 个稳定条带锁，同键等待者复用结果；发布锁不再覆盖变换。8 个跨进程 miss 准入槽仍包含等待者，满槽立即拒绝；不同键条带碰撞仍串行。
+- 默认 2 个常驻 worker、4 个等待位、1000ms 队列截止，均已配置化。任务超时强杀/reap 后补位；staging 成功后只写回原有目标 inode，不重建已删除文件、不覆盖被替换目标。客户端断连会回收活动 worker；IPC 已补有界读取、部分写入和总截止。
+- 来源身份增加完整内容摘要及处理前后复核；修复 atime 变化造成的假 409。**这不是不可变快照**；当前源替换测试仍是 producer 回调内同步替换，而非真实并发解码。
+- 宿主完整 PHPUnit **44 tests / 538 assertions**（11.790s），PHPStan src level 8 通过；bin/pool.php 语法及 diff 检查通过。`bin/` 尚未纳入 PHPStan。
+- 最新源码只读挂载至 arm64 Linux 开发容器：PoolQueueTest + PoolLifecycleTest **7 tests / 144 assertions**（6.682s）；使用 `--do-not-cache-result` 避免只读结果缓存写入警告。
+- 直接 IPC 生命周期：默认与非默认队列容量/截止、硬超时/reap/恢复、删除与替换目标、客户端断连、活动 SIGKILL（人工部分 staging）、活动任务加待处理请求停机。不是所有生产 HTTP 故障边界的完整证据。
+- 最新 arm64 production 镜像重新构建并完成 `tests/pool-http.php`：5 个指定迁移 URL、原图歧义 409、same-key 仅一次变换且成功响应字节相同、损坏图不成功、暂停 worker 超时 504 后恢复、空闲 worker SIGKILL 后恢复、空闲 stop exit 0 且非 OOMKilled。该脚本尚接受任意 503，不能据通过宣称所有拒绝合理。
+- 当前双架构/Compose 全套验收尚未刷新；下方双架构与 Compose 记录来自切池前。未运行远程 native CI，未 commit/push/发布。
+
+### HTTP 测量结果与证据限制
+`tests/pool-http.php` 使用合成 1800×1400 JPEG、512MiB/2CPU、16 HTTP worker、2 transform worker；每场景启动 40 个 curl，**短 burst，不是持续固定并发基准**。observer 每 10ms 采样，CPU 含观察器/docker-exec，RSS 累加共享页，cgroup 含页缓存；不能用这些短采样宣布长期稳定。
+
+最新池加固版结果（成功数/503 数；成功吞吐只计 HTTP 200）：
+| 场景 | 200 / 503 | success/s | 200 p50 / p95 / p99 ms | health 单点 ms |
+|---|---|---:|---|---:|
+| hot | 40 / 0 | 652.21 | 7.631 / 13.933 / 14.909 | 0.980 |
+| same-key cold | 14 / 26 | 20.77 | 81.345 / 614.855 / 614.855 | 604.174 |
+| different-key cold | 6 / 34 | 27.85 | 132.980 / 194.511 / 194.511 | 10.395 |
+| mixed | 14 / 26 | 63.61 | 12.758 / 191.188 / 191.188 | 4.846 |
+- 全部 burst 503 body 为 processor_busy；same-key 只有一次变换。health 有 604ms 尖峰，不能声称命中/健康尾延迟已受控。
+- 原始本机会话报告 `/tmp/eva-pool-hardened-http`，日志同名加 `.log`；仅临时证据，尚未归档为仓库可追溯 benchmark 产物。
+- 较早同镜像 pool/isolated 单轮 mixed：成功吞吐 25.18/22.10 s⁻¹、成功数 16/15、CPU 0.921/1.075s；与最新轮变化很大，不构成稳定性能提升结论。
+- 定向 40 个不同冷键复现：12 成功、28 个 503；池仅记录 5 次拒绝，均在 active=2/queue=4；余下 23 次不能逐请求归因。证据 `/tmp/eva-controlled-burst.txt`，使用加固前镜像。不能将池响应序号冒充 HTTP correlation ID。
+- 20 个串行不同冷键全部 200、可解码、复用 PID，stop 0；使用黑色合成图。每四次左右出现约 300ms 延迟，原因未定位，不拿串行成功代替并发验收。
+
+### 下一步与发布门槛
+1. 池：启动失败退避、父进程猝死后代清理、真实 OOM 隔离、部分 IPC/断连压力、recycle 参数的长期证据；缓存同键等待者与 producer 准入模型、503 各阶段归因及健康/HIT 尾延迟。
+2. 来源：不可变读视图或等价保证、真实并发替换与 ABA/原地写入验证、HIT 摘要开销。
+3. q_auto：Pipeline 仍完整 copyMemory；真实普通/细节照片、大图、透明图、WebP/AVIF 的 small-analysis + rebuilt-lazy 对照尚未执行，不改变质量算法。
+4. 负载：真实授权素材、持续固定并发、多轮对照、成功吞吐、p50/p95/p99、CPU/总 RSS/逐 worker RSS、错误与缓存比；归档版本和原始证据。
+5. 破坏验证：真实 HTTP 活动/等待 drain、真实编码/写缓存瞬间强杀、OOM、重复恢复且无残留文件/锁；当前人工 staging 回归不替代这些。
+6. 交付：当前版完整 arm64/amd64 本地构建测试、Compose 及可授权的远程 native CI；完成相关文档一致性，不能把本地模拟 amd64 称为原生性能。
+
+## 切池前历史基线（以下并非当前实现）
+**当时未达到可发布标准。** 当时已完成的增量：
 - URL/Asset：补齐 cloud name、版本边界、嵌套 public ID、投递扩展名、变换链的解析用例；原有解析器无需更改。
 - HTTP：PNG 原图通过 `.jpg` 投递；参数顺序及 jpeg/jpg 扩展名共享条目；标量 `_a`/`_i` analytics 可忽略，其他查询参数明确拒绝；完整 URI 限长。
 - 版本纳入缓存身份，版本变化产生新条目。当前策略标识为 `evathumber-2-policy-3`，含自动质量策略 `edge-density-v1`。

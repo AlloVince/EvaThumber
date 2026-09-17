@@ -2,12 +2,14 @@
 ## 何时读
 评估 Docker/Compose、镜像构建、健康状态或发布时。
 ## 已有部署事实
-- Dockerfile 基于 `dunglas/frankenphp:1-php8.5-bookworm`；安装 libvips42/libvips-tools/libffi-dev/unzip 与 PHP FFI，配置 ffi.enable=true、PHP memory_limit=256M。
-- development/production 两阶段都 COPY composer.json + composer.lock；production 安装 no-dev，复制 src/public/bin/transform.php，Caddyfile 放 `/etc/frankenphp/Caddyfile`，最终 www-data 运行。
-- Caddy 固定 `:8081`，关闭自动 HTTPS/admin，两个 FrankenPHP worker，所有路径 rewrite 到 index.php；access log JSON 输出 stdout。
+- Dockerfile 基于 `dunglas/frankenphp:1-php8.5-bookworm`；安装 libvips42/libvips-tools/libffi-dev/unzip 与 PHP FFI/pcntl，配置 ffi.enable=true、PHP memory_limit=256M。
+- development/production 两阶段都 COPY composer.json + composer.lock；production 安装 no-dev，复制 src/public/bin/*.php，Caddyfile 放 `/etc/frankenphp/Caddyfile`，最终 www-data 运行。
+- Caddy 固定 `:8081`，关闭自动 HTTPS/admin，16 个 FrankenPHP HTTP worker，所有路径 rewrite 到 index.php；access log JSON 输出 stdout。
 - Compose 默认宿主 8081 → 容器 8081；data/images 只读挂载到 /data/images，命名卷缓存到 /data/cache；read_only 根文件系统，/tmp、/config/caddy、/data/caddy 为 tmpfs。
-- Compose 设置 no-new-privileges、512m 内存、2 CPU、128 PID、unless-stopped；Caddy tmpfs 显式 uid/gid=33 与运行用户一致；临时目录也可写，不能称“仅缓存目录可写”。
+- Compose 设置 no-new-privileges、512m 内存、2 CPU、256 PID、45s stop_grace_period、unless-stopped；Caddy tmpfs 显式 uid/gid=33 与运行用户一致；临时目录也可写，不能称“仅缓存目录可写”。
+- production 默认入口 `php /app/bin/serve.php`；启动本地 supervisor 与 FrankenPHP，变换池默认 2 个常驻进程。停机先 HTTP 后池，各等待最多 20s。队列与资源参数见 [config](config.md)。
 ## 已修复与实际验证
+以下双架构/Compose 记录主要来自切池前版本，不作为当前 pool 版本完整验收；当前结果见 [progress](../progress.md)。
 - FrankenPHP 与 Composer 使用已核验的多架构 manifest digest 固定；apt 源和 Dockerfile frontend 尚未固定，不宣称完全可复现构建。
 - composer.lock、bin/transform.php 已取消 Git 忽略；需要随未来提交纳入，当前未执行 git add/commit。development 白名单包含 tests、bench、PHPUnit/PHPStan 配置。
 - Compose healthcheck 已统一到 8081。

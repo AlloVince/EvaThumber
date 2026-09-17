@@ -12,6 +12,7 @@ final readonly class SourceImage
         public int $modifiedAt,
         public int $bytes,
         public string $format,
+        public ?SourceSnapshot $snapshot = null,
     ) {
     }
 }

@@ -1,0 +1,2729 @@
+{
+    "cpu_seconds": 15.177138,
+    "cpu_throttled_seconds": 1.028616,
+    "observer_seconds": 8.005830321,
+    "sample_interval_ms": 100,
+    "cgroup_memory_peak_bytes": 137093120,
+    "process_rss_peak_bytes": 253251584,
+    "processes": {
+        "1": {
+            "role": "other",
+            "rss_peak_bytes": 26681344,
+            "first_cpu_ticks": 2,
+            "last_cpu_ticks": 3
+        },
+        "6": {
+            "role": "pool_supervisor",
+            "rss_peak_bytes": 26963968,
+            "first_cpu_ticks": 2,
+            "last_cpu_ticks": 18
+        },
+        "7": {
+            "role": "http",
+            "rss_peak_bytes": 104071168,
+            "first_cpu_ticks": 40,
+            "last_cpu_ticks": 1536
+        },
+        "8": {
+            "role": "pool_worker",
+            "rss_peak_bytes": 49971200,
+            "first_cpu_ticks": 4,
+            "last_cpu_ticks": 4
+        },
+        "9": {
+            "role": "pool_worker",
+            "rss_peak_bytes": 45563904,
+            "first_cpu_ticks": 2,
+            "last_cpu_ticks": 2
+        }
+    },
+    "samples": [
+        {
+            "seconds": 0,
+            "cpu": {
+                "usage_usec": 565532,
+                "user_usec": 138497,
+                "system_usec": 427035,
+                "nice_usec": 0,
+                "nr_periods": 16,
+                "nr_throttled": 0,
+                "throttled_usec": 0,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 125759488,
+            "process_rss_bytes": 242556928,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 93376512
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 0.101,
+            "cpu": {
+                "usage_usec": 716072,
+                "user_usec": 239041,
+                "system_usec": 477030,
+                "nice_usec": 0,
+                "nr_periods": 17,
+                "nr_throttled": 0,
+                "throttled_usec": 0,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 130473984,
+            "process_rss_bytes": 247889920,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 98709504
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 0.202,
+            "cpu": {
+                "usage_usec": 902097,
+                "user_usec": 358765,
+                "system_usec": 543332,
+                "nice_usec": 0,
+                "nr_periods": 18,
+                "nr_throttled": 0,
+                "throttled_usec": 0,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 132521984,
+            "process_rss_bytes": 250081280,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 100900864
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 0.304,
+            "cpu": {
+                "usage_usec": 1099214,
+                "user_usec": 488654,
+                "system_usec": 610559,
+                "nice_usec": 0,
+                "nr_periods": 19,
+                "nr_throttled": 1,
+                "throttled_usec": 12590,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 133390336,
+            "process_rss_bytes": 250527744,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 101347328
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 0.405,
+            "cpu": {
+                "usage_usec": 1300977,
+                "user_usec": 627348,
+                "system_usec": 673628,
+                "nice_usec": 0,
+                "nr_periods": 20,
+                "nr_throttled": 2,
+                "throttled_usec": 15262,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 133652480,
+            "process_rss_bytes": 250560512,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 101380096
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 0.51,
+            "cpu": {
+                "usage_usec": 1517122,
+                "user_usec": 779202,
+                "system_usec": 737920,
+                "nice_usec": 0,
+                "nr_periods": 21,
+                "nr_throttled": 3,
+                "throttled_usec": 17099,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134111232,
+            "process_rss_bytes": 251166720,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 101986304
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 0.612,
+            "cpu": {
+                "usage_usec": 1694576,
+                "user_usec": 891229,
+                "system_usec": 803347,
+                "nice_usec": 0,
+                "nr_periods": 22,
+                "nr_throttled": 4,
+                "throttled_usec": 20632,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134111232,
+            "process_rss_bytes": 251256832,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 102076416
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 0.715,
+            "cpu": {
+                "usage_usec": 1887261,
+                "user_usec": 1024127,
+                "system_usec": 863133,
+                "nice_usec": 0,
+                "nr_periods": 23,
+                "nr_throttled": 4,
+                "throttled_usec": 20632,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134373376,
+            "process_rss_bytes": 251269120,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 102088704
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 0.818,
+            "cpu": {
+                "usage_usec": 2118713,
+                "user_usec": 1169695,
+                "system_usec": 949017,
+                "nice_usec": 0,
+                "nr_periods": 24,
+                "nr_throttled": 5,
+                "throttled_usec": 22600,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134373376,
+            "process_rss_bytes": 251285504,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 102105088
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 0.919,
+            "cpu": {
+                "usage_usec": 2320416,
+                "user_usec": 1304461,
+                "system_usec": 1015955,
+                "nice_usec": 0,
+                "nr_periods": 25,
+                "nr_throttled": 6,
+                "throttled_usec": 31399,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134373376,
+            "process_rss_bytes": 251293696,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 102113280
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 1.02,
+            "cpu": {
+                "usage_usec": 2511928,
+                "user_usec": 1422466,
+                "system_usec": 1089461,
+                "nice_usec": 0,
+                "nr_periods": 26,
+                "nr_throttled": 7,
+                "throttled_usec": 47742,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134373376,
+            "process_rss_bytes": 251305984,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 102125568
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 1.12,
+            "cpu": {
+                "usage_usec": 2697868,
+                "user_usec": 1552198,
+                "system_usec": 1145670,
+                "nice_usec": 0,
+                "nr_periods": 27,
+                "nr_throttled": 7,
+                "throttled_usec": 47742,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134881280,
+            "process_rss_bytes": 252362752,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103182336
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 1.223,
+            "cpu": {
+                "usage_usec": 2896550,
+                "user_usec": 1696492,
+                "system_usec": 1200057,
+                "nice_usec": 0,
+                "nr_periods": 28,
+                "nr_throttled": 7,
+                "throttled_usec": 47742,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134553600,
+            "process_rss_bytes": 252055552,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 102875136
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 1.328,
+            "cpu": {
+                "usage_usec": 3103092,
+                "user_usec": 1834390,
+                "system_usec": 1268701,
+                "nice_usec": 0,
+                "nr_periods": 29,
+                "nr_throttled": 7,
+                "throttled_usec": 47742,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134553600,
+            "process_rss_bytes": 252071936,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 102891520
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 1.429,
+            "cpu": {
+                "usage_usec": 3286832,
+                "user_usec": 1965754,
+                "system_usec": 1321077,
+                "nice_usec": 0,
+                "nr_periods": 30,
+                "nr_throttled": 7,
+                "throttled_usec": 47742,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134586368,
+            "process_rss_bytes": 252096512,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 102916096
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 1.53,
+            "cpu": {
+                "usage_usec": 3468787,
+                "user_usec": 2088644,
+                "system_usec": 1380143,
+                "nice_usec": 0,
+                "nr_periods": 31,
+                "nr_throttled": 7,
+                "throttled_usec": 47742,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134848512,
+            "process_rss_bytes": 252104704,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 102924288
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 1.635,
+            "cpu": {
+                "usage_usec": 3694895,
+                "user_usec": 2232886,
+                "system_usec": 1462008,
+                "nice_usec": 0,
+                "nr_periods": 33,
+                "nr_throttled": 8,
+                "throttled_usec": 66060,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135127040,
+            "process_rss_bytes": 252510208,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103329792
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 1.737,
+            "cpu": {
+                "usage_usec": 3891661,
+                "user_usec": 2361772,
+                "system_usec": 1529889,
+                "nice_usec": 0,
+                "nr_periods": 34,
+                "nr_throttled": 9,
+                "throttled_usec": 79853,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134864896,
+            "process_rss_bytes": 252252160,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103071744
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 1.838,
+            "cpu": {
+                "usage_usec": 4098348,
+                "user_usec": 2501363,
+                "system_usec": 1596984,
+                "nice_usec": 0,
+                "nr_periods": 35,
+                "nr_throttled": 10,
+                "throttled_usec": 90469,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134864896,
+            "process_rss_bytes": 252252160,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103071744
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 1.941,
+            "cpu": {
+                "usage_usec": 4300226,
+                "user_usec": 2648023,
+                "system_usec": 1652203,
+                "nice_usec": 0,
+                "nr_periods": 36,
+                "nr_throttled": 10,
+                "throttled_usec": 90469,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134864896,
+            "process_rss_bytes": 252260352,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103079936
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 2.045,
+            "cpu": {
+                "usage_usec": 4512313,
+                "user_usec": 2794505,
+                "system_usec": 1717808,
+                "nice_usec": 0,
+                "nr_periods": 37,
+                "nr_throttled": 11,
+                "throttled_usec": 97099,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134733824,
+            "process_rss_bytes": 252141568,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 102961152
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 2.146,
+            "cpu": {
+                "usage_usec": 4710490,
+                "user_usec": 2923470,
+                "system_usec": 1787019,
+                "nice_usec": 0,
+                "nr_periods": 38,
+                "nr_throttled": 12,
+                "throttled_usec": 103872,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 134733824,
+            "process_rss_bytes": 252141568,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 102961152
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 2.248,
+            "cpu": {
+                "usage_usec": 4890997,
+                "user_usec": 3052653,
+                "system_usec": 1838344,
+                "nice_usec": 0,
+                "nr_periods": 39,
+                "nr_throttled": 12,
+                "throttled_usec": 103872,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135258112,
+            "process_rss_bytes": 252211200,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103030784
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 2.349,
+            "cpu": {
+                "usage_usec": 5104224,
+                "user_usec": 3197162,
+                "system_usec": 1907061,
+                "nice_usec": 0,
+                "nr_periods": 40,
+                "nr_throttled": 13,
+                "throttled_usec": 140125,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135684096,
+            "process_rss_bytes": 252551168,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103370752
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 2.451,
+            "cpu": {
+                "usage_usec": 5312033,
+                "user_usec": 3329718,
+                "system_usec": 1982315,
+                "nice_usec": 0,
+                "nr_periods": 41,
+                "nr_throttled": 14,
+                "throttled_usec": 176189,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135684096,
+            "process_rss_bytes": 252559360,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103378944
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 2.551,
+            "cpu": {
+                "usage_usec": 5502054,
+                "user_usec": 3456366,
+                "system_usec": 2045688,
+                "nice_usec": 0,
+                "nr_periods": 42,
+                "nr_throttled": 15,
+                "throttled_usec": 187017,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252567552,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103387136
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 2.653,
+            "cpu": {
+                "usage_usec": 5704646,
+                "user_usec": 3595057,
+                "system_usec": 2109589,
+                "nice_usec": 0,
+                "nr_periods": 43,
+                "nr_throttled": 16,
+                "throttled_usec": 245905,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252567552,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103387136
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 2.754,
+            "cpu": {
+                "usage_usec": 5897507,
+                "user_usec": 3728063,
+                "system_usec": 2169443,
+                "nice_usec": 0,
+                "nr_periods": 44,
+                "nr_throttled": 16,
+                "throttled_usec": 245905,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252616704,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103436288
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 2.855,
+            "cpu": {
+                "usage_usec": 6096407,
+                "user_usec": 3862959,
+                "system_usec": 2233448,
+                "nice_usec": 0,
+                "nr_periods": 45,
+                "nr_throttled": 16,
+                "throttled_usec": 245905,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252624896,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103444480
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 2.956,
+            "cpu": {
+                "usage_usec": 6313358,
+                "user_usec": 3998426,
+                "system_usec": 2314931,
+                "nice_usec": 0,
+                "nr_periods": 46,
+                "nr_throttled": 17,
+                "throttled_usec": 315461,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252624896,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103444480
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 3.06,
+            "cpu": {
+                "usage_usec": 6519291,
+                "user_usec": 4137066,
+                "system_usec": 2382225,
+                "nice_usec": 0,
+                "nr_periods": 47,
+                "nr_throttled": 18,
+                "throttled_usec": 341446,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252624896,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103444480
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 3.164,
+            "cpu": {
+                "usage_usec": 6710222,
+                "user_usec": 4263755,
+                "system_usec": 2446466,
+                "nice_usec": 0,
+                "nr_periods": 48,
+                "nr_throttled": 19,
+                "throttled_usec": 352407,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252628992,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103448576
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 3.265,
+            "cpu": {
+                "usage_usec": 6930458,
+                "user_usec": 4400937,
+                "system_usec": 2529520,
+                "nice_usec": 0,
+                "nr_periods": 49,
+                "nr_throttled": 19,
+                "throttled_usec": 352407,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252637184,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103456768
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 3.37,
+            "cpu": {
+                "usage_usec": 7145229,
+                "user_usec": 4542803,
+                "system_usec": 2602425,
+                "nice_usec": 0,
+                "nr_periods": 50,
+                "nr_throttled": 20,
+                "throttled_usec": 375097,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252645376,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103464960
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 3.471,
+            "cpu": {
+                "usage_usec": 7345684,
+                "user_usec": 4673879,
+                "system_usec": 2671804,
+                "nice_usec": 0,
+                "nr_periods": 51,
+                "nr_throttled": 21,
+                "throttled_usec": 543963,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252678144,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103497728
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 3.571,
+            "cpu": {
+                "usage_usec": 7516300,
+                "user_usec": 4787439,
+                "system_usec": 2728861,
+                "nice_usec": 0,
+                "nr_periods": 52,
+                "nr_throttled": 22,
+                "throttled_usec": 587380,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252678144,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103497728
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 3.672,
+            "cpu": {
+                "usage_usec": 7740987,
+                "user_usec": 4943040,
+                "system_usec": 2797947,
+                "nice_usec": 0,
+                "nr_periods": 53,
+                "nr_throttled": 23,
+                "throttled_usec": 602278,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252682240,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103501824
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 3.777,
+            "cpu": {
+                "usage_usec": 7943971,
+                "user_usec": 5077851,
+                "system_usec": 2866120,
+                "nice_usec": 0,
+                "nr_periods": 54,
+                "nr_throttled": 24,
+                "throttled_usec": 627038,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 135946240,
+            "process_rss_bytes": 252686336,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103505920
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 3.878,
+            "cpu": {
+                "usage_usec": 8126754,
+                "user_usec": 5207375,
+                "system_usec": 2919378,
+                "nice_usec": 0,
+                "nr_periods": 55,
+                "nr_throttled": 25,
+                "throttled_usec": 676217,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136470528,
+            "process_rss_bytes": 252760064,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103579648
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 3.981,
+            "cpu": {
+                "usage_usec": 8307897,
+                "user_usec": 5333615,
+                "system_usec": 2974282,
+                "nice_usec": 0,
+                "nr_periods": 56,
+                "nr_throttled": 25,
+                "throttled_usec": 676217,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136470528,
+            "process_rss_bytes": 252760064,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103579648
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 4.083,
+            "cpu": {
+                "usage_usec": 8496855,
+                "user_usec": 5468715,
+                "system_usec": 3028140,
+                "nice_usec": 0,
+                "nr_periods": 57,
+                "nr_throttled": 25,
+                "throttled_usec": 676217,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136470528,
+            "process_rss_bytes": 252760064,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103579648
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 4.185,
+            "cpu": {
+                "usage_usec": 8694662,
+                "user_usec": 5597696,
+                "system_usec": 3096965,
+                "nice_usec": 0,
+                "nr_periods": 58,
+                "nr_throttled": 25,
+                "throttled_usec": 676217,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136470528,
+            "process_rss_bytes": 252760064,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103579648
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 4.29,
+            "cpu": {
+                "usage_usec": 8870983,
+                "user_usec": 5706331,
+                "system_usec": 3164651,
+                "nice_usec": 0,
+                "nr_periods": 59,
+                "nr_throttled": 25,
+                "throttled_usec": 676217,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136470528,
+            "process_rss_bytes": 252764160,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103583744
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 4.393,
+            "cpu": {
+                "usage_usec": 9094394,
+                "user_usec": 5847194,
+                "system_usec": 3247199,
+                "nice_usec": 0,
+                "nr_periods": 60,
+                "nr_throttled": 25,
+                "throttled_usec": 676217,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136732672,
+            "process_rss_bytes": 252768256,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103587840
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 4.494,
+            "cpu": {
+                "usage_usec": 9291917,
+                "user_usec": 5981366,
+                "system_usec": 3310550,
+                "nice_usec": 0,
+                "nr_periods": 61,
+                "nr_throttled": 26,
+                "throttled_usec": 680591,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136732672,
+            "process_rss_bytes": 252772352,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103591936
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 4.595,
+            "cpu": {
+                "usage_usec": 9492708,
+                "user_usec": 6119964,
+                "system_usec": 3372744,
+                "nice_usec": 0,
+                "nr_periods": 62,
+                "nr_throttled": 27,
+                "throttled_usec": 701275,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136732672,
+            "process_rss_bytes": 252772352,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103591936
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 4.696,
+            "cpu": {
+                "usage_usec": 9688673,
+                "user_usec": 6246457,
+                "system_usec": 3442216,
+                "nice_usec": 0,
+                "nr_periods": 63,
+                "nr_throttled": 28,
+                "throttled_usec": 713007,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136732672,
+            "process_rss_bytes": 252776448,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103596032
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 4.797,
+            "cpu": {
+                "usage_usec": 9878951,
+                "user_usec": 6369645,
+                "system_usec": 3509306,
+                "nice_usec": 0,
+                "nr_periods": 64,
+                "nr_throttled": 28,
+                "throttled_usec": 713007,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136732672,
+            "process_rss_bytes": 252776448,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103596032
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 4.898,
+            "cpu": {
+                "usage_usec": 10064407,
+                "user_usec": 6494084,
+                "system_usec": 3570323,
+                "nice_usec": 0,
+                "nr_periods": 65,
+                "nr_throttled": 28,
+                "throttled_usec": 713007,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136732672,
+            "process_rss_bytes": 252780544,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103600128
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 4.999,
+            "cpu": {
+                "usage_usec": 10258643,
+                "user_usec": 6630710,
+                "system_usec": 3627932,
+                "nice_usec": 0,
+                "nr_periods": 66,
+                "nr_throttled": 29,
+                "throttled_usec": 717848,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136732672,
+            "process_rss_bytes": 252780544,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103600128
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 5.101,
+            "cpu": {
+                "usage_usec": 10493759,
+                "user_usec": 6796586,
+                "system_usec": 3697172,
+                "nice_usec": 0,
+                "nr_periods": 67,
+                "nr_throttled": 29,
+                "throttled_usec": 717848,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136732672,
+            "process_rss_bytes": 252780544,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103600128
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 5.203,
+            "cpu": {
+                "usage_usec": 10690721,
+                "user_usec": 6931313,
+                "system_usec": 3759408,
+                "nice_usec": 0,
+                "nr_periods": 68,
+                "nr_throttled": 30,
+                "throttled_usec": 768843,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136732672,
+            "process_rss_bytes": 252780544,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103600128
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 5.304,
+            "cpu": {
+                "usage_usec": 10901258,
+                "user_usec": 7063130,
+                "system_usec": 3838128,
+                "nice_usec": 0,
+                "nr_periods": 69,
+                "nr_throttled": 31,
+                "throttled_usec": 796399,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136732672,
+            "process_rss_bytes": 252780544,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103600128
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 5.405,
+            "cpu": {
+                "usage_usec": 11100773,
+                "user_usec": 7196524,
+                "system_usec": 3904249,
+                "nice_usec": 0,
+                "nr_periods": 70,
+                "nr_throttled": 32,
+                "throttled_usec": 906368,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136732672,
+            "process_rss_bytes": 252801024,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103620608
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 5.509,
+            "cpu": {
+                "usage_usec": 11277538,
+                "user_usec": 7317765,
+                "system_usec": 3959772,
+                "nice_usec": 0,
+                "nr_periods": 71,
+                "nr_throttled": 33,
+                "throttled_usec": 933606,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253165568,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103985152
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 5.611,
+            "cpu": {
+                "usage_usec": 11471947,
+                "user_usec": 7447485,
+                "system_usec": 4024461,
+                "nice_usec": 0,
+                "nr_periods": 72,
+                "nr_throttled": 33,
+                "throttled_usec": 933606,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253165568,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103985152
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 5.713,
+            "cpu": {
+                "usage_usec": 11695780,
+                "user_usec": 7587494,
+                "system_usec": 4108286,
+                "nice_usec": 0,
+                "nr_periods": 73,
+                "nr_throttled": 34,
+                "throttled_usec": 934872,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253165568,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103985152
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 5.836,
+            "cpu": {
+                "usage_usec": 11931565,
+                "user_usec": 7748706,
+                "system_usec": 4182858,
+                "nice_usec": 0,
+                "nr_periods": 75,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253169664,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103989248
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 5.939,
+            "cpu": {
+                "usage_usec": 12119922,
+                "user_usec": 7891829,
+                "system_usec": 4228092,
+                "nice_usec": 0,
+                "nr_periods": 76,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253173760,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103993344
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 6.04,
+            "cpu": {
+                "usage_usec": 12309908,
+                "user_usec": 8017243,
+                "system_usec": 4292665,
+                "nice_usec": 0,
+                "nr_periods": 77,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253173760,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103993344
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 6.144,
+            "cpu": {
+                "usage_usec": 12514834,
+                "user_usec": 8145413,
+                "system_usec": 4369420,
+                "nice_usec": 0,
+                "nr_periods": 78,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253177856,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103997440
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 6.244,
+            "cpu": {
+                "usage_usec": 12701591,
+                "user_usec": 8277635,
+                "system_usec": 4423955,
+                "nice_usec": 0,
+                "nr_periods": 79,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253181952,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 104001536
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 6.348,
+            "cpu": {
+                "usage_usec": 12883382,
+                "user_usec": 8402250,
+                "system_usec": 4481132,
+                "nice_usec": 0,
+                "nr_periods": 80,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253181952,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 104001536
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 6.451,
+            "cpu": {
+                "usage_usec": 13065555,
+                "user_usec": 8518185,
+                "system_usec": 4547370,
+                "nice_usec": 0,
+                "nr_periods": 81,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253181952,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 104001536
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 6.552,
+            "cpu": {
+                "usage_usec": 13240565,
+                "user_usec": 8633515,
+                "system_usec": 4607049,
+                "nice_usec": 0,
+                "nr_periods": 82,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253181952,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 104001536
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 6.653,
+            "cpu": {
+                "usage_usec": 13419950,
+                "user_usec": 8761163,
+                "system_usec": 4658786,
+                "nice_usec": 0,
+                "nr_periods": 83,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253186048,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 104005632
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 6.757,
+            "cpu": {
+                "usage_usec": 13580957,
+                "user_usec": 8858340,
+                "system_usec": 4722617,
+                "nice_usec": 0,
+                "nr_periods": 84,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253186048,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 104005632
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 6.86,
+            "cpu": {
+                "usage_usec": 13761722,
+                "user_usec": 8976761,
+                "system_usec": 4784961,
+                "nice_usec": 0,
+                "nr_periods": 85,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253251584,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 104071168
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 6.964,
+            "cpu": {
+                "usage_usec": 13941764,
+                "user_usec": 9100153,
+                "system_usec": 4841611,
+                "nice_usec": 0,
+                "nr_periods": 86,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253251584,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 104071168
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 7.065,
+            "cpu": {
+                "usage_usec": 14118306,
+                "user_usec": 9223919,
+                "system_usec": 4894387,
+                "nice_usec": 0,
+                "nr_periods": 87,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 137093120,
+            "process_rss_bytes": 253251584,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 104071168
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 7.166,
+            "cpu": {
+                "usage_usec": 14294377,
+                "user_usec": 9331617,
+                "system_usec": 4962760,
+                "nice_usec": 0,
+                "nr_periods": 88,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136962048,
+            "process_rss_bytes": 253120512,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103940096
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 7.269,
+            "cpu": {
+                "usage_usec": 14475000,
+                "user_usec": 9452293,
+                "system_usec": 5022707,
+                "nice_usec": 0,
+                "nr_periods": 89,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136962048,
+            "process_rss_bytes": 253120512,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103940096
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 7.371,
+            "cpu": {
+                "usage_usec": 14651006,
+                "user_usec": 9578134,
+                "system_usec": 5072871,
+                "nice_usec": 0,
+                "nr_periods": 90,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136962048,
+            "process_rss_bytes": 253124608,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103944192
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 7.471,
+            "cpu": {
+                "usage_usec": 14808845,
+                "user_usec": 9683371,
+                "system_usec": 5125473,
+                "nice_usec": 0,
+                "nr_periods": 91,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136962048,
+            "process_rss_bytes": 253157376,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103976960
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 7.575,
+            "cpu": {
+                "usage_usec": 14994718,
+                "user_usec": 9817147,
+                "system_usec": 5177571,
+                "nice_usec": 0,
+                "nr_periods": 92,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136962048,
+            "process_rss_bytes": 253157376,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103976960
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 7.679,
+            "cpu": {
+                "usage_usec": 15172111,
+                "user_usec": 9943259,
+                "system_usec": 5228852,
+                "nice_usec": 0,
+                "nr_periods": 93,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136962048,
+            "process_rss_bytes": 253157376,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103976960
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 7.781,
+            "cpu": {
+                "usage_usec": 15352034,
+                "user_usec": 10061806,
+                "system_usec": 5290228,
+                "nice_usec": 0,
+                "nr_periods": 94,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136962048,
+            "process_rss_bytes": 253157376,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103976960
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 7.882,
+            "cpu": {
+                "usage_usec": 15528985,
+                "user_usec": 10181390,
+                "system_usec": 5347595,
+                "nice_usec": 0,
+                "nr_periods": 95,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136962048,
+            "process_rss_bytes": 253161472,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103981056
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        },
+        {
+            "seconds": 7.984,
+            "cpu": {
+                "usage_usec": 15706136,
+                "user_usec": 10292683,
+                "system_usec": 5413453,
+                "nice_usec": 0,
+                "nr_periods": 96,
+                "nr_throttled": 36,
+                "throttled_usec": 1028616,
+                "nr_bursts": 0,
+                "burst_usec": 0
+            },
+            "cgroup_memory_bytes": 136962048,
+            "process_rss_bytes": 253161472,
+            "roles": {
+                "other": {
+                    "rss_bytes": 26681344
+                },
+                "pool_supervisor": {
+                    "rss_bytes": 26963968
+                },
+                "http": {
+                    "rss_bytes": 103981056
+                },
+                "pool_worker": {
+                    "rss_bytes": 95535104
+                }
+            },
+            "worker_rss": {
+                "8": 49971200,
+                "9": 45563904
+            }
+        }
+    ],
+    "notes": "Sampled peaks miss transients; summed RSS double counts shared pages. Cgroup includes tmpfs/cache and observer. Process tick deltas miss short lived processes and first interval; cgroup CPU is authoritative."
+}

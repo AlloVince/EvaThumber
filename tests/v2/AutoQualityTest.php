@@ -101,6 +101,49 @@ final class AutoQualityTest extends TestCase
         }
     }
 
+    public function testRebuiltGraphMatchesMaterializedFinalPixelsAfterChainedTransforms(): void
+    {
+        $root = sys_get_temp_dir() . '/eva-quality-rebuild-' . bin2hex(random_bytes(6));
+        mkdir($root);
+        try {
+            $xy = Image::xyz(1024, 768);
+            $x = $xy->extract_band(0);
+            $y = $xy->extract_band(1);
+            // 16-bit RGBA exercises sample casting, alpha and a nontrivial final graph.
+            $x->multiply(63)->bandjoin([$y->multiply(85), $x->add($y)->multiply(32), $x->multiply(63)])
+                ->cast('ushort')->copy(['interpretation' => 'rgb16'])->pngsave($root . '/source.png', ['bitdepth' => 16]);
+            $source = (new \EvaThumber\Source\LocalSource($root))->resolve('source');
+            $pipeline = new \EvaThumber\Image\Pipeline();
+            $parser = new Parser();
+            $chain = 'c_fill,w_700,h_500/a_90/e_grayscale/c_pad,w_600,h_800,b_transparent';
+            $transform = $parser->parse($chain);
+            // The same production graph builder, but the previous execution strategy.
+            $prepare = new \ReflectionMethod($pipeline, 'prepare');
+            foreach (['jpg', 'webp', 'avif'] as $format) {
+                $reference = $prepare->invoke($pipeline, $source->snapshot->content, 'pngload_buffer', $transform, $format)->copyMemory();
+                foreach (['best', 'good', 'eco', 'low'] as $tier) {
+                    $quality = (new AutoQuality())->select($reference, 'auto:' . $tier, $format);
+                    match ($format) {
+                        'jpg' => $reference->jpegsave($root . '/reference', ['Q' => $quality, 'strip' => true]),
+                        'webp' => $reference->webpsave($root . '/reference', ['Q' => $quality, 'strip' => true]),
+                        'avif' => $reference->heifsave($root . '/reference', ['Q' => $quality, 'compression' => 'av1', 'effort' => 3, 'strip' => true]),
+                    };
+                    $pipeline->write($source, $parser->parse($chain . '/q_auto:' . $tier), $root . '/actual', $format);
+                    self::assertSame(hash_file('sha256', $root . '/reference'), hash_file('sha256', $root . '/actual'), $format . ':' . $tier);
+                    $decoded = Image::newFromFile($root . '/actual');
+                    self::assertSame(600, $decoded->width);
+                    self::assertSame(800, $decoded->height);
+                    self::assertSame($format !== 'jpg', $decoded->hasAlpha());
+                    unset($decoded);
+                }
+                unset($reference);
+            }
+        } finally {
+            foreach (new \DirectoryIterator($root) as $file) { if (!$file->isDot()) { unlink($file->getPathname()); } }
+            rmdir($root);
+        }
+    }
+
     public function testHttpDefaultTierSharesCacheAndOtherTiersDoNot(): void
     {
         $root = sys_get_temp_dir() . '/eva-quality-http-' . bin2hex(random_bytes(8));

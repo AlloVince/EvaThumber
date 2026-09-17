@@ -8,9 +8,9 @@ use EvaThumber\Exception\ImageException;
 
 final readonly class DiskCache
 {
-    public function __construct(private string $root, private int $maxBytes = 1073741824, private int $maxEntries = 10000)
+    public function __construct(private string $root, private int $maxBytes = 1073741824, private int $maxEntries = 10000, private int $waitMilliseconds = 250)
     {
-        if ($maxBytes < 1 || $maxEntries < 1) {
+        if ($maxBytes < 1 || $maxEntries < 1 || $waitMilliseconds < 1) {
             throw new \InvalidArgumentException('Cache limits must be positive.');
         }
         if (!is_dir($root) && !mkdir($root, 0770, true) && !is_dir($root)) {
@@ -19,8 +19,9 @@ final readonly class DiskCache
     }
 
     /** @param callable(string):void $producer */
-    public function remember(string $identity, string $format, callable $producer): CacheEntry
+    public function remember(string $identity, string $format, callable $producer, ?\Closure $stage = null): CacheEntry
     {
+        $stage?->__invoke('cache_lookup');
         if (!in_array($format, ['jpg', 'png', 'webp', 'avif', 'gif'], true)) {
             throw new \InvalidArgumentException('Invalid cache format.');
         }
@@ -30,14 +31,17 @@ final readonly class DiskCache
         if ($entry !== null) {
             return $entry;
         }
-        // Eight admitted misses per root (including the single producer).
-        // Hits bypass admission; excess misses fail without entering the wait loop.
+        // Bounded misses; hits never wait. Stable stripes bound lock-file growth.
+        $stage?->__invoke('cache_admission');
         $admission = $this->admit();
-        $deadline = hrtime(true) + 250_000_000;
+        $deadline = hrtime(true) + $this->waitMilliseconds * 1_000_000;
         $lock = null;
+        $publication = null;
+        $temporaryLease = null;
         $temporary = null;
         try {
-            $lock = fopen($this->root . '/.publish.lock', 'c');
+            $stage?->__invoke('cache_key_wait');
+            $lock = fopen($this->root . '/.key-' . substr($key, 0, 2) . '.lock', 'c');
             if ($lock === false) {
                 throw new ImageException('Cache unavailable.', 503, 'cache_unavailable');
             }
@@ -48,7 +52,7 @@ final readonly class DiskCache
                 }
                 $remaining = $deadline - hrtime(true);
                 if ($remaining <= 0) {
-                    throw new ImageException('Image processor busy. Retry shortly.', 503, 'processor_busy');
+                    throw new ImageException('Cache key wait timed out. Retry shortly.', 503, 'cache_key_timeout');
                 }
                 usleep((int) min(10_000, max(1, intdiv($remaining, 1000))));
             }
@@ -56,10 +60,18 @@ final readonly class DiskCache
             if ($entry !== null) {
                 return $entry;
             }
+            $stage?->__invoke('cache_register_wait');
+            $publication = $this->publicationLock();
+            $stage?->__invoke('cache_register');
             foreach (new \DirectoryIterator($this->root) as $file) {
-                if ($file->isFile() && str_starts_with($file->getFilename(), '.tmp-')) {
-                    // All producers still hold the global admission lock.
-                    unlink($file->getPathname());
+                if ($file->isFile() && !$file->isLink() && str_starts_with($file->getFilename(), '.tmp-')) {
+                    $orphan = fopen($file->getPathname(), 'r+');
+                    if ($orphan !== false) {
+                        if (flock($orphan, LOCK_EX | LOCK_NB)) {
+                            unlink($file->getPathname());
+                        }
+                        fclose($orphan);
+                    }
                 }
             }
             $temporary = tempnam($this->root, '.tmp-');
@@ -67,19 +79,50 @@ final readonly class DiskCache
                 $temporary = null;
                 throw new ImageException('Cache unavailable.', 503, 'cache_unavailable');
             }
+            $temporaryLease = fopen($temporary, 'r+');
+            if ($temporaryLease === false || !flock($temporaryLease, LOCK_EX | LOCK_NB)) {
+                throw new ImageException('Cache unavailable.', 503, 'cache_unavailable');
+            }
+            fclose($publication);
+            $publication = null;
+            $stage?->__invoke('producer');
             $producer($temporary);
+            $stage?->__invoke('cache_validate');
             clearstatcache(true, $temporary);
             $size = filesize($temporary);
             if ($size === false || $size < 1 || $size > $this->maxBytes) {
                 throw new ImageException('Derived image exceeds cache capacity.', 507, 'cache_full');
             }
+            $stage?->__invoke('cache_publish_wait');
+            $publication = $this->publicationLock();
+            $stage?->__invoke('cache_eviction');
             $this->makeRoom($size);
-            if (!rename($temporary, $path)) {
+            $stage?->__invoke('cache_publish');
+            // Same-directory hard link publishes the complete inode atomically.
+            // Keep the publication lock and temporary lease through name cleanup.
+            if (!link($temporary, $path)) {
                 throw new ImageException('Cache publication failed.', 503, 'cache_unavailable');
             }
-            $temporary = null;
+            $stage?->__invoke('cache_unlink');
+            if (unlink($temporary)) {
+                $temporary = null;
+            }
+            $stage?->__invoke('cache_unlock');
+            // A producer callback may spawn a child that inherits this open file
+            // description. Explicit unlock, not close alone, releases its lease.
+            flock($temporaryLease, LOCK_UN);
+            fclose($temporaryLease);
+            $temporaryLease = null;
+            $stage?->__invoke('cache_entry');
             return $this->entry($path, $key, false) ?? throw new ImageException('Cache entry unavailable.', 503, 'cache_unavailable');
         } finally {
+            $stage?->__invoke('cache_cleanup');
+            if (is_resource($publication)) {
+                fclose($publication);
+            }
+            if (is_resource($temporaryLease)) {
+                fclose($temporaryLease);
+            }
             if ($temporary !== null && is_file($temporary)) {
                 unlink($temporary);
             }
@@ -89,6 +132,24 @@ final readonly class DiskCache
             }
             fclose($admission);
         }
+    }
+
+    /** @return resource */
+    private function publicationLock()
+    {
+        $handle = fopen($this->root . '/.publish.lock', 'c');
+        if ($handle === false) {
+            throw new ImageException('Cache unavailable.', 503, 'cache_unavailable');
+        }
+        $deadline = hrtime(true) + 250_000_000;
+        while (!flock($handle, LOCK_EX | LOCK_NB)) {
+            if (hrtime(true) >= $deadline) {
+                fclose($handle);
+                throw new ImageException('Cache publication lock wait timed out. Retry shortly.', 503, 'cache_publish_timeout');
+            }
+            usleep(1000);
+        }
+        return $handle;
     }
 
     /** @return resource */
@@ -106,7 +167,7 @@ final readonly class DiskCache
             }
             fclose($handle);
         }
-        throw new ImageException('Image processor busy. Retry shortly.', 503, 'processor_busy');
+        throw new ImageException('Cache admission full. Retry shortly.', 503, 'cache_admission_full');
     }
 
     private function makeRoom(int $incomingBytes): void

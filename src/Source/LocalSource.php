@@ -21,8 +21,22 @@ final readonly class LocalSource implements SourceInterface
         $this->root = rtrim($resolved, DIRECTORY_SEPARATOR) . DIRECTORY_SEPARATOR;
     }
 
+    public function assertIdentity(string $publicId, string $identity): SourceImage
+    {
+        try {
+            $source = $this->resolve($publicId);
+        } catch (ImageException) {
+            throw new ImageException('Source changed during processing.', 409, 'source_changed');
+        }
+        if (!hash_equals($identity, $source->identity)) {
+            throw new ImageException('Source changed during processing.', 409, 'source_changed');
+        }
+        return $source;
+    }
+
     public function resolve(string $publicId): SourceImage
     {
+        clearstatcache(true);
         if ($publicId === '' || str_contains($publicId, '\\') || preg_match('/[\x00-\x1f\x7f%:]/', $publicId)) {
             throw new ImageException('Invalid public ID.');
         }
@@ -42,20 +56,14 @@ final readonly class LocalSource implements SourceInterface
             throw new ImageException(count($candidates) === 0 ? 'Image not found.' : 'Ambiguous public ID.', count($candidates) === 0 ? 404 : 409, 'source_unavailable');
         }
         $path = array_key_first($candidates);
-        clearstatcache(true, $path);
-        $stat = stat($path);
-        if ($stat === false || !is_readable($path)) {
-            throw new ImageException('Image not found.', 404, 'source_unavailable');
-        }
-        if ($stat['size'] > $this->limits->maxSourceBytes) {
-            throw new ImageException('Source exceeds byte limit.', 413, 'image_too_large');
-        }
-        $mime = (new \finfo(FILEINFO_MIME_TYPE))->file($path);
+        $snapshot = SourceSnapshot::read($path, $this->limits->maxSourceBytes);
+        $stat = $snapshot->stat;
+        $mime = (new \finfo(FILEINFO_MIME_TYPE))->buffer($snapshot->content);
         $format = array_search($mime, self::FORMATS, true);
         $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
         if ($format === false || ($extension !== '' && (self::FORMATS[$extension] ?? null) !== $mime)) {
             throw new ImageException('Unsupported or mismatched source format.', 415, 'unsupported_format');
         }
-        return new SourceImage($path, hash('sha256', $path . ':' . $stat['ino'] . ':' . $stat['mtime'] . ':' . $stat['ctime'] . ':' . $stat['size']), $stat['mtime'], $stat['size'], $format);
+        return new SourceImage($path, hash('sha256', $path . ':' . $stat['dev'] . ':' . $stat['ino'] . ':' . $stat['mtime'] . ':' . $stat['ctime'] . ':' . $stat['size'] . ':' . $snapshot->digest), $stat['mtime'], strlen($snapshot->content), $format, $snapshot);
     }
 }

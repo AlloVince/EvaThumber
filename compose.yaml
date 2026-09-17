@@ -24,7 +24,8 @@ services:
       - ALL
     mem_limit: 512m
     cpus: 2
-    pids_limit: 128
+    pids_limit: 256
+    stop_grace_period: 45s
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8081/healthz"]

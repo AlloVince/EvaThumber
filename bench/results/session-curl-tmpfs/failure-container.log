@@ -1,0 +1,20 @@
+{"event":"worker_start","slot":0,"pid":8,"monotonic_ns":1223674701376378}
+{"event":"worker_start","slot":1,"pid":9,"monotonic_ns":1223674701544918}
+{"level":"info","ts":1789655845.0921004,"msg":"maxprocs: Updating GOMAXPROCS=2: determined from CPU quota"}
+{"level":"info","ts":1789655845.0921106,"msg":"GOMEMLIMIT is updated","GOMEMLIMIT":483183820,"previous":9223372036854775807}
+{"level":"info","ts":1789655845.0921123,"msg":"using config from file","file":"/etc/frankenphp/Caddyfile"}
+{"level":"info","ts":1789655845.0921133,"msg":"adapted config to JSON","adapter":"caddyfile"}
+{"level":"warn","ts":1789655845.0921137,"msg":"Caddyfile input is not formatted; run 'caddy fmt --overwrite' to fix inconsistencies","adapter":"caddyfile","file":"/etc/frankenphp/Caddyfile","line":2}
+{"level":"warn","ts":1789655845.0921261,"logger":"admin","msg":"admin endpoint disabled"}
+{"level":"info","ts":1789655845.0921729,"logger":"http.auto_https","msg":"automatic HTTPS is completely disabled for server","server_name":"srv0"}
+{"level":"info","ts":1789655845.0922806,"logger":"tls.cache.maintenance","msg":"started background certificate maintenance","cache":"0x40b1b21f2700"}
+{"event":"worker_ready","pid":8,"monotonic_ns":1223674731148768}
+{"event":"worker_ready","pid":9,"monotonic_ns":1223674731175768}
+{"level":"info","ts":1789655845.1039228,"logger":"frankenphp","msg":"FrankenPHP started 🐘","php_version":"8.5.10","num_threads":17,"max_threads":17,"max_requests":0}
+{"level":"warn","ts":1789655845.1060898,"logger":"http","msg":"HTTP/2 skipped because it requires TLS","network":"tcp","addr":":8081"}
+{"level":"warn","ts":1789655845.1060996,"logger":"http","msg":"HTTP/3 skipped because it requires TLS","network":"tcp","addr":":8081"}
+{"level":"info","ts":1789655845.1061013,"logger":"http.log","msg":"server running","name":"srv0","protocols":["h1","h2","h3"]}
+{"level":"info","ts":1789655845.1061957,"msg":"autosaved config (load with --resume flag)","file":"/config/caddy/autosave.json"}
+{"level":"info","ts":1789655845.1062038,"msg":"serving initial configuration"}
+{"level":"info","ts":1789655845.1063147,"logger":"tls","msg":"cleaning storage unit","storage":"FileStorage:/data/caddy"}
+{"level":"info","ts":1789655845.4021711,"logger":"tls","msg":"finished cleaning storage units"}

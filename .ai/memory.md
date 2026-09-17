@@ -4,7 +4,7 @@
 置信：Confirmed（代码/测试/人确认）｜Assumed（待验证，用完删除或升格）。
 更新：2026-09-17
 ## 当前焦点
-- Confirmed：正在推进用户授权的六阶段产品目标；当前证据、未完成项与下一步以 `docs/progress.md` 为准，`docs/agent-handbook.md` 是接入历史基线。一次完成一个可验证增量，不反复跑绿测代替实现；未授权 commit 或发布。
+- Confirmed：用户授权持续推进常驻变换池的实现与完整验收；当前证据/缺口以 `docs/progress.md` 顶部和 ADR 0002 为准，下方与 agent-handbook 是历史基线。不能将局部 IPC/HTTP 回归通过当成整体验收，不能自造用户要求缩小范围；未授权 commit 或发布。
 ## 雷区与禁忌
 - Confirmed：外部旧会话记忆可能停留在中间状态；本仓 docs 与当前代码优先，不据旧任务清单重新实现已有模块。
 ## 调试手册
