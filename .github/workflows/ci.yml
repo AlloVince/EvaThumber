@@ -8,10 +8,15 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runner }}
     strategy:
+      fail-fast: false
       matrix:
-        platform: [amd64, arm64]
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
     permissions:
       contents: read
     steps:
@@ -21,8 +26,14 @@ jobs:
           php-version: '8.5'
           extensions: ffi, fileinfo
       - run: composer install --no-interaction --prefer-dist
-      - run: composer test
-      - run: composer analyse
+      - name: Build development image with native libvips
+        run: docker build --platform "${{ matrix.platform }}" --target development -t evathumber:test .
+      - name: Run tests and analysis on actual architecture
+        run: docker run --rm --platform "${{ matrix.platform }}" --entrypoint sh evathumber:test -c 'uname -m && php -v && vips --version && composer test && composer analyse'
+      - name: Build production image
+        run: docker build --platform "${{ matrix.platform }}" --target production -t evathumber:smoke .
+      - name: Verify readonly nonroot HTTP and shutdown
+        run: php tests/container-smoke.php evathumber:smoke "${{ matrix.platform }}"
 
   image:
     needs: test

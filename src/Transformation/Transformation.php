@@ -17,12 +17,26 @@ final readonly class Transformation
         if (!array_is_list($steps)) {
             throw new ImageException('Transformation steps must be an ordered list.');
         }
-        $this->steps = $steps;
-        foreach ($steps as $index => $step) {
-            if (($step->get('q') !== null || $step->get('f') !== null) && $index !== count($steps) - 1) {
-                throw new ImageException('Delivery quality and format are supported only in the final step.');
+        $normalized = [];
+        $deliveryIndex = null;
+        foreach ($steps as $step) {
+            if ($deliveryIndex !== null) {
+                if (array_diff(array_keys($step->parameters), ['q', 'f']) !== []) {
+                    throw new ImageException('Pixel transformations must precede delivery parameters.');
+                }
+                $previous = $normalized[$deliveryIndex]->parameters;
+                if (array_intersect_key($previous, $step->parameters) !== []) {
+                    throw new ImageException('Duplicate delivery parameter.');
+                }
+                $normalized[$deliveryIndex] = new Step($previous + $step->parameters);
+                continue;
+            }
+            $normalized[] = $step;
+            if ($step->get('q') !== null || $step->get('f') !== null) {
+                $deliveryIndex = count($normalized) - 1;
             }
         }
+        $this->steps = array_values($normalized);
     }
 
     public function canonical(): string

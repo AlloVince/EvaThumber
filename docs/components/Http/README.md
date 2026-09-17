@@ -4,9 +4,9 @@
 ## 职责与入口
 `Kernel(Settings)` 实现 HttpKernelInterface；`handle(Request, type=MAIN_REQUEST, catch=true): Response`。`Settings::fromEnvironment()` 是环境配置入口；`FormatNegotiator::negotiate(string): string` 解析 Accept。
 - 方法先限 GET/HEAD，否则 405 + Allow。`/healthz` 返回 ok/version、no-store，先于查询串检查，且不测试磁盘/codec 可用性。
-- 图片请求拒绝查询串；解析 URL/来源后决定格式，调用 DiskCache + IsolatedProcessor。
-- HTTP 缓存身份为 JSON：`evathumber-2-policy-1`、source identity、canonical、format、Limits；不含 cloud/version 或实际 libvips 版本。
-- 成功 BinaryFileResponse 携带 Content-Type、nosniff、HIT/MISS、public/max-age、ETag、Last-Modified；f_auto 加 Vary: Accept。isNotModified/prepare 处理条件请求和 HEAD。
+- 图片请求只接受标量 `_a`、`_i` analytics 查询参数，不影响变换/缓存身份；其他参数（包括签名）明确拒绝。完整请求 URI 受 URL 长度上限约束。
+- HTTP 缓存身份为 JSON：`evathumber-2-policy-3`、AutoQuality::POLICY、source identity、version、canonical、format、Limits；不含 cloud 或实际 libvips 版本。版本切换触发新条目，但不提供历史原图快照，不发送 immutable。q_auto 与 q_auto:good 共享身份，其他档位分键；Save-Data 不改变档位。
+- 成功 CachedFileResponse 继承 BinaryFileResponse，持有缓存租约至正文发送完成或响应销毁。携带 Content-Type、nosniff、HIT/MISS、public/max-age、ETag、Last-Modified；f_auto 加 Vary: Accept。isNotModified/prepare 处理条件请求和 HEAD。
 ## 协商
 候选依次 WebP、AVIF、JPEG、PNG；同质量优先先列格式。WebP/AVIF 必须显式接受，通配符只可选择 JPEG/PNG；具体 MIME q 优先于通配符；没有正质量候选返回 406。不协商 GIF。
 ## 错误与边界

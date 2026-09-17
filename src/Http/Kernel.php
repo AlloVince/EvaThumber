@@ -9,7 +9,6 @@ use EvaThumber\Exception\ImageException;
 use EvaThumber\Image\IsolatedProcessor;
 use EvaThumber\Source\LocalSource;
 use EvaThumber\Url\Parser;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -30,22 +29,27 @@ final readonly class Kernel implements HttpKernelInterface
             if ($request->getPathInfo() === '/healthz') {
                 return new JsonResponse(['status' => 'ok', 'version' => '2.0.0-dev'], 200, ['Cache-Control' => 'no-store']);
             }
-            if ($request->getQueryString() !== null) {
-                throw new ImageException('Query parameters are not supported.');
+            if (strlen($request->getRequestUri()) > $this->settings->limits->maxUrlLength) {
+                throw new ImageException('URL exceeds length limit.', 414, 'url_too_long');
+            }
+            foreach ($request->query->all() as $name => $value) {
+                if (!in_array($name, ['_a', '_i'], true) || !is_string($value)) {
+                    throw new ImageException('Unsupported query parameter.');
+                }
             }
             $url = (new Parser($this->settings->limits))->parse($request->getPathInfo());
             $source = (new LocalSource($this->settings->source, $this->settings->limits))->resolve($url->publicId);
             $requestedFormat = $url->transformation->get('f');
             $auto = $requestedFormat === 'auto';
             $format = $auto ? (new FormatNegotiator())->negotiate(($request->headers->get('Accept') ?? '*/*')) : ($requestedFormat ?? $url->format ?? $source->format);
-            $identity = json_encode(['evathumber-2-policy-1', $source->identity, $url->transformation->canonical(), $format, get_object_vars($this->settings->limits)], JSON_THROW_ON_ERROR);
+            $identity = json_encode(['evathumber-2-policy-3', \EvaThumber\Image\AutoQuality::POLICY, $source->identity, $url->version, $url->transformation->canonical(), $format, get_object_vars($this->settings->limits)], JSON_THROW_ON_ERROR);
             $processor = new IsolatedProcessor($this->settings);
             $entry = (new DiskCache($this->settings->cache, $this->settings->cacheBytes, $this->settings->cacheEntries))->remember(
                 $identity, $format,
                 fn (string $destination) => $processor->write($url->publicId, $url->transformation, $destination, $format),
             );
             $mime = ['jpg' => 'image/jpeg', 'png' => 'image/png', 'webp' => 'image/webp', 'avif' => 'image/avif', 'gif' => 'image/gif'][$format];
-            $response = new BinaryFileResponse($entry->path, 200, ['Content-Type' => $mime, 'X-Content-Type-Options' => 'nosniff', 'X-EvaThumber-Cache' => $entry->hit ? 'HIT' : 'MISS']);
+            $response = new CachedFileResponse($entry, ['Content-Type' => $mime, 'X-Content-Type-Options' => 'nosniff', 'X-EvaThumber-Cache' => $entry->hit ? 'HIT' : 'MISS']);
             $response->setPublic();
             $response->setMaxAge($this->settings->maxAge);
             $response->setEtag($entry->etag);

@@ -6,7 +6,7 @@
 - 检查 URL 字节长度，拒绝非法编码与编码后的路径分隔符；解码一次，拒绝残留 `%` 等非法字符。
 - 首部类似 `a_...` 的路径段作为变换链，随后可读 `v数字`；版本段可以分隔类似变换名的 public ID。
 - 最后扩展名是投递格式，移除后得到 publicId；jpeg 归一为 jpg；无扩展名则 format=null。
-- cloudName/version 不参与原图目录选择或缓存身份。
+- cloudName/version 不参与原图目录选择；HTTP 将 version 纳入缓存身份，cloudName 仅为兼容路径，不提供租户隔离。版本不是历史原图快照。
 ## 边界与依赖
 依赖 Transformation\Parser、Security\Limits、Exception\ImageException；不定位文件、不协商 Accept、不检查 Request 方法。
 ## 雷区

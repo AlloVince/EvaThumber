@@ -16,16 +16,18 @@ services:
     read_only: true
     tmpfs:
       - /tmp
-      - /config/caddy
-      - /data/caddy
+      - /config/caddy:uid=33,gid=33
+      - /data/caddy:uid=33,gid=33
     security_opt:
       - no-new-privileges:true
+    cap_drop:
+      - ALL
     mem_limit: 512m
     cpus: 2
     pids_limit: 128
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8080/healthz"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8081/healthz"]
       interval: 30s
       timeout: 3s
       retries: 3

@@ -5,16 +5,19 @@
 | 目的 | 命令 | 前提/本次结果 |
 |---|---|---|
 | 安装依赖 | `composer install` | PHP/扩展就绪；本次未执行 |
-| 全部测试 | `composer test` | 2026-09-17：通过，13 tests / 44 assertions |
+| 全部测试 | `composer test` | 当前完整 suite 通过，35 tests / 387 assertions；见 progress |
 | 单文件测试 | `vendor/bin/phpunit tests/v2/HttpTest.php` | 同测试环境；本次未单跑 |
 | 单用例筛选 | `vendor/bin/phpunit --filter testRealFillAndChain` | 同测试环境；本次未单跑 |
-| 静态分析 | `composer analyse` | 当前失败：excludePaths 指向不存在的 src/EvaThumber |
-| 依赖平台检查 | `composer check-platform-reqs` | 建议新环境执行；本次未执行 |
-| Compose 配置检查 | `docker compose config --quiet` | 只校验配置，不证明服务健康；本次未执行 |
-| 构建并启动 | `docker compose up --build` | 先处理交付/健康检查疑点；本次未执行 |
+| 静态分析 | `composer analyse` | 当前通过；已移除不存在路径的 excludePaths |
+| 依赖平台检查 | `composer check-platform-reqs` | 本机已通过；新环境仍需执行 |
+| Compose 配置检查 | `docker compose config --quiet` | 已通过；只校验配置，不证明服务健康 |
+| 构建并启动 | `docker compose up --build` | 已用独立项目实跑：Healthy、真实变换、重启后命名卷 HIT；tmpfs 已加 uid/gid=33 |
+| Compose 准入验收 | `php tests/compose-admission.php CONTAINER http://127.0.0.1:3999` | 需先独立项目 up --wait；满槽 HIT/503/释放恢复已通过 |
 | 服务日志 | `docker compose logs --tail=100 evathumber` | 已启动的开发实例；日志可能含路径，分享前脱敏 |
 | 本地开发 HTTP | `EVATHUMBER_SOURCE="$PWD/data/images" EVATHUMBER_CACHE="$PWD/data/cache" php -d ffi.enable=true -S 127.0.0.1:8081 public/index.php` | 由入口非 worker 分支推导；本次未启动，不用于生产 |
 | 差异检查 | `git diff --check`、`git status --short` | 包括未追踪文档，勿自动 commit |
+## 容器验收
+`docker build --platform linux/arm64 --target production -t evathumber:verify-arm64 .` 后运行 `php tests/container-smoke.php evathumber:verify-arm64 linux/arm64`；amd64 替换平台与标签。两个架构已本地通过，amd64 使用模拟器。development 目标同样构建后容器内执行 `composer test && composer analyse`。此脚本需要宿主机 Composer 依赖与 Docker，不在应用容器内运行。
 ## 说明
 composer test = phpunit；composer analyse = phpstan analyse --memory-limit=512M。`bin/transform.php` 是 stdin JSON 内部 IPC，不作为公共手工转换命令推荐。
 ## 相关

@@ -23,6 +23,38 @@ final class PipelineTest extends TestCase
         $this->transformFormat('c_fill,w_10,h_10', 'webp', 'image/webp');
     }
 
+    public function testInvalidDeliveryChainsRemainRejected(): void
+    {
+        foreach (['q_80/q_90', 'q_80/q_80', 'f_webp/f_jpg', 'f_webp/f_webp',
+            'q_80/w_10', 'f_webp/a_90', 'f_webp/e_grayscale', 'w_10,q_80/w_5'] as $expression) {
+            try {
+                (new Parser())->parse($expression);
+                self::fail('Expected rejection: ' . $expression);
+            } catch (\EvaThumber\Exception\ImageException $error) {
+                self::assertSame(400, $error->status);
+            }
+        }
+    }
+
+    public function testTrailingDeliveryComponentsAreEquivalent(): void
+    {
+        $parser = new Parser();
+        $expected = $parser->parse('c_fit,w_10/f_webp,q_80')->canonical();
+        foreach (['c_fit,w_10/q_80/f_webp', 'c_fit,w_10/f_webp/q_80'] as $expression) {
+            self::assertSame($expected, $parser->parse($expression)->canonical());
+            $this->transformFormat($expression, 'jpg', 'image/webp');
+        }
+        $mixed = $parser->parse('c_fit,w_10,q_80/f_webp');
+        self::assertSame($parser->parse('c_fit,w_10,q_80,f_webp')->canonical(), $mixed->canonical());
+        self::assertSame($mixed->canonical(), $parser->parse($mixed->canonical())->canonical());
+        self::assertTrue(array_is_list($mixed->steps));
+        $direct = new \EvaThumber\Transformation\Transformation([
+            new \EvaThumber\Transformation\Step(['q' => '80']),
+            new \EvaThumber\Transformation\Step(['f' => 'webp']),
+        ]);
+        self::assertSame('f_webp,q_80', $direct->canonical());
+    }
+
     private function transformFormat(string $transformation, string $deliveryFormat, string $expectedMime): void
     {
         $input = tempnam(sys_get_temp_dir(), 'eva-input-');
@@ -53,7 +85,8 @@ final class PipelineTest extends TestCase
     public static function unsupportedProvider(): iterable
     {
         yield 'auto gravity is not claimed equivalent' => ['c_fill,w_100,h_100,g_auto', 'unsupported_transformation'];
-        yield 'auto quality is not faked' => ['q_auto', 'unsupported_transformation'];
+        yield 'unknown auto quality rejected' => ['q_auto:unknown', 'unsupported_transformation'];
+        yield 'sensitive quality is unsupported' => ['q_auto:good:sensitive', 'unsupported_transformation'];
         yield 'ratio with three parts rejected' => ['c_scale,w_100,ar_3:2:1', 'unsupported_transformation'];
         yield 'coordinate crop requires north west' => ['c_crop,w_100,h_50,g_center,x_10', 'unsupported_transformation'];
     }

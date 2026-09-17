@@ -23,7 +23,7 @@ final class ParameterRules
                 'x', 'y' => preg_match('/\A[0-9]{1,5}\z/', $value) === 1,
                 'dpr' => is_numeric($value) && (float) $value >= 1 && (float) $value <= 4,
                 'a' => in_array($value, ['0', '90', '180', '270', '-90', 'hflip', 'vflip'], true),
-                'q' => preg_match('/\A(?:[1-9][0-9]?|100)\z/', $value) === 1,
+                'q' => preg_match('/\A(?:[1-9][0-9]?|100|auto(?::(?:best|good|eco|low))?)\z/', $value) === 1,
                 'f' => in_array($value, ['jpg', 'jpeg', 'png', 'webp', 'avif', 'gif', 'auto'], true),
                 'b' => preg_match('/\Argb:[0-9a-fA-F]{6}\z/', $value) === 1 || in_array($value, ['white', 'black', 'red', 'blue', 'green', 'transparent'], true),
                 'e' => in_array($value, ['grayscale', 'negate'], true),
@@ -40,6 +40,9 @@ final class ParameterRules
             }
             if ($key === 'f' && $value === 'jpeg') {
                 $value = 'jpg';
+            }
+            if ($key === 'q' && $value === 'auto') {
+                $value = 'auto:good';
             }
         }
         unset($value);

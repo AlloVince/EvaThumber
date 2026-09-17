@@ -64,9 +64,20 @@ final readonly class Pipeline
                 $this->limits->output($image->width, $image->height);
             }
             $this->limits->output($image->width, $image->height);
-            $quality = (int) $transform->get('q', '80');
+            $qualityValue = $transform->get('q') ?? '80';
             if ($format === 'jpg' && $image->hasAlpha()) {
                 $image = $image->flatten(['background' => [255, 255, 255]]);
+            }
+            if (str_starts_with($qualityValue, 'auto')) {
+                if (!in_array($format, ['jpg', 'webp', 'avif'], true)) {
+                    throw new ImageException('Automatic quality requires JPEG, WebP or AVIF output.', 400, 'unsupported_transformation');
+                }
+                // Analysis and encoding both read pixels: materialize the bounded output
+                // once, rather than traversing a sequential source twice.
+                $image = $image->copyMemory();
+                $quality = (new AutoQuality())->select($image, $qualityValue, $format);
+            } else {
+                $quality = (int) $qualityValue;
             }
             match ($format) {
                 'jpg' => $image->jpegsave($destination, ['Q' => $quality, 'strip' => true]),

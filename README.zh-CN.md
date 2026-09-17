@@ -4,7 +4,7 @@ Cloudinary 兼容、可自托管的 PHP 图片变换服务。使用 Cloudinary �
 
 - PHP 8.5、strict types、Symfony 7.4 LTS HTTP 层
 - libvips（`jcupitt/vips`）惰性流水线，低内存
-- FrankenPHP worker 模式生产级 Docker 镜像（amd64/arm64）
+- FrankenPHP worker 模式 Docker 镜像；本地 amd64/arm64 验收通过，[发布门槛仍未全部满足](docs/progress.md)
 - 独立 Composer 库核心（`EvaThumber\Image\Thumber`），HTTP 只是薄封装
 - 不支持的参数显式报错——不做错误的静默近似
 
@@ -16,7 +16,7 @@ docker compose up --build
 curl -o out.webp 'http://localhost:8081/image/upload/c_fill,w_300,h_300,f_webp/your-image.jpg'
 ```
 
-通过 `EVATHUMBER_PORT` 修改宿主端口。原图目录只读挂载（`./data/images:/data/images:ro`），仅 `/data/cache` 可写。
+通过 `EVATHUMBER_PORT` 修改宿主端口。原图目录只读挂载（`./data/images:/data/images:ro`），缓存及配置的临时文件系统可写；容器以非 root 运行并丢弃全部 capabilities。
 
 ## URL 语法
 
@@ -27,7 +27,7 @@ curl -o out.webp 'http://localhost:8081/image/upload/c_fill,w_300,h_300,f_webp/y
 
 - 链式步骤用 `/` 分隔，同一组件内参数用 `,` 分隔（如 `c_fill,w_300,h_300/q_80`）。
 - 输出扩展名（`.webp`、`.jpg` 等）决定投递格式；变换中的 `f_` 优先；`f_auto` 按 `Accept` 协商并附带 `Vary: Accept`。
-- `v123` 版本段被接受但不参与解析。
+- `v123` 版本段参与缓存身份、不改变原图定位；它不是历史快照，不启用 `immutable`。
 
 ### 支持的参数
 
@@ -40,7 +40,7 @@ curl -o out.webp 'http://localhost:8081/image/upload/c_fill,w_300,h_300,f_webp/y
 | `x`、`y` | 非负整数 | 仅限 `c_crop,g_north_west` |
 | `dpr` | 1.0–4.0 | 目标尺寸倍率 |
 | `a` | `0`、`90`、`180`、`270`、`-90`、`hflip`、`vflip` | |
-| `q` | 1–100 | |
+| `q` | 1–100、`auto[:best\|good\|eco\|low]` | 自动质量为本地内容自适应启发式，仅 JPEG/WebP/AVIF，默认 good |
 | `f` | `jpg`、`png`、`webp`、`avif`、`gif`、`auto` | `auto` 为 Accept 协商 |
 | `b` | `rgb:RRGGBB` 或 `white`/`black`/`red`/`green`/`blue`/`transparent` | 填充背景 |
 | `e` | `grayscale`、`negate` | |
@@ -49,18 +49,19 @@ curl -o out.webp 'http://localhost:8081/image/upload/c_fill,w_300,h_300,f_webp/y
 
 ### 明确不支持（返回 HTTP 400）
 
-- `q_auto` —— Cloudinary 自适应质量算法未复刻，请用显式 `q`。
+- `q_auto:sensitive`、未知质量档位以及 PNG/GIF 输出的 `q_auto`。已支持档位使用[本地启发式](docs/components/Image/auto-quality.md)，不是 Cloudinary 感知算法；不按 Save-Data 切换档位，不保证视觉等价。
 - `g_auto` / `g_face` —— AI 重心需要 Cloudinary 模型，不用其他算法冒充。
 - 动图输入（多帧 GIF/WebP）—— 直接拒绝，不会静默取首帧。
 - 远程抓取、SVG/PDF 源、图层叠加、文字、圆角（`r`）、模糊/锐化、`lfill`/`lpad`/`mfit`/`mpad`。
-- 查询字符串；仅支持 GET/HEAD。
+- 标量 `_a`/`_i` analytics 之外的查询参数（这两个参数不影响图片身份）；仅支持 GET/HEAD。
 
 ## 缓存与 HTTP
 
 - 派生图缓存在磁盘，键 = 源修订 + 规范化变换 + 协商格式 + 策略版本；命中完全不触碰 libvips。
 - 响应携带 `ETag`、`Last-Modified`、`Cache-Control: public, max-age=...`；条件请求返回 `304`。
-- 并发 miss 时单个 worker 处理（有界准入锁），其余返回 `503` + `Retry-After`，不会堆积。
-- 缓存容量（字节数与条目数）强制执行；写满返回 `507 cache_full` 而非无限增长。
+- 每个缓存根目录固定 8 个跨进程准入槽位，**包括唯一生产者**。命中绕过槽位和全局发布锁；槽位全满时 miss 立即返回 `503 processor_busy`（HTTP 已有 `Retry-After: 1`）。获准 miss 在全局发布锁上最多等待复查 250ms，可复用刚发布产物，否则返回同一忙错误。仅限制缓存层准入，不限制 HTTP 服务器队列；不是按键 single-flight，全局生产者瓶颈仍在。
+- 进程退出/SIGKILL 由操作系统文件锁释放槽位。任何实例运行期间都不能删除 `.admission-0.lock` 至 `.admission-7.lock` 或 `.publish.lock`；锁文件存在不代表槽位仍被占用。见[准入决策](docs/architecture/adr/0001-cache-admission.md)。
+- 容量不足按最老写入时间淘汰空闲条目，响应租约保护正在发送的文件。单产物超容量返回 `507 cache_full`，可回收空间不足返回 `503 cache_busy`。
 - 所有处理运行于有超时上限的子进程，超时返回 `504 processing_timeout`。
 
 ## 配置（环境变量）
@@ -109,7 +110,7 @@ docker compose up --build
 | 尺寸、`ar`、`dpr`、罗盘重心、NW 坐标裁剪 | 支持 |
 | 直角旋转、翻转、灰度、反色 | 支持 |
 | 输出格式 jpg/png/webp/avif/gif、`f`、扩展名投递、`f_auto` | 支持 |
-| `q_auto` | 不适用（无等效算法，显式拒绝） |
+| `q_auto[:best\|good\|eco\|low]` | JPEG/WebP/AVIF 的本地内容/格式自适应 Q，不等价于 Cloudinary |
 | `g_auto`、人脸检测 | 计划中（需真实检测模型） |
 | 动图 | 计划中 |
 | 叠加/图层、文字、风格化效果（`r`、模糊、晕影等） | 计划中 |

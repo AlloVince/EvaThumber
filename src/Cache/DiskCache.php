@@ -26,36 +26,41 @@ final readonly class DiskCache
         }
         $key = hash('sha256', $identity . ':' . $format);
         $path = $this->root . '/' . $key . '.' . $format;
-        if (is_file($path)) {
-            return $this->entry($path, $key, true);
+        $entry = $this->entry($path, $key, true);
+        if ($entry !== null) {
+            return $entry;
         }
-        // A nonblocking global admission lock bounds concurrent native work and temp files.
-        // Hits do not acquire it. Busy misses return Retry-After instead of accumulating workers.
-        $lock = fopen($this->root . '/.publish.lock', 'c');
-        if ($lock === false) {
-            throw new ImageException('Cache unavailable.', 503, 'cache_unavailable');
-        }
+        // Eight admitted misses per root (including the single producer).
+        // Hits bypass admission; excess misses fail without entering the wait loop.
+        $admission = $this->admit();
+        $deadline = hrtime(true) + 250_000_000;
+        $lock = null;
         $temporary = null;
         try {
-            if (!flock($lock, LOCK_EX | LOCK_NB)) {
-                throw new ImageException('Image processor busy. Retry shortly.', 503, 'processor_busy');
+            $lock = fopen($this->root . '/.publish.lock', 'c');
+            if ($lock === false) {
+                throw new ImageException('Cache unavailable.', 503, 'cache_unavailable');
             }
-            if (is_file($path)) {
-                return $this->entry($path, $key, true);
+            while (!flock($lock, LOCK_EX | LOCK_NB)) {
+                $entry = $this->entry($path, $key, true);
+                if ($entry !== null) {
+                    return $entry;
+                }
+                $remaining = $deadline - hrtime(true);
+                if ($remaining <= 0) {
+                    throw new ImageException('Image processor busy. Retry shortly.', 503, 'processor_busy');
+                }
+                usleep((int) min(10_000, max(1, intdiv($remaining, 1000))));
             }
-            $bytes = 0;
-            $entries = 0;
+            $entry = $this->entry($path, $key, true);
+            if ($entry !== null) {
+                return $entry;
+            }
             foreach (new \DirectoryIterator($this->root) as $file) {
-                if ($file->isFile() && preg_match('/\A[0-9a-f]{64}\.(jpg|png|webp|avif|gif)\z/', $file->getFilename())) {
-                    $bytes += $file->getSize();
-                    ++$entries;
-                } elseif ($file->isFile() && str_starts_with($file->getFilename(), '.tmp-')) {
-                    // Any old temporary file is abandoned: all producers hold this lock.
+                if ($file->isFile() && str_starts_with($file->getFilename(), '.tmp-')) {
+                    // All producers still hold the global admission lock.
                     unlink($file->getPathname());
                 }
-            }
-            if ($entries >= $this->maxEntries || $bytes >= $this->maxBytes) {
-                throw new ImageException('Cache capacity reached.', 507, 'cache_full');
             }
             $temporary = tempnam($this->root, '.tmp-');
             if ($temporary === false) {
@@ -65,29 +70,102 @@ final readonly class DiskCache
             $producer($temporary);
             clearstatcache(true, $temporary);
             $size = filesize($temporary);
-            if ($size === false || $size < 1 || $size > $this->maxBytes - $bytes) {
+            if ($size === false || $size < 1 || $size > $this->maxBytes) {
                 throw new ImageException('Derived image exceeds cache capacity.', 507, 'cache_full');
             }
+            $this->makeRoom($size);
             if (!rename($temporary, $path)) {
                 throw new ImageException('Cache publication failed.', 503, 'cache_unavailable');
             }
             $temporary = null;
-            return $this->entry($path, $key, false);
+            return $this->entry($path, $key, false) ?? throw new ImageException('Cache entry unavailable.', 503, 'cache_unavailable');
         } finally {
             if ($temporary !== null && is_file($temporary)) {
                 unlink($temporary);
             }
-            flock($lock, LOCK_UN);
-            fclose($lock);
+            if (is_resource($lock)) {
+                flock($lock, LOCK_UN);
+                fclose($lock);
+            }
+            fclose($admission);
         }
     }
 
-    private function entry(string $path, string $key, bool $hit): CacheEntry
+    /** @return resource */
+    private function admit()
     {
-        $modifiedAt = filemtime($path);
-        if ($modifiedAt === false) {
-            throw new ImageException('Cache entry unavailable.', 503, 'cache_unavailable');
+        // Stable inodes: never unlink these files while any instance is running.
+        // Kernel-released flock leases need no stale-PID registry or cleanup job.
+        for ($slot = 0; $slot < 8; ++$slot) {
+            $handle = fopen($this->root . '/.admission-' . $slot . '.lock', 'c');
+            if ($handle === false) {
+                throw new ImageException('Cache unavailable.', 503, 'cache_unavailable');
+            }
+            if (flock($handle, LOCK_EX | LOCK_NB)) {
+                return $handle;
+            }
+            fclose($handle);
         }
-        return new CacheEntry($path, $key, $modifiedAt, $hit);
+        throw new ImageException('Image processor busy. Retry shortly.', 503, 'processor_busy');
+    }
+
+    private function makeRoom(int $incomingBytes): void
+    {
+        $bytes = 0;
+        $files = [];
+        foreach (new \DirectoryIterator($this->root) as $file) {
+            if ($file->isFile() && !$file->isLink() && preg_match('/\A[0-9a-f]{64}\.(jpg|png|webp|avif|gif)\z/', $file->getFilename())) {
+                $size = $file->getSize();
+                $bytes += $size;
+                $files[] = ['path' => $file->getPathname(), 'size' => $size, 'time' => $file->getMTime()];
+            }
+        }
+        $entries = count($files);
+        usort($files, static fn (array $a, array $b): int => [$a['time'], $a['path']] <=> [$b['time'], $b['path']]);
+        foreach ($files as $file) {
+            if ($bytes + $incomingBytes <= $this->maxBytes && $entries < $this->maxEntries) {
+                return;
+            }
+            $handle = @fopen($file['path'], 'rb');
+            if ($handle === false) {
+                continue;
+            }
+            try {
+                // A response keeps a shared lease until it is sent or destroyed.
+                if (flock($handle, LOCK_EX | LOCK_NB) && unlink($file['path'])) {
+                    $bytes -= $file['size'];
+                    --$entries;
+                }
+            } finally {
+                fclose($handle);
+            }
+        }
+        if ($bytes + $incomingBytes > $this->maxBytes || $entries >= $this->maxEntries) {
+            throw new ImageException('Cache entries are in use. Retry shortly.', 503, 'cache_busy');
+        }
+    }
+
+    private function entry(string $path, string $key, bool $hit): ?CacheEntry
+    {
+        clearstatcache(true, $path);
+        if (is_link($path)) {
+            return null;
+        }
+        $handle = @fopen($path, 'rb');
+        if ($handle === false) {
+            return null;
+        }
+        if (!flock($handle, LOCK_SH | LOCK_NB)) {
+            fclose($handle);
+            return null;
+        }
+        $stat = fstat($handle);
+        clearstatcache(true, $path);
+        $current = @stat($path);
+        if ($stat === false || $current === false || $stat['ino'] !== $current['ino'] || $stat['size'] < 1) {
+            fclose($handle);
+            return null;
+        }
+        return new CacheEntry($path, $key, $stat['mtime'], $hit, $handle);
     }
 }

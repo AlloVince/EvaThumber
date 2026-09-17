@@ -44,6 +44,32 @@ final class StorageAndUrlTest extends TestCase
         self::assertSame('photo', $plain->publicId);
     }
 
+    public function testCloudinaryStyleAssetUrlCompatibility(): void
+    {
+        $cases = [
+            // Delivery extension is separate from the asset public ID.
+            ['/demo/image/upload/v123/folder/photo.webp', 'demo', 'v123', 'folder/photo', 'webp', ''],
+            ['/image/upload/v456/folder/photo.jpeg', null, 'v456', 'folder/photo', 'jpg', ''],
+            ['/demo/image/upload/folder/photo', 'demo', null, 'folder/photo', null, ''],
+            // A version boundary protects transformation-like folder names.
+            ['/demo/image/upload/w_100/v123/c_assets/photo.jpg', 'demo', 'v123', 'c_assets/photo', 'jpg', 'c_scale,w_100'],
+            // Once public ID parsing begins, nested version-like names remain intact.
+            ['/image/upload/v123/folder/v456/photo.png', null, 'v123', 'folder/v456/photo', 'png', ''],
+            ['/image/upload/v123/folder/photo.original.jpg', null, 'v123', 'folder/photo.original', 'jpg', ''],
+            ['/demo/image/upload/c_fill,w_100,h_50/a_90/v123/folder/photo.webp', 'demo', 'v123', 'folder/photo', 'webp', 'c_fill,h_50,w_100/a_90'],
+            ['/image/upload/f_auto,q_80/v123/folder/summer%20photo.jpg', null, 'v123', 'folder/summer photo', 'jpg', 'f_auto,q_80'],
+        ];
+        $parser = new Parser();
+        foreach ($cases as [$path, $cloud, $version, $publicId, $format, $canonical]) {
+            $url = $parser->parse($path);
+            self::assertSame($cloud, $url->cloudName, $path);
+            self::assertSame($version, $url->version, $path);
+            self::assertSame($publicId, $url->publicId, $path);
+            self::assertSame($format, $url->format, $path);
+            self::assertSame($canonical, $url->transformation->canonical(), $path);
+        }
+    }
+
     public function testLocalResolutionAndMime(): void
     {
         Image::black(4, 4, ['bands' => 3])->pngsave($this->directory . '/photo.png');
