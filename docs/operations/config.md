@@ -29,9 +29,9 @@
 池客户端总 IPC 预算为 TIMEOUT + POOL_QUEUE_MS/1000 + 3 秒；缓存 generation 等待采用相同预算，发布锁仍独立最多 250ms。配置大于 launcher drain 上限不能保证停机时任务完成。
 整数环境值只接受 1..2147483647；非法值抛 InvalidArgumentException。特别是环境 MAX_AGE=0 被拒绝，虽直接 Settings 构造允许 maxAge=0。SOURCE/CACHE/PHP_BINARY 空值通过 `?:` 回默认。
 ## 部署级变量/固定值
-- EVATHUMBER_PORT：Compose 宿主发布端口，默认 8081；不是 Caddy 容器监听端口。
+- EVATHUMBER_PORT：Compose 宿主发布端口，默认 8080；不是 Caddy 容器监听端口。
 - Docker ENV：VIPS_CONCURRENCY=2、VIPS_DISC_THRESHOLD=32m；Pipeline 还显式设置 concurrency=2。
-- Docker SERVER_NAME=:8081，但现有 Caddyfile 站点写死 :8081，不以该变量模板化。
+- Docker SERVER_NAME=:8080，Caddyfile 站点同样写死 :8080，不以该变量模板化。
 - 容器/PHP 内存是不同约束，PHP memory_limit 不能单独代表 FFI 原生内存上限。
 ## 相关
 - 代码：`src/Http/Settings.php`、`src/Security/Limits.php`、`src/Image/Pipeline.php`。

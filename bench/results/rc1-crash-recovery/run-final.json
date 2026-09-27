@@ -1,7 +1,7 @@
 {
     "platform": "linux/arm64",
     "result": "passed",
-    "image": "sha256:0392e1163b75ccc0611133e3ead774ab7e52fd4db921ac950a057c60510fd21e",
+    "image": "sha256:f588d48ab32a525ae4d120f7043a5dc52800a34d6bf7bd6a55218466d5168f42",
     "architecture": "arm64",
     "source": {
         "file": "big.jpg",
@@ -12,7 +12,7 @@
     },
     "delivery": "q_auto:best/f_webp",
     "reference_products": 8,
-    "initial_ready_ms": 26.306,
+    "initial_ready_ms": 24.881,
     "scenarios": {
         "busy_worker_sigkill": {
             "paths": [
@@ -23,7 +23,7 @@
                 "job_started": 2,
                 "job_finished": 0,
                 "staging_files": 2,
-                "waited_ms": 225.891
+                "waited_ms": 198.693
             },
             "killed_pid": "8",
             "responses": [
@@ -76,7 +76,7 @@
                 "job_started": 5,
                 "job_finished": 2,
                 "staging_files": 2,
-                "waited_ms": 226.166
+                "waited_ms": 200.778
             },
             "responses": [
                 {
@@ -92,7 +92,7 @@
                     "error": "curl: (52) Empty reply from server"
                 }
             ],
-            "restart_ready_ms": 26.515,
+            "restart_ready_ms": 29.505,
             "recovery": {
                 "products": {
                     "/image/upload/c_fill,w_1986,h_1489/q_auto:best/f_webp/v9201/big.jpg": {
@@ -127,7 +127,7 @@
                 "job_started": 5,
                 "job_finished": 2,
                 "staging_files": 2,
-                "waited_ms": 220.094
+                "waited_ms": 216.569
             },
             "killed_pid": "6",
             "responses": [
@@ -146,7 +146,7 @@
             ],
             "exit_code": 1,
             "oom_killed": false,
-            "restart_ready_ms": 24.247,
+            "restart_ready_ms": 34.754,
             "recovery": {
                 "products": {
                     "/image/upload/c_fill,w_1972,h_1479/q_auto:best/f_webp/v9301/big.jpg": {
@@ -181,9 +181,9 @@
                 "job_started": 5,
                 "job_finished": 2,
                 "staging_files": 2,
-                "waited_ms": 210.799
+                "waited_ms": 217.793
             },
-            "stop_ms": 305.252,
+            "stop_ms": 316.615,
             "responses": [
                 {
                     "path": "/image/upload/c_fill,w_1958,h_1468/q_auto:best/f_webp/v9401/big.jpg",
@@ -201,7 +201,7 @@
                 }
             ],
             "exit_code": 0,
-            "restart_ready_ms": 26.306,
+            "restart_ready_ms": 24.881,
             "recovery": {
                 "products": {
                     "/image/upload/c_fill,w_1958,h_1468/q_auto:best/f_webp/v9401/big.jpg": {

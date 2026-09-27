@@ -101,7 +101,13 @@ $run = static function (string $name, array $mounts) use ($docker, $platform, $i
     $docker(['start', $name]);
 };
 
-mkdir($source, 0700, true);
+// Readable by any uid: the container runs as www-data (33) while this directory is
+// owned by whoever runs the suite, and a 0700 bind mount is unreadable to it on real
+// Linux. OrbStack remaps mount ownership to the container user, which hides this.
+if (!is_dir($source) && !mkdir($source, 0755, true)) {
+    throw new RuntimeException('Cannot create the fixture directory: ' . $source);
+}
+chmod($source, 0755);
 foreach (['demo.jpg', 'face.jpg', 'blend.png'] as $fixture) {
     copy($root . '/upload/' . $fixture, $source . '/' . $fixture);
 }

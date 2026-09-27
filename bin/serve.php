@@ -27,13 +27,26 @@ try {
         usleep(20_000);
     }
 } finally {
+    // The budget has to exceed the longest legitimate drain: a miss may sit in the
+    // pool queue and then encode, so EVATHUMBER_TIMEOUT plus the queue deadline is the
+    // real bound and stopping short of it would drop in-flight work.
     foreach (['http', 'pool'] as $name) {
         if (!isset($children[$name])) { continue; }
         $child = $children[$name];
         proc_terminate($child, SIGTERM);
         $deadline = hrtime(true) / 1e9 + 20;
         while (proc_get_status($child)['running'] && hrtime(true) / 1e9 < $deadline) { usleep(20_000); }
-        if (proc_get_status($child)['running']) { proc_terminate($child, SIGKILL); $exit = 1; }
+        if (proc_get_status($child)['running']) {
+            proc_terminate($child, SIGKILL);
+            // Caddy's graceful shutdown is unbounded, so a lingering keep-alive
+            // connection can hold FrankenPHP past the budget even with nothing in
+            // flight. HTTP owns no state, so the stop still succeeded: report it
+            // instead of failing an operator-requested shutdown. The pool does own
+            // in-flight staging, so forcing that one is a real failure.
+            fwrite(STDERR, json_encode(['event' => 'shutdown_forced', 'child' => $name,
+                'monotonic_ns' => hrtime(true)]) . "\n");
+            if ($name === 'pool') { $exit = 1; }
+        }
         proc_close($child);
     }
 }

@@ -92,7 +92,13 @@ $stop = static function (string $name) use ($try, $must, $check): array {
 
 $facts = [];
 try {
-    mkdir($work . '/images', 0700, true);
+    // Readable by any uid: the container runs as www-data (33) while this directory is
+    // owned by whoever runs the suite, and a 0700 bind mount is unreadable to it on real
+    // Linux. OrbStack remaps mount ownership to the container user, which hides this.
+    if (!is_dir($work . '/images') && !mkdir($work . '/images', 0755, true)) {
+        throw new RuntimeException('Cannot create the fixture directory.');
+    }
+    chmod($work . '/images', 0755);
     foreach (['demo.jpg', 'face.jpg', 'blend.png'] as $file) {
         $origin = dirname(__DIR__) . '/upload/' . $file;
         $check(is_file($origin), 'Missing fixture ' . $origin);

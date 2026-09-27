@@ -243,7 +243,13 @@ $chain = static fn (string $transform, string $version): string
 $report = [];
 
 try {
-    mkdir($work . '/images', 0700, true);
+    // Readable by any uid: the container runs as www-data (33) while this directory is
+    // owned by whoever runs the suite, and a 0700 bind mount is unreadable to it on real
+    // Linux. OrbStack remaps mount ownership to the container user, which hides this.
+    if (!is_dir($work . '/images') && !mkdir($work . '/images', 0755, true)) {
+        throw new RuntimeException('Cannot create the fixture directory.');
+    }
+    chmod($work . '/images', 0755);
     // A large enough source that a cold derivation is long enough to be killed inside.
     $xy = Image::xyz(4000, 3000);
     $red = $xy->extract_band(0);

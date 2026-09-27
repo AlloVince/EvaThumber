@@ -2,26 +2,37 @@
 ## 何时读
 评估 Docker/Compose、镜像构建、健康状态或发布时。
 ## 已有部署事实
-- Dockerfile 基于 `dunglas/frankenphp:1-php8.5-bookworm`；安装 libvips42/libvips-tools/libffi-dev/unzip 与 PHP FFI/pcntl，配置 ffi.enable=true、PHP memory_limit=256M。
-- development/production 两阶段都 COPY composer.json + composer.lock；production 安装 no-dev，复制 src/public/bin/*.php，Caddyfile 放 `/etc/frankenphp/Caddyfile`，最终 www-data 运行。
-- Caddy 固定 `:8081`，关闭自动 HTTPS/admin，16 个 FrankenPHP HTTP worker，所有路径 rewrite 到 index.php；access log JSON 输出 stdout。
-- Compose 默认宿主 8081 → 容器 8081；data/images 只读挂载到 /data/images，命名卷缓存到 /data/cache；read_only 根文件系统，/tmp、/config/caddy、/data/caddy 为 tmpfs。
-- Compose 设置 no-new-privileges、512m 内存、2 CPU、256 PID、45s stop_grace_period、unless-stopped；Caddy tmpfs 显式 uid/gid=33 与运行用户一致；临时目录也可写，不能称“仅缓存目录可写”。
+- Dockerfile 基于 `dunglas/frankenphp:1-php8.5-bookworm`（多架构 digest 固定）；安装 libvips42/libvips-tools/libffi-dev/unzip 与 PHP FFI/pcntl，配置 ffi.enable=true、PHP memory_limit=256M。
+- development/production 两阶段都 COPY composer.json + composer.lock；production 安装 no-dev，复制 src/public/bin/*.php，Caddyfile 放 `/etc/frankenphp/Caddyfile`，最终 www-data（uid 33）运行。
+- Caddy 固定 `:8080`，关闭自动 HTTPS/admin，16 个 FrankenPHP HTTP worker，所有路径 rewrite 到 index.php；access log JSON 输出 stdout。
+- Compose 默认宿主 8080 → 容器 8080；data/images 只读挂载到 /data/images，命名卷缓存到 /data/cache；read_only 根文件系统，/tmp、/config/caddy、/data/caddy 为 tmpfs。
+- Compose 设置 no-new-privileges、512m 内存、2 CPU、256 PID、45s stop_grace_period、unless-stopped；Caddy tmpfs 显式 uid/gid=33 与运行用户一致。
 - production 默认入口 `php /app/bin/serve.php`；启动本地 supervisor 与 FrankenPHP，变换池默认 2 个常驻进程。停机先 HTTP 后池，各等待最多 20s。队列与资源参数见 [config](config.md)。
-## 已修复与实际验证
-以下双架构/Compose 记录主要来自切池前版本，不作为当前 pool 版本完整验收；当前结果见 [progress](../progress.md)。
-- FrankenPHP 与 Composer 使用已核验的多架构 manifest digest 固定；apt 源和 Dockerfile frontend 尚未固定，不宣称完全可复现构建。
-- composer.lock、bin/transform.php 已取消 Git 忽略；需要随未来提交纳入，当前未执行 git add/commit。development 白名单包含 tests、bench、PHPUnit/PHPStan 配置。
-- Compose healthcheck 已统一到 8081。
-- 生产镜像移除 frankenphp 的 `cap_net_bind_service=ep`（只监听非特权端口 8081），Compose 丢弃全部 capabilities。原文件 capability 会使 `cap-drop=ALL` 下 exec 返回 Operation not permitted；两个架构均直接复现并修复验证。
-- 本地 OrbStack arm64：arm64 原生、amd64 模拟执行，两个开发镜像完整测试均 34 tests / 360 assertions，PHPStan 通过；生产镜像均构建并真实 HTTP 验收通过。
-- `tests/container-smoke.php` 在宿主机运行，接收镜像名、平台；创建随机名称/回环随机端口的独立容器，finally 清理；设 `EVATHUMBER_SMOKE_EVIDENCE=目录` 可保存本次容器完整日志。就绪探测单次最多 1s、总预算 20s，失败时输出内部 curl 与容器状态。测试 nonroot、只读根、cap-drop ALL、512MiB/2CPU/128PID、health、真实变换 MIME/20×15 尺寸、MISS/HIT、正文/ETag、304、HEAD、f_auto/Vary、analytics 和未知查询拒绝。
-- 空闲 SIGTERM 停止：多次运行约 4.4–6.9s，exit 0、无 OOM；不是处理中的 graceful drain 证据。
-- 历史 amd64 smoke 两次启动探测 20s 超时未复现；就绪探测改造后原生 arm64 连续 5 次及最新 amd64 均通过（就绪 9–146ms）。根因未定位，不能宣称已修复；早期通过记录不是稳定性保证。
-- 完整 Compose Quick Start 已本地实跑（独立项目、隔离端口、只读原图绑定、命名缓存卷）：Healthy、真实变换、重启后命名卷 HIT 且字节/ETag 一致；满槽准入经 `tests/compose-admission.php` 真实 HTTP 验证。CI 远程执行、原生 amd64 负载与处理中停止仍待验收。
+- `/healthz` 是纯存活响应，不查磁盘、codec 或变换池。`/readyz` 反映 source 可读、cache 可写与池至少一个存活 worker，不可用时 503；两者都不做实时图片编码。
+
+## 挂载权限：唯一容易踩的坑
+镜像内进程以 uid 33（`www-data`）运行。**挂载到 `/data/images` 的宿主目录必须能被 uid 33 读取**，否则容器内看不到任何原图。
+
+- `mkdir -m 700 ~/photos` 在 macOS（OrbStack/Docker Desktop）上可用，因为它们把 bind mount 的属主重映射成容器用户；同一目录在 Linux 宿主上会以宿主 uid 与 `0700` 呈现，uid 33 无法进入，结果是全部图片请求 404。
+- 正确做法：挂载目录及其父目录对其他可读（`chmod 755` 或组可读），这与普通图片目录的默认权限一致。
+- 症状与定位：`/healthz` 仍为 200，但 `/readyz` 返回 503 且 `checks.source` 为 `false`。这是 readiness 设计的直接体现。
+- 验收脚本已按 0755 创建 fixture 目录，避免依赖宿主 uid 恰好等于 33。
+
+## 当前验证
+完整证据与剩余门槛见 [progress](../progress.md)。要点：
+- arm64 原生：容器内 uid 33 跑完整 suite **63 tests / 877 assertions，0 skip**；PHPStan level 8（`src` + `bin`）通过。
+- 五套 Docker 验收全部通过，只用 README 公开的两条 `docker run` 参数：`container-smoke`、`rc1-acceptance`、`product-acceptance`、`docker-acceptance`、`crash-recovery`。
+- `crash-recovery.php` 在编码中途分别强杀忙碌 worker、容器与池 supervisor，并加在途 graceful stop；每次恢复产物与纯净容器逐字节一致，staging/临时文件零残留。
+- 32 场真实 HTTP 压测零失败，报告在 `bench/results/rc1-http-full/`。
+- CI 在 ubuntu-24.04（amd64）与 ubuntu-24.04-arm（arm64）原生 runner 上执行上述测试与验收。
+
+## 构建可复现性
+- 基础镜像与 Composer 使用已核验的多架构 manifest digest 固定。
+- apt 源与 Dockerfile frontend 尚未固定，因此不宣称完全可复现构建。
+- 实测同一份源码连续构建的 `RootFS.Layers` 逐层一致；镜像 config/manifest ID 会因 BuildKit attestation 元数据而变化，属预期，不是内容漂移。
+
 ## 发布边界
-CI image job 使用 buildx 双架构构建，v* tag 才推送 ghcr.io 仓库；当前无独立生产编排、TLS、备份或回滚脚本可引用。不可由此推定生产运维策略已建立。
+CI image job 使用 buildx 构建 linux/amd64、linux/arm64，仅 v* tag 推送 ghcr.io。缓存是纯派生数据，删除即重建，不需要备份；TLS 终止与多副本编排由部署方负责，README 未承诺。当前无独立生产编排、回滚脚本或监控告警配置可引用。
+
 ## 相关
-- 配置：`Dockerfile`、`compose.yaml`、`docker/Caddyfile`、`.dockerignore`、`.github/workflows/ci.yml`。
-- [commands](../development/commands.md)、[testing](../development/testing.md)、[config](config.md)、[runtime](runtime.md)。
-验证于：2026-09-17；本地双架构隔离容器验收，非远程 CI/GHCR 或生产部署验收。
+- [配置](config.md)、[运行排障](runtime.md)、[测试与 CI](../development/testing.md)、[进度](../progress.md)。

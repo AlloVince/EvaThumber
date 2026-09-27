@@ -18,6 +18,8 @@ curl -o out.webp 'http://localhost:8080/image/upload/c_fill,w_300,h_300/f_webp/y
 
 这就是全部配置。你唯一需要理解的业务参数是图片目录，以只读方式挂载到 `/data/images`。其他一切——worker、缓存、超时、上限——都有合理默认值。
 
+> 图片目录必须能被容器内用户（uid 33）读取。`mkdir -m 700 ~/photos` 这类私有目录在 macOS 上可用，但 Linux 容器读不到；请对挂载目录使用 `chmod 755`（或组可读）。配置错误时 `/healthz` 仍返回 200，但 `/readyz` 会报 `"source": false`，图片请求返回 404。
+
 ### 缓存
 
 派生图写入容器内 `/data/cache`。默认不挂载任何东西，因此缓存是临时的：随容器消失，永远不需要备份。如需跨重启保留派生图，加一个卷：

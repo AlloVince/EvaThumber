@@ -14,7 +14,7 @@
 | 构建并启动 | `docker compose up --build` | 已用独立项目实跑：Healthy、真实变换、重启后命名卷 HIT；tmpfs 已加 uid/gid=33 |
 | Compose 准入验收 | `php tests/compose-admission.php CONTAINER http://127.0.0.1:3999` | 需先独立项目 up --wait；满槽 HIT/503/释放恢复已通过 |
 | 服务日志 | `docker compose logs --tail=100 evathumber` | 已启动的开发实例；日志可能含路径，分享前脱敏 |
-| 本地开发 HTTP | `EVATHUMBER_SOURCE="$PWD/data/images" EVATHUMBER_CACHE="$PWD/data/cache" php -d ffi.enable=true -S 127.0.0.1:8081 public/index.php` | 由入口非 worker 分支推导；本次未启动，不用于生产 |
+| 本地开发 HTTP | `EVATHUMBER_SOURCE="$PWD/data/images" EVATHUMBER_CACHE="$PWD/data/cache" php -d ffi.enable=true -S 127.0.0.1:8080 public/index.php` | 由入口非 worker 分支推导；本次未启动，不用于生产 |
 | 差异检查 | `git diff --check`、`git status --short` | 包括未追踪文档，勿自动 commit |
 ## 容器验收
 `docker build --platform linux/arm64 --target production -t evathumber:verify-arm64 .` 后依次运行：

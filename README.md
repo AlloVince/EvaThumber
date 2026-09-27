@@ -18,6 +18,8 @@ curl -o out.webp 'http://localhost:8080/image/upload/c_fill,w_300,h_300/f_webp/y
 
 That is the whole setup. The only thing you configure is your image directory, mounted read-only at `/data/images`. Everything else — workers, cache, timeouts, limits — has working defaults.
 
+> The image directory must be readable by the container's user (uid 33). A private directory such as `mkdir -m 700 ~/photos` works on macOS but is unreadable inside a Linux container; use `chmod 755` (or group-readable) on the directory you mount. When this is wrong the service still answers `/healthz`, but `/readyz` reports `"source": false` and image requests return 404.
+
 ### Cache
 
 Generated images go to `/data/cache` inside the container. By default nothing is mounted there, so the cache is ephemeral: it disappears with the container and never needs backup. To keep derived images across restarts, add a volume:
