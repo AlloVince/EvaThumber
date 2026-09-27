@@ -79,7 +79,7 @@
 
 1. **硬 OOM 隔离**：现有的是 RSS 采样回收加有界拒绝，不是内核级内存硬上限。
 2. **q_auto 真实语料视觉校准**：本地边缘密度启发式，真实摄影/文字/透明素材的视觉验收未做。README 与兼容矩阵已标注不等同 Cloudinary。
-3. **停机时长上界**：Caddy 的 graceful shutdown 无上界（本版本 Caddyfile 适配器不暴露 `shutdown_delay`），约 4% 的 `docker stop` 会被残留连接拖满 20s。此时 `serve.php` 强杀 FrankenPHP、记 `shutdown_forced` 并仍 exit 0；只有池子被强杀才 exit 1。
+3. **停机时长上界**：Caddy 的 graceful shutdown 无上界，会被一条残留连接无限拖住。`serve.php` 把整个停机预算收敛为 8s（HTTP 5s、池取剩余），到点强杀并记 `shutdown_forced` 仍 exit 0；只有池子被强杀才 exit 1。预算必须小于编排层宽限期，否则 PID 1 被 SIGKILL、容器 exit 137。该收敛只在 2.0.0 之后的 main 上，已发布的 `2.0.0`/`:latest` 仍是旧的 20s 预算。
 4. **来源在 pool-worker 解码期间的随机并发替换**：已有确定性跨进程反例与前后身份复核，随机压力注入未做。
 5. **amd64 本地模拟下的池 worker 间歇死亡**：仅 QEMU 模拟出现，服务按设计退避重启；原生两架构零复现。
 

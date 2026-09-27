@@ -7,11 +7,11 @@ FrankenPHP worker 中 Settings/Kernel 持久，Request/Response 局部创建；�
 `/healthz` 为静态存活响应，不检查磁盘、PHP CLI 或 codecs。GET/HEAD 限制在 healthz 之前；图片 URI 长度限制与查询参数白名单检查在其之后，只接受标量 `_a`/`_i`。`/readyz` 反映 source 可读、cache 可写与池至少一个存活 worker，不可用时 503，同样不做实时编码。
 
 ## 停机行为
-`docker stop` → SIGTERM 送到 PID 1（`bin/serve.php`）→ 先 SIGTERM FrankenPHP 让在途请求跑完，再 SIGTERM 变换池，每个子进程最多等 20s（必须大于 `EVATHUMBER_TIMEOUT` 加队列截止，否则会丢掉在途工作）。Compose 的 `stop_grace_period` 为 45s。
+`docker stop` → SIGTERM 送到 PID 1（`bin/serve.php`）→ 先 SIGTERM FrankenPHP 让在途请求跑完，再 SIGTERM 变换池。停机预算是整个容器 8s：HTTP 最多 5s，池拿剩余预算（自身上限 5s）。这个预算必须小于编排层的宽限期，因为宽限期一过 PID 1 会被 SIGKILL，来不及强杀与回收子进程，容器直接 exit 137。`docker stop` 默认宽限期是 10s，Compose 的 `stop_grace_period` 为 45s。
 
 - 正常情况：约 0.3s 内退出，exit 0。在途请求会拿到完整的 200。
-- Caddy 的 graceful shutdown 没有上界（本版本 Caddyfile 适配器未暴露 `shutdown_delay`），偶发（约 4%）会被一条残留连接拖满 20s。`serve.php` 此时 SIGKILL FrankenPHP 并输出 `{"event":"shutdown_forced"}`。这仍算正常停机，容器 exit 0：HTTP 层不持有任何状态。只有**池**子进程被强杀才 exit 1，因为那意味着在途 staging 可能丢失。
-- 若需要严格的上界停机时间，在编排层把 terminationGracePeriod 设大于 45s。
+- Caddy 的 graceful shutdown 没有上界，会被一条残留连接无限拖住（未完成的上传、keep-alive）。`serve.php` 到点 SIGKILL FrankenPHP 并输出 `{"event":"shutdown_forced","child":"http"}`，容器仍在 5s 内 exit 0：HTTP 层不持有任何状态。只有**池**子进程被强杀才 exit 1，因为那意味着在途 staging 可能丢失。
+- 在途编码超过预算时，池会被强杀（exit 1）。要保留在途结果就把编排层宽限期设大，并相应接受停机变慢。
 ## 排障入口
 | 现象 | 代码含义/优先核查 |
 |---|---|

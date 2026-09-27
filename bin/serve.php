@@ -27,14 +27,18 @@ try {
         usleep(20_000);
     }
 } finally {
-    // The budget has to exceed the longest legitimate drain: a miss may sit in the
-    // pool queue and then encode, so EVATHUMBER_TIMEOUT plus the queue deadline is the
-    // real bound and stopping short of it would drop in-flight work.
-    foreach (['http', 'pool'] as $name) {
+    // The whole stop has to fit inside the orchestrator's grace period, because
+    // once that expires PID 1 is SIGKILLed and never reports or reaps anything:
+    // the container then exits 137 and no fallback below can run. `docker stop`
+    // defaults to 10s, so the entire budget is 8s. HTTP gets most of it because
+    // it owns no state; the pool keeps whatever is left to finish an in-flight
+    // job and reap its workers.
+    $budget = hrtime(true) / 1e9 + 8;
+    foreach (['http' => 5, 'pool' => 5] as $name => $seconds) {
         if (!isset($children[$name])) { continue; }
         $child = $children[$name];
         proc_terminate($child, SIGTERM);
-        $deadline = hrtime(true) / 1e9 + 20;
+        $deadline = min(hrtime(true) / 1e9 + $seconds, $budget);
         while (proc_get_status($child)['running'] && hrtime(true) / 1e9 < $deadline) { usleep(20_000); }
         if (proc_get_status($child)['running']) {
             proc_terminate($child, SIGKILL);

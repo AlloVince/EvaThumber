@@ -7,7 +7,7 @@
 - Caddy 固定 `:8080`，关闭自动 HTTPS/admin，16 个 FrankenPHP HTTP worker，所有路径 rewrite 到 index.php；access log JSON 输出 stdout。
 - Compose 默认宿主 8080 → 容器 8080；data/images 只读挂载到 /data/images，命名卷缓存到 /data/cache；read_only 根文件系统，/tmp、/config/caddy、/data/caddy 为 tmpfs。
 - Compose 设置 no-new-privileges、512m 内存、2 CPU、256 PID、45s stop_grace_period、unless-stopped；Caddy tmpfs 显式 uid/gid=33 与运行用户一致。
-- production 默认入口 `php /app/bin/serve.php`；启动本地 supervisor 与 FrankenPHP，变换池默认 2 个常驻进程。停机先 HTTP 后池，各等待最多 20s。队列与资源参数见 [config](config.md)。
+- production 默认入口 `php /app/bin/serve.php`；启动本地 supervisor 与 FrankenPHP，变换池默认 2 个常驻进程。停机先 HTTP 后池，预算合计 8s（HTTP 5s、池取剩余），必须小于编排层宽限期。队列与资源参数见 [config](config.md)。
 - `/healthz` 是纯存活响应，不查磁盘、codec 或变换池。`/readyz` 反映 source 可读、cache 可写与池至少一个存活 worker，不可用时 503；两者都不做实时图片编码。
 
 ## 挂载权限：唯一容易踩的坑

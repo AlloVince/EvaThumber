@@ -16,7 +16,7 @@
 ## 调试手册
 - Confirmed：OrbStack 上 `docker restart`/stop-start 会重新分配临时宿主端口（`-p 127.0.0.1::8080`），验收脚本重启后须重查 `docker port`。
 - Confirmed：**OrbStack 会把 bind mount 的属主重映射成容器用户，Linux 宿主不会。** 因此挂载目录的权限问题（如 `0700` 导致容器内 uid 33 读不到）在 Mac 上永远测不出来，只有原生 CI 会暴露。验收脚本的 fixture 目录一律 `0755`。
-- Confirmed：Caddy 的 graceful shutdown 无上界（本版本 Caddyfile 适配器不接受 `shutdown_delay`，只有 JSON 的 `http.servers.*.shutdown_delay` 才有）。约 4% 的 `docker stop` 会被残留连接拖满 20s；`serve.php` 此时 SIGKILL FrankenPHP、记 `shutdown_forced` 并仍 exit 0，只有池子被强杀才 exit 1。
+- Confirmed：Caddy 的 graceful shutdown 无上界，会被一条残留连接（未完成的上传、keep-alive）无限拖住。Caddyfile **接受 `grace_period`**（`frankenphp adapt` 验证过会落成 `http.grace_period`），但它会让每次停机至少睡满该时长，因此上界改由 `serve.php` 兜底：停机预算合计 8s（HTTP 5s、池取剩余），到点 SIGKILL FrankenPHP、记 `shutdown_forced` 并仍 exit 0，只有池子被强杀才 exit 1。预算必须小于编排层宽限期（`docker stop` 默认 10s），否则 PID 1 被 SIGKILL、容器 exit 137——这正是 `tests/container-smoke.php` 曾偶发失败的根因。
 - Confirmed：压测驱动 `bench/http-load.php` 的 `poolEvents()` 与日志归档已改 shell 侧流式过滤（grep `"event":` / `gzip`），避免高并发下 PHP 缓冲 `docker logs` OOM。
 - Confirmed：Symfony `Process::start($callback)` 不会自行泵管道，检测「输出已到达」必须改用 `Process::fromShellCommandline('... >> file 2>&1')` 让 docker 直接写文件。
 - Confirmed：libvips 按 inode 缓存已 mmap 的文件描述符；curl 原地覆写同一路径后 `Image::newFromFile()` 可能读到旧图头。验收脚本读响应一律用 `Image::newFromBuffer(file_get_contents(...))` 且每次用新文件名。

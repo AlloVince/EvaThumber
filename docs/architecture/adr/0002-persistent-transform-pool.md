@@ -7,7 +7,7 @@
 - 256 个稳定 generation lock stripes 代替全局变换锁；同键等待者复查结果，碰撞的不同键仍会串行。全局 `.publish.lock` 只覆盖临时文件登记/清理、容量处理与发布。缓存层固定 8 个 miss 槽位仍包括等待者，不与池队列合并。
 - worker 只写私有 staging；成功后 supervisor 用 `r+b` 打开已存在的缓存临时文件，核对接收任务时的 dev/inode 后复制，不重建被删除路径、不覆盖替换 inode。HTTP 持有临时租约并负责最终原子发布。
 - 处理截止使用单调时钟；超时 SIGKILL 并 reap 后补位。任务异常不发布；活动客户端断连会回收 worker；完成任务上限与采样 RSS 超限也触发回收。默认 500 jobs/192MiB **尚非基于充分长期负载确定的最优值**。
-- 停机先停止 HTTP，保留池供其 drain；之后停止池，拒绝待处理请求并等待活动任务。launcher 各阶段上限 20s，Compose 45s。直接 IPC 停机已测，生产 HTTP 活动/等待 drain 尚待验证。
+- 停机先停止 HTTP，保留池供其 drain；之后停止池，拒绝待处理请求并等待活动任务。launcher 停机预算合计 8s（HTTP 5s、池取剩余），必须小于编排层宽限期（`docker stop` 默认 10s、Compose 45s），否则 PID 1 被 SIGKILL、容器 exit 137。直接 IPC 停机已测，生产 HTTP 活动/等待 drain 尚待验证。
 ## 选项与取舍
 1. 保留每次 miss CLI：隔离简单，但违背目标，保留为显式基准模式而非失败降级。
 2. 本地 supervisor + 有界常驻进程（采用）：保持单容器、无需依赖外部队列，代价是 IPC、生命周期与所有权必须独立验证。

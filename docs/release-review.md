@@ -63,7 +63,7 @@
 
 1. **硬 OOM 隔离**。现有的是 RSS 采样回收加有界拒绝，不是内核级内存硬上限。
 2. **q_auto 真实语料视觉校准**。已知边界，非 2.0.0 门槛。
-3. **停机时长上界**。Caddy 的 graceful shutdown 无上界，约 4% 的 `docker stop` 会被残留连接拖满 20s；此时强杀 FrankenPHP 但仍 exit 0，只有池子被强杀才 exit 1。
+3. **停机时长上界**。Caddy 的 graceful shutdown 无上界，会被一条残留连接无限拖住；`serve.php` 以 8s 停机预算兜底（HTTP 5s、池取剩余），到点强杀 FrankenPHP 但仍 exit 0，只有池子被强杀才 exit 1。
 4. **来源在 pool-worker 解码期间的随机并发替换**。已有确定性跨进程反例与前后身份复核；随机压力注入未做。
 5. **镜像发布**。发布链路已改为 Docker Hub（`docker.io/allovince/evathumber`），随 `v2.0.0` tag 推送；tag 推送后的实测记录见 [进度](progress.md) 的「发布」节。
 
