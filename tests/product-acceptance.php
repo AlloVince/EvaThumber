@@ -88,10 +88,14 @@ try {
     }
     $facts['image'] = ['id' => $run(['docker', 'image', 'inspect', '--format', '{{.Id}}', $image]),
         'architecture' => $run(['docker', 'image', 'inspect', '--format', '{{.Architecture}}', $image])];
-    $run(['docker', 'run', '--rm', '--platform', $platform, '-v', $work . '/source:/out',
+    // The generator runs as root on purpose: it must write into the host fixture
+    // directory, which is owned by whoever runs the suite, while the service
+    // container reads it as uid 33. The output is chmod'ed so that read works too.
+    $run(['docker', 'run', '--rm', '--platform', $platform, '--user', '0:0', '-v', $work . '/source:/out',
         '--entrypoint', 'php', $image, '-r',
         'require "/app/vendor/autoload.php";'
-        . '\Jcupitt\Vips\Image::newFromFile("/out/demo.jpg")->resize(6)->jpegsave("/out/large.jpg", ["Q" => 90]);'], 180);
+        . '\Jcupitt\Vips\Image::newFromFile("/out/demo.jpg")->resize(6)->jpegsave("/out/large.jpg", ["Q" => 90]);'
+        . 'chmod("/out/large.jpg", 0644);'], 180);
     $check(is_file($work . '/source/large.jpg'), 'The container did not produce the enlarged fixture.');
     $facts['fixtures']['large.jpg'] = ['provenance' => 'upload/demo.jpg enlarged 6x, JPEG Q90',
         'sha256' => hash_file('sha256', $work . '/source/large.jpg'), 'bytes' => filesize($work . '/source/large.jpg'),
