@@ -4,9 +4,10 @@
 置信：Confirmed（代码/测试/人确认）｜Assumed（待验证，用完删除或升格）。
 更新：2026-09-27
 ## 当前焦点
-- Confirmed：RC1 清单 14 项中 13 项已有本地实测证据，唯一 blocker 是第 14 项「当前 commit 的远程 CI 与镜像构建证据」。清单与实测数据见 `docs/progress.md`，不要在别处重复数字。
+- Confirmed：RC1 清单 14 项全部具备当前 commit `79ce709` 的实测证据，含原生 amd64/arm64 CI（run 36321362079，三个 job 全 success）。清单与实测数据见 `docs/progress.md`，不要在别处重复数字。
 - Confirmed：开发主干已并到 `master`，用户要求后续改用 `main`。
-- Confirmed：未授权打 tag 或发布镜像；本轮只推到 master。
+- Confirmed：未授权打 tag 或发布镜像；`ghcr.io` 尚无推送。下一项是 `v2.0.0-rc1`（需单独授权）。
+- Confirmed：验收脚本的 fixture 生成必须 `--user 0:0`（容器内 uid 33 写不进宿主目录）；解码必须走 `tests/image-oracle.php` 在容器内做，宿主 PHP 不保证有 libvips。
 ## 雷区与禁忌
 - Confirmed：外部旧会话记忆可能停留在中间状态；本仓 docs 与当前代码优先，不据旧任务清单重新实现已有模块。
 - Confirmed：`docs/branch-review-315303a.md` 与 `bench/results/session-*`、`final-link` 是按 commit/时点记录的历史证据，其中的测试数字不要当作当前状态；当前状态文档只写 63 tests / 877 assertions（arm64 容器 uid 33）。

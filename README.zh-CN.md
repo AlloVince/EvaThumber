@@ -96,6 +96,21 @@ docker run -p 8080:8080 \
 - 所有 503 均为 `cache_admission_full` / `processor_busy`（另有 1 次 `queue_timeout`）——即设计的有界拒绝。健康探测全程 200，每个容器 exit 0 且无 OOM，后续场景立即恢复。
 - 冷启动吞吐刻意保持较小（2 worker，每次派生约 70–80ms）。如需更多并行派生，可调 `EVATHUMBER_POOL_SIZE`。
 
+这些数字来自一台机器、一种图片形态和一组 fixture，请当参考点而不是承诺。报告中每个 200 响应都做了逐像素解码，32 个场景零失败。
+
+## 故障下的正确性
+
+`tests/crash-recovery.php` 在最坏的时刻杀掉服务，并检查已发布的缓存永远不是错的。每次 kill 都以 supervisor 日志（任务已开始且未结束）与 worker 私有 staging 文件双重证明落在编码中途；每个恢复后的产物必须与"从未崩溃的容器"逐字节一致。
+
+| 场景 | 在途请求 | 容器 | 重启后 |
+| --- | --- | --- | --- |
+| 忙碌 worker `SIGKILL` | 有界 503 + 一个合法 200 | 服务不降级，`/healthz` 200 | 约 24ms 就绪，产物逐字节一致 |
+| 容器 `SIGKILL`（PID 1） | 无响应，符合预期 | 容器消失 | 约 30ms 就绪，产物逐字节一致，无残留 |
+| 池 supervisor `SIGKILL` | 有界 503 | 容器自行退出 | 约 34ms 就绪，产物逐字节一致，无残留 |
+| 编码中 `docker stop` | 两个请求都拿到完整 200 | exit 0，无 OOM | 约 25ms 就绪，缓存仍然 HIT |
+
+四种场景都不会留下 staging 或缓存临时文件。证据：[`bench/results/rc1-crash-recovery/`](bench/results/rc1-crash-recovery/)。
+
 ## 库方式使用（Composer）
 
 ```php
@@ -129,6 +144,8 @@ php tests/crash-recovery.php    evathumber:rc1 linux/arm64
 ```
 
 所有套件都按 Quick Start 的方式运行镜像：只传 `-p` 和只读原图挂载，不挂缓存卷、不加调优参数。`crash-recovery.php` 还会在编码中途分别强杀忙碌 worker、容器本身和池 supervisor，并证明每个恢复后的产物与"从未崩溃的容器"逐字节一致。
+
+CI 在原生 `linux/amd64` 与 `linux/arm64` runner 上跑完整套件：63 tests / 877 assertions、PHPStan level 8、每个架构五套验收，然后再用 buildx 构建双架构镜像。最近一次全绿记录：[`bench/results/rc1-ci/`](bench/results/rc1-ci/)。
 
 架构、验收状态与发布门槛见 [`docs/`](docs/index.md)。
 

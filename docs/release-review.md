@@ -2,9 +2,9 @@
 
 ## 结论
 
-**Conditional Go（条件通过）。**
+**Go。**
 
-RC1 清单 14 项中 13 项已具备本地实测证据，剩余 1 项是"当前 commit 的远程 CI 与镜像构建证据"，需要授权 commit 并推送后取得。
+RC1 清单 14 项全部具备当前 commit `79ce709` 的实测证据，包括原生 amd64 与 arm64 两个 runner 上的完整测试、PHPStan、五套 Docker 验收，以及 buildx 双架构镜像构建。
 
 本报告取代 2026-09-21 的前次评审（结论 No-Go）。前次列出的 P0/P1 阻断项已逐条关闭，证据见下方与 [进度](progress.md)；未关闭项集中列在第 4 节。
 
@@ -29,7 +29,7 @@ RC1 清单 14 项中 13 项已具备本地实测证据，剩余 1 项是"当前 
 | 父进程猝死清理未验证 | 已关闭 | Linux `PR_SET_PDEATHSIG` 用例在原生容器内执行（`PoolRecoveryTest`，非 skip）；`crash-recovery.php` 另验证杀掉 `pool.php` 后容器自行退出并可重启恢复 |
 | 持续负载出现 unclean shutdown | 已关闭 | 32 场压测零失败，8 个容器全部 exit 0、无 OOM |
 | 503 无法逐请求归因 | 已关闭 | 全部 503 均落在 `cache_admission_full` / `processor_busy`（1 次 `queue_timeout`），即设计内的有界拒绝 |
-| amd64 远程原生 CI 缺失 | **部分关闭** | workflow 已按原生 runner 分流（amd64→ubuntu-24.04，arm64→ubuntu-24.04-arm），并接入三套验收；本地 amd64 仅 QEMU 模拟，远程运行待推送后取得 |
+| amd64 远程原生 CI 缺失 | 已关闭 | 原生 runner 分流（amd64→ubuntu-24.04，arm64→ubuntu-24.04-arm）已实际运行通过，run 36321362079，证据归档在 `bench/results/rc1-ci/` |
 | q_auto 无视觉验收 | 降级为已知边界 | `q_auto` 是本地边缘密度启发式，不声称等同 Cloudinary。README 与文档已明确标注；算法质量不作为 RC1 门槛 |
 | 文档测试数字不一致 | 已关闭 | 全部当前状态文档统一为 63 tests / 877 assertions（arm64 容器 uid 33）；历史数字只留在按 commit 记录的 `branch-review-315303a.md` |
 | 健康检查不代表池可用 | 已关闭 | 新增 `/readyz`：校验 source 可读、cache 可写、池至少一个存活 worker；不可用时 503 而 `/healthz` 仍 200。不做实时图片编码 |
@@ -40,25 +40,28 @@ RC1 清单 14 项中 13 项已具备本地实测证据，剩余 1 项是"当前 
 
 | 验证 | 结果 |
 |---|---|
-| PHPUnit，arm64 Linux 容器 uid 33 | 63 tests / 877 assertions，0 skip |
+| PHPUnit，原生 CI amd64 / arm64 容器 uid 33 | 两架构均 63 tests / 877 assertions，0 skip |
 | PHPUnit，macOS 宿主 | 63 / 861，1 skip（Linux 专属 PDEATHSIG） |
 | PHPStan level 8（`src` + `bin`） | 通过 |
-| `tests/container-smoke.php` | 通过（arm64 原生） |
+| `tests/container-smoke.php` | 通过（两个原生 runner） |
 | `tests/rc1-acceptance.php` | 通过（A 无缓存卷 / B 持久卷重启 HIT + 清空安全） |
 | `tests/product-acceptance.php` | 通过（A / B / C 只读缓存 → `/readyz` 503） |
 | `tests/docker-acceptance.php` | 通过（141 项检查，29 项变换矩阵） |
-| `tests/crash-recovery.php` | 通过（连续两轮，四场景） |
+| `tests/crash-recovery.php` | 通过（本地三轮 + 两个原生 runner，四场景） |
 | 真实 HTTP 压测 | 32 场零失败，见 `bench/results/rc1-http-full/` |
 | `docker compose config --quiet` | 通过 |
-| 远程原生 CI / GHCR 构建 | **未执行**，见第 4 节 |
+| 远程原生 CI（amd64 + arm64） | 通过，run 36321362079 |
+| buildx 双架构镜像构建 | 通过（同一次 run 的 `image` job）；非 tag push，未发布任何镜像 |
 
 ## 未关闭项
 
-1. **远程 CI 与双架构镜像构建证据**（第 14 项）。唯一 blocker。解除条件：本 commit 推送后 `test` job 在 ubuntu-24.04 与 ubuntu-24.04-arm 均通过，`image` job 完成 linux/amd64、linux/arm64 构建。
-2. **amd64 原生运行证据**。本地仅有 QEMU 模拟；模拟下池 worker 出现间歇性 SIGKILL，服务按设计退避重启并继续服务（503 为有界拒绝），arm64 原生零复现，归因指向模拟层。以原生 CI 为准。
-3. **硬 OOM 隔离**。现有的是 RSS 采样回收加有界拒绝，不是内核级内存硬上限。属 RC1 之后的迭代。
-4. **q_auto 真实语料视觉校准**。已知边界，非 RC1 门槛。
-5. **来源在 pool-worker 解码期间的随机并发替换**。已有确定性跨进程反例与前后身份复核；随机压力注入未做。
+均不阻塞 RC1，属发布后的迭代：
+
+1. **硬 OOM 隔离**。现有的是 RSS 采样回收加有界拒绝，不是内核级内存硬上限。
+2. **q_auto 真实语料视觉校准**。已知边界，非 RC1 门槛。
+3. **停机时长上界**。Caddy 的 graceful shutdown 无上界，约 4% 的 `docker stop` 会被残留连接拖满 20s；此时强杀 FrankenPHP 但仍 exit 0，只有池子被强杀才 exit 1。
+4. **来源在 pool-worker 解码期间的随机并发替换**。已有确定性跨进程反例与前后身份复核；随机压力注入未做。
+5. **镜像发布**。`v2.0.0-rc1` tag 尚未打，`ghcr.io` 尚无推送。本次只验证了构建，未发布。
 
 ## 评审签字栏
 
@@ -67,7 +70,7 @@ RC1 清单 14 项中 13 项已具备本地实测证据，剩余 1 项是"当前 
 | 代码评审 | 通过 | 2026-09-27 |
 | 测试与可靠性 | 通过（amd64 原生待 CI） | 2026-09-27 |
 | 运维与安全 | 通过（缓存免备份；TLS 由部署方负责） | 2026-09-27 |
-| 发布批准 | **Conditional Go**，待第 14 项 | 2026-09-27 |
+| 发布批准 | **Go**（镜像发布需单独授权） | 2026-09-27 |
 
 ## 证据入口
 

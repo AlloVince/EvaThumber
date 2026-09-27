@@ -96,6 +96,21 @@ Notes:
 - All 503s were `cache_admission_full` / `processor_busy` (one `queue_timeout`) — the designed bounded rejection. Health probes stayed 200 throughout, every container exited 0 with no OOM, and later scenarios recovered immediately.
 - Cold-miss throughput is intentionally small (2 workers, ~70–80 ms per derivation). Raise `EVATHUMBER_POOL_SIZE` only if you need more parallel derivations.
 
+These figures are for one machine, one shape of image and one set of fixtures — treat them as a reference point, not a promise. Every 200 response in the report was decoded pixel by pixel, and the 32 scenarios had zero failures.
+
+## Correctness under failure
+
+`tests/crash-recovery.php` kills the service at the worst possible moment and checks that the published cache is never wrong. Each kill is proven to land mid-encode (the supervisor log shows work started and not finished, and the worker's private staging file exists), and every recovered product must be byte-identical to one from a container that never crashed.
+
+| Scenario | In-flight requests | Container | After restart |
+| --- | --- | --- | --- |
+| Busy worker `SIGKILL` | bounded 503 plus a valid 200 | service stays up, `/healthz` 200 | ready in ~24 ms, products byte-identical |
+| Container `SIGKILL` (PID 1) | no response, as expected | container gone | ready in ~30 ms, products byte-identical, no residue |
+| Pool supervisor `SIGKILL` | bounded 503s | container exits by itself | ready in ~34 ms, products byte-identical, no residue |
+| `docker stop` mid-encode | both complete as full 200s | exit 0, no OOM | ready in ~25 ms, cache still HIT |
+
+No staging or temporary cache files survive any of them. Evidence: [`bench/results/rc1-crash-recovery/`](bench/results/rc1-crash-recovery/).
+
 ## Library usage (Composer)
 
 ```php
@@ -129,6 +144,8 @@ php tests/crash-recovery.php    evathumber:rc1 linux/arm64
 ```
 
 Every suite runs the image exactly as the Quick Start does — only `-p` and the read-only image mount, no cache volume, no tuning flags. `crash-recovery.php` additionally kills a busy worker, the container and the pool supervisor mid-encode, then proves every recovered product is byte-identical to one from a container that never crashed.
+
+CI runs the whole suite on native `linux/amd64` and `linux/arm64` runners: 63 tests / 877 assertions, PHPStan level 8, and all five acceptance suites per architecture, then a buildx build of both platforms. Latest green run: [`bench/results/rc1-ci/`](bench/results/rc1-ci/).
 
 Architecture, acceptance status and release gates live in [`docs/`](docs/index.md).
 

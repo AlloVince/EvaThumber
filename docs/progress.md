@@ -11,7 +11,7 @@
 | # | 验收项 | 状态 | 证据 |
 |---|---|---|---|
 | 1 | production Docker image 可构建 | 通过 | `docker build --target production`（arm64 原生）；CI 双架构构建 |
-| 2 | linux/amd64、linux/arm64 可运行 | 部分 | arm64 原生全绿；amd64 本地仅 QEMU 模拟，最终 gate 为原生 CI（第 14 项） |
+| 2 | linux/amd64、linux/arm64 可运行 | 通过 | 原生 CI：amd64 在 ubuntu-24.04、arm64 在 ubuntu-24.04-arm，两架构全部测试与五套验收通过（[run 36321362079](../bench/results/rc1-ci/README.md)） |
 | 3 | 只挂载 `/data/images` 即可使用 | 通过 | `tests/rc1-acceptance.php` A 段，仅用 README 两条命令 |
 | 4 | `/data/cache` 不挂载完全正常 | 通过 | `tests/rc1-acceptance.php` A 段、`tests/product-acceptance.php` A 段 |
 | 5 | 可选挂载 cache 跨容器重启复用 | 通过 | `tests/rc1-acceptance.php` B 段（重启后 HIT 且字节/ETag 一致）、`tests/docker-acceptance.php` 命名卷复用 |
@@ -20,10 +20,10 @@
 | 8 | 并发不产生错误图片、损坏 cache、死锁或不可恢复状态 | 通过 | 32 场压测零失败（每个 200 全量解码校验）；`tests/crash-recovery.php` 四类破坏场景 |
 | 9 | overload 后服务可恢复 | 通过 | 压测高并发出现有界 503，后续场景立即恢复；健康探测全程 200 |
 | 10 | graceful stop/restart 正常 | 通过 | `tests/crash-recovery.php` `graceful_stop_inflight`：在途两个请求均返回完整 200，exit 0、非 OOM，stop 306ms；重启 25ms 就绪 |
-| 11 | 自动测试、静态分析、production smoke 全通过 | 通过 | arm64 原生容器内 uid 33：**63 tests / 877 assertions，0 skip**；PHPStan level 8（`src` + `bin`）通过；`tests/container-smoke.php` 通过 |
+| 11 | 自动测试、静态分析、production smoke 全通过 | 通过 | 两个原生 runner 容器内 uid 33：**63 tests / 877 assertions，0 skip**；PHPStan level 8（`src` + `bin`）通过；`tests/container-smoke.php` 通过 |
 | 12 | 有真实 HTTP 压测报告 | 通过 | [`bench/results/rc1-http-full/`](../bench/results/rc1-http-full/)，32 场原始记录 |
 | 13 | README Quick Start 可由首次接触者直接执行 | 通过 | 四套 Docker 验收脚本均只使用 README 公开的 `docker run` 参数 |
-| 14 | 当前 commit 的 CI 与镜像构建证据完整 | **未完成** | workflow 已接入 `container-smoke`、`rc1-acceptance`、`crash-recovery`，但工作区未 commit、未推送，无远程运行结果 |
+| 14 | 当前 commit 的 CI 与镜像构建证据完整 | 通过 | [run 36321362079](https://github.com/AlloVince/EvaThumber/actions/runs/36321362079)，commit `79ce709`：`test` amd64 与 arm64 均 success，`image` 双架构 buildx 构建 success；证据归档在 [`bench/results/rc1-ci/`](../bench/results/rc1-ci/) |
 
 ## 实测结果
 
@@ -31,7 +31,8 @@
 
 | 环境 | 结果 |
 |---|---|
-| arm64 Linux 容器（uid 33，与生产镜像同一用户） | 63 tests / 877 assertions，0 skip |
+| 原生 CI amd64 / arm64 容器（uid 33，与生产镜像同一用户） | 两架构均 63 tests / 877 assertions，0 skip |
+| 本机 arm64 Linux 容器（uid 33） | 63 tests / 877 assertions，0 skip |
 | arm64 Linux 容器（root） | 63 tests / 874 assertions，1 skip（权限位断言对 root 不成立） |
 | macOS 宿主（PHP 8.5.11） | 63 tests / 861 assertions，1 skip（Linux 专属 PDEATHSIG 用例） |
 | PHPStan level 8（`src`、`bin`，仅排除 `process-guard.php`） | 通过 |
@@ -55,10 +56,11 @@
 - 素材为本地 300px 照片及一张放大派生图，非真实原生大图；不含下载素材。
 - `bench/results/rc1-http/` 是被 `rc1-http-full/` 取代的中断运行：驱动引用了已被重建掉的镜像 ID 而在第 5 个容器前中止（`No such image`，harness 失败，非服务失败）。保留仅为历史痕迹，不代表当前结果。
 - `bench/results/` 下 `session-*`、`final-link`、`session-c1-diagnostic` 等目录是更早阶段的历史证据，不属于当前状态。
+- 原生 CI 证据：[`bench/results/rc1-ci/`](../bench/results/rc1-ci/)。
 
 ### 破坏与恢复
 
-[`bench/results/rc1-crash-recovery/`](../bench/results/rc1-crash-recovery/)：`tests/crash-recovery.php` 连续两轮全通过。只用 README 的 `docker run -p 8080:8080 -v <dir>:/data/images:ro IMAGE`，不挂缓存卷、不加调优参数。每次 kill 都以 supervisor 日志（`job_started` 超过 `job_finished`）和 worker 私有 staging 文件双重证明落在编码中途。
+[`bench/results/rc1-crash-recovery/`](../bench/results/rc1-crash-recovery/)：`tests/crash-recovery.php` 连续三轮全通过，并在两个原生 CI runner 上各通过一次。只用 README 的 `docker run -p 8080:8080 -v <dir>:/data/images:ro IMAGE`，不挂缓存卷、不加调优参数。每次 kill 都以 supervisor 日志（`job_started` 超过 `job_finished`）和 worker 私有 staging 文件双重证明落在编码中途。
 
 | 场景 | 杀点 | 在途请求结果 | 容器结果 | 重启后 |
 |---|---|---|---|---|
@@ -73,14 +75,23 @@
 
 ## 未完成
 
-1. **第 14 项**：当前 commit 的远程 CI 与镜像构建证据。需要授权 commit 并推送。
-2. **工作区未 commit**：端口 8080 对齐、`/readyz`、URL 版本段前置链修复、PHPStan 覆盖 `bin/`、四套 Docker 验收脚本、README 重写、本次破坏恢复套件与文档收敛均只在工作区。
-3. **amd64 原生验证**：本地只有 QEMU 模拟证据；以原生 CI 为准。模拟环境下池 worker 出现间歇性 SIGKILL（服务按设计退避重启并继续服务，503 为有界拒绝），归因指向模拟层，arm64 原生零复现。
-4. **硬 OOM 隔离**：现有的是 RSS 采样回收加有界拒绝，不是内核级内存硬上限。非 RC1 门槛，属 RC1 之后的迭代。
+以下均不属于 RC1 门槛，属发布后的迭代：
 
-## 当前 blocker
+1. **硬 OOM 隔离**：现有的是 RSS 采样回收加有界拒绝，不是内核级内存硬上限。
+2. **q_auto 真实语料视觉校准**：本地边缘密度启发式，真实摄影/文字/透明素材的视觉验收未做。README 与兼容矩阵已标注不等同 Cloudinary。
+3. **停机时长上界**：Caddy 的 graceful shutdown 无上界（本版本 Caddyfile 适配器不暴露 `shutdown_delay`），约 4% 的 `docker stop` 会被残留连接拖满 20s。此时 `serve.php` 强杀 FrankenPHP、记 `shutdown_forced` 并仍 exit 0；只有池子被强杀才 exit 1。
+4. **来源在 pool-worker 解码期间的随机并发替换**：已有确定性跨进程反例与前后身份复核，随机压力注入未做。
+5. **amd64 本地模拟下的池 worker 间歇死亡**：仅 QEMU 模拟出现，服务按设计退避重启；原生两架构零复现。
 
-只剩第 14 项，需要授权 commit 并推送以取得远程 CI 与双架构镜像构建证据。除此之外 RC1 清单已全部具备本地实测证据。
+## 环境事实
+
+- 挂载到 `/data/images` 的宿主目录必须能被容器内 uid 33 读取。`0700` 目录在 macOS 上可用、在 Linux 上会让全部图片请求 404；症状是 `/readyz` 报 `"source": false`。
+- 验收脚本一律以 0755 创建 fixture 目录，fixture 生成以 root 在一次性容器内完成。OrbStack 会把 bind mount 属主重映射成容器用户，从而掩盖所有权限问题——只有原生 CI 能暴露。
+- 同一份源码连续构建的 `RootFS.Layers` 逐层一致；镜像 manifest ID 会因 BuildKit attestation 元数据变化，属预期。
+
+## 当前状态
+
+RC1 清单 14 项全部具备当前 commit（`79ce709`）的实测证据。下一项是打 `v2.0.0-rc1` tag 触发 GHCR 双架构推送；这属于发布动作，需要单独授权，本次未执行。
 
 ## 入口
 

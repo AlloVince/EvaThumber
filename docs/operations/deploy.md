@@ -24,7 +24,7 @@
 - 五套 Docker 验收全部通过，只用 README 公开的两条 `docker run` 参数：`container-smoke`、`rc1-acceptance`、`product-acceptance`、`docker-acceptance`、`crash-recovery`。
 - `crash-recovery.php` 在编码中途分别强杀忙碌 worker、容器与池 supervisor，并加在途 graceful stop；每次恢复产物与纯净容器逐字节一致，staging/临时文件零残留。
 - 32 场真实 HTTP 压测零失败，报告在 `bench/results/rc1-http-full/`。
-- CI 在 ubuntu-24.04（amd64）与 ubuntu-24.04-arm（arm64）原生 runner 上执行上述测试与验收。
+- CI 在 ubuntu-24.04（amd64）与 ubuntu-24.04-arm（arm64）原生 runner 上执行上述测试与验收，run `36321362079` 全部 success。
 
 ## 构建可复现性
 - 基础镜像与 Composer 使用已核验的多架构 manifest digest 固定。
