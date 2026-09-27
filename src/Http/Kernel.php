@@ -7,6 +7,7 @@ namespace EvaThumber\Http;
 use EvaThumber\Cache\DiskCache;
 use EvaThumber\Exception\ImageException;
 use EvaThumber\Image\IsolatedProcessor;
+use EvaThumber\Image\PoolProcessor;
 use EvaThumber\Source\LocalSource;
 use EvaThumber\Url\Parser;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -46,6 +47,34 @@ final readonly class Kernel implements HttpKernelInterface
         return $response;
     }
 
+    /**
+     * Readiness: can this process serve a cold request now? Cheap stat calls and
+     * one local status frame; never encodes an image and never waits on a job.
+     */
+    private function readiness(): Response
+    {
+        $checks = [
+            'source' => is_dir($this->settings->source) && is_readable($this->settings->source),
+            'cache' => is_dir($this->settings->cache) && is_writable($this->settings->cache),
+        ];
+        if ($this->settings->poolSocket !== '') {
+            $checks['pool'] = false;
+            try {
+                // Serveable while at least one worker is alive; busy workers still accept queued work.
+                $status = (new PoolProcessor($this->settings))->probe(0.5);
+                $checks['pool'] = $status['idle'] + $status['active'] > 0;
+            } catch (ImageException) {
+                $checks['pool'] = false;
+            }
+        }
+        $ready = !in_array(false, $checks, true);
+        return new JsonResponse(
+            $ready ? ['status' => 'ready'] : ['status' => 'unready', 'checks' => $checks],
+            $ready ? 200 : 503,
+            ['Cache-Control' => 'no-store'],
+        );
+    }
+
     private function handleRequest(Request $request, bool $catch, ?\Closure $stage = null): Response
     {
         try {
@@ -54,6 +83,9 @@ final readonly class Kernel implements HttpKernelInterface
             }
             if ($request->getPathInfo() === '/healthz') {
                 return new JsonResponse(['status' => 'ok', 'version' => '2.0.0-dev'], 200, ['Cache-Control' => 'no-store']);
+            }
+            if ($request->getPathInfo() === '/readyz') {
+                return $this->readiness();
             }
             if (strlen($request->getRequestUri()) > $this->settings->limits->maxUrlLength) {
                 throw new ImageException('URL exceeds length limit.', 414, 'url_too_long');
@@ -71,7 +103,7 @@ final readonly class Kernel implements HttpKernelInterface
             $auto = $requestedFormat === 'auto';
             $format = $auto ? (new FormatNegotiator())->negotiate(($request->headers->get('Accept') ?? '*/*')) : ($requestedFormat ?? $url->format ?? $source->format);
             $identity = json_encode(['evathumber-2-policy-3', \EvaThumber\Image\AutoQuality::POLICY, $source->identity, $url->version, $url->transformation->canonical(), $format, get_object_vars($this->settings->limits)], JSON_THROW_ON_ERROR);
-            $processor = $this->settings->poolSocket === '' ? new IsolatedProcessor($this->settings) : new \EvaThumber\Image\PoolProcessor($this->settings);
+            $processor = $this->settings->poolSocket === '' ? new IsolatedProcessor($this->settings) : new PoolProcessor($this->settings);
             $entry = (new DiskCache($this->settings->cache, $this->settings->cacheBytes, $this->settings->cacheEntries, ($this->settings->timeout + 3) * 1000 + $this->settings->poolQueueMilliseconds))->remember(
                 $identity, $format,
                 function (string $destination) use ($processor, $url, $source, $format, $stage): void {

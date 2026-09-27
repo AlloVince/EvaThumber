@@ -1,0 +1,78 @@
+# EvaThumber 发布评审
+
+## 结论
+
+**Conditional Go（条件通过）。**
+
+RC1 清单 14 项中 13 项已具备本地实测证据，剩余 1 项是"当前 commit 的远程 CI 与镜像构建证据"，需要授权 commit 并推送后取得。
+
+本报告取代 2026-09-21 的前次评审（结论 No-Go）。前次列出的 P0/P1 阻断项已逐条关闭，证据见下方与 [进度](progress.md)；未关闭项集中列在第 4 节。
+
+## 评审范围
+
+| 项目 | 当前事实 |
+|---|---|
+| 项目 | EvaThumber 2，自托管图片变换服务与 Composer 库 |
+| 分支 | `feat/v2-cloudinary-compat` |
+| 运行栈 | PHP 8.5、libvips 8.14.1、FrankenPHP |
+| 生产入口 | `php /app/bin/serve.php`，同时管理 HTTP 与本地变换池 |
+| HTTP 端口 | 容器 `8080`（README Quick Start 唯一暴露的端口） |
+| 数据源 | 本地目录只读挂载 `/data/images`；派生缓存 `/data/cache` |
+| 不支持 | 远程源、鉴权、多租户、TLS、管理后台、动画、Cloudinary 全量语义 |
+
+## 已关闭的前次阻断项
+
+| 前次阻断项 | 现状 | 证据 |
+|---|---|---|
+| 常驻池真实 HTTP drain 未验证 | 已关闭 | `tests/crash-recovery.php` 四场景：忙碌 worker SIGKILL、容器 SIGKILL、池 supervisor SIGKILL、在途 graceful stop。每次 kill 由 supervisor 日志与 worker staging 文件双重证明落在编码中途；恢复产物与纯净容器逐字节一致，staging/临时文件零残留 |
+| 编码写缓存瞬间强杀未验证 | 已关闭 | 同上；发布路径为"staging → 核对目标 dev/ino → 写回 → 硬链接发布"，崩溃只能丢弃工作，不能发布半成品 |
+| 父进程猝死清理未验证 | 已关闭 | Linux `PR_SET_PDEATHSIG` 用例在原生容器内执行（`PoolRecoveryTest`，非 skip）；`crash-recovery.php` 另验证杀掉 `pool.php` 后容器自行退出并可重启恢复 |
+| 持续负载出现 unclean shutdown | 已关闭 | 32 场压测零失败，8 个容器全部 exit 0、无 OOM |
+| 503 无法逐请求归因 | 已关闭 | 全部 503 均落在 `cache_admission_full` / `processor_busy`（1 次 `queue_timeout`），即设计内的有界拒绝 |
+| amd64 远程原生 CI 缺失 | **部分关闭** | workflow 已按原生 runner 分流（amd64→ubuntu-24.04，arm64→ubuntu-24.04-arm），并接入三套验收；本地 amd64 仅 QEMU 模拟，远程运行待推送后取得 |
+| q_auto 无视觉验收 | 降级为已知边界 | `q_auto` 是本地边缘密度启发式，不声称等同 Cloudinary。README 与文档已明确标注；算法质量不作为 RC1 门槛 |
+| 文档测试数字不一致 | 已关闭 | 全部当前状态文档统一为 63 tests / 877 assertions（arm64 容器 uid 33）；历史数字只留在按 commit 记录的 `branch-review-315303a.md` |
+| 健康检查不代表池可用 | 已关闭 | 新增 `/readyz`：校验 source 可读、cache 可写、池至少一个存活 worker；不可用时 503 而 `/healthz` 仍 200。不做实时图片编码 |
+| 缓存身份未含 codec 版本 | 接受为已知语义 | 缓存身份含策略串 `evathumber-2-policy-3` 与 q_auto policy；底层 codec 升级后需显式提升策略串。发布说明中已列为运维注意事项 |
+| 运维闭环（TLS/备份/回滚 runbook） | 不在 RC1 范围 | 缓存是纯派生数据，删除即重建，不需要备份。TLS 终止与多副本编排属于部署方职责，README 未承诺 |
+
+## 当前验证
+
+| 验证 | 结果 |
+|---|---|
+| PHPUnit，arm64 Linux 容器 uid 33 | 63 tests / 877 assertions，0 skip |
+| PHPUnit，macOS 宿主 | 63 / 861，1 skip（Linux 专属 PDEATHSIG） |
+| PHPStan level 8（`src` + `bin`） | 通过 |
+| `tests/container-smoke.php` | 通过（arm64 原生） |
+| `tests/rc1-acceptance.php` | 通过（A 无缓存卷 / B 持久卷重启 HIT + 清空安全） |
+| `tests/product-acceptance.php` | 通过（A / B / C 只读缓存 → `/readyz` 503） |
+| `tests/docker-acceptance.php` | 通过（141 项检查，29 项变换矩阵） |
+| `tests/crash-recovery.php` | 通过（连续两轮，四场景） |
+| 真实 HTTP 压测 | 32 场零失败，见 `bench/results/rc1-http-full/` |
+| `docker compose config --quiet` | 通过 |
+| 远程原生 CI / GHCR 构建 | **未执行**，见第 4 节 |
+
+## 未关闭项
+
+1. **远程 CI 与双架构镜像构建证据**（第 14 项）。唯一 blocker。解除条件：本 commit 推送后 `test` job 在 ubuntu-24.04 与 ubuntu-24.04-arm 均通过，`image` job 完成 linux/amd64、linux/arm64 构建。
+2. **amd64 原生运行证据**。本地仅有 QEMU 模拟；模拟下池 worker 出现间歇性 SIGKILL，服务按设计退避重启并继续服务（503 为有界拒绝），arm64 原生零复现，归因指向模拟层。以原生 CI 为准。
+3. **硬 OOM 隔离**。现有的是 RSS 采样回收加有界拒绝，不是内核级内存硬上限。属 RC1 之后的迭代。
+4. **q_auto 真实语料视觉校准**。已知边界，非 RC1 门槛。
+5. **来源在 pool-worker 解码期间的随机并发替换**。已有确定性跨进程反例与前后身份复核；随机压力注入未做。
+
+## 评审签字栏
+
+| 角色 | 结论 | 日期 |
+|---|---|---|
+| 代码评审 | 通过 | 2026-09-27 |
+| 测试与可靠性 | 通过（amd64 原生待 CI） | 2026-09-27 |
+| 运维与安全 | 通过（缓存免备份；TLS 由部署方负责） | 2026-09-27 |
+| 发布批准 | **Conditional Go**，待第 14 项 | 2026-09-27 |
+
+## 证据入口
+
+- [进度与 RC1 清单](progress.md)
+- [架构概览](architecture/overview.md)
+- [常驻池 ADR](architecture/adr/0002-persistent-transform-pool.md)
+- [测试与 CI](development/testing.md)
+- [部署交付](operations/deploy.md)

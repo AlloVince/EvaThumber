@@ -25,9 +25,9 @@ RUN composer dump-autoload --no-dev --classmap-authoritative \
     && mkdir -p /data/images /data/cache /config/caddy /data/caddy \
     && chown -R www-data:www-data /data /config/caddy
 USER www-data
-ENV SERVER_NAME=:8081 EVATHUMBER_SOURCE=/data/images EVATHUMBER_CACHE=/data/cache EVATHUMBER_POOL_SOCKET=/tmp/evathumber/pool.sock
+ENV SERVER_NAME=:8080 EVATHUMBER_SOURCE=/data/images EVATHUMBER_CACHE=/data/cache EVATHUMBER_POOL_SOCKET=/tmp/evathumber/pool.sock
 ENTRYPOINT ["php", "/app/bin/serve.php"]
-EXPOSE 8081
-HEALTHCHECK --interval=30s --timeout=3s CMD curl -fsS http://localhost:8081/healthz || exit 1
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=3s CMD curl -fsS http://localhost:8080/healthz || exit 1
 STOPSIGNAL SIGTERM
 

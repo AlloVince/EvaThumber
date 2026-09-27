@@ -5,7 +5,7 @@ services:
       target: production
     image: evathumber:2
     ports:
-      - "${EVATHUMBER_PORT:-8081}:8081"
+      - "${EVATHUMBER_PORT:-8080}:8080"
     environment:
       EVATHUMBER_SOURCE: /data/images
       EVATHUMBER_CACHE: /data/cache
@@ -28,7 +28,7 @@ services:
     stop_grace_period: 45s
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://localhost:8081/healthz"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/healthz"]
       interval: 30s
       timeout: 3s
       retries: 3

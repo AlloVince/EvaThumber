@@ -22,12 +22,12 @@ try {
         '--memory', '512m', '--cpus', '2', '--pids-limit', '256', '--tmpfs', '/tmp', '--tmpfs', '/config/caddy:uid=33,gid=33',
         '--tmpfs', '/data/caddy:uid=33,gid=33', '--tmpfs', '/data/cache:uid=33,gid=33', '--tmpfs', '/data/images:uid=33,gid=33',
         '-e', 'EVATHUMBER_PHP_BINARY=/usr/local/bin/php', '-e', 'EVATHUMBER_TIMEOUT=3', '-e', 'EVATHUMBER_WORKER_RSS_MIB=192',
-        '-p', '127.0.0.1::8081'];
+        '-p', '127.0.0.1::8080'];
     if ($mode === 'isolated') { array_push($command, '-e', 'EVATHUMBER_POOL_SOCKET=', '--entrypoint', '/usr/local/bin/frankenphp'); }
     $command[] = $image;
     if ($mode === 'isolated') { array_push($command, 'run', '--config', '/etc/frankenphp/Caddyfile', '--adapter', 'caddyfile'); }
     $run($command); $created = true;
-    $base = 'http://' . $run(['docker', 'port', $name, '8081']);
+    $base = 'http://' . $run(['docker', 'port', $name, '8080']);
     $run(['docker', 'exec', $name, 'php', '-r', 'require "/app/vendor/autoload.php"; $xy=\Jcupitt\Vips\Image::xyz(1800,1400); $x=$xy->extract_band(0); $y=$xy->extract_band(1); $x->multiply(.17)->sin()->add($y->multiply(.13)->cos())->multiply(60)->add(128)->bandjoin([$x->remainder(256),$y->remainder(256)])->cast("uchar")->copy(["interpretation"=>"srgb"])->jpegsave("/data/images/foo.jpg"); copy("/data/images/foo.jpg","/data/images/corrupt.jpg"); file_put_contents("/data/images/corrupt.jpg", substr(file_get_contents("/data/images/corrupt.jpg"),0,500));']);
     $request = static function (string $path) use ($base, $directory, &$clients): Process {
         $id = count($clients);

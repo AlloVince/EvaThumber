@@ -38,6 +38,22 @@ final readonly class Parser
         $version = null;
         if (count($parts) > 1 && preg_match('/\Av[0-9]+\z/', $parts[0])) {
             $version = array_shift($parts);
+            if ($components === []) {
+                // Cloudinary places the version before the chain. Without this the
+                // chain would silently become part of the public ID and 404. Only a
+                // run that still parses is a chain, so `v123/c_assets/photo.jpg`
+                // keeps its transformation-like folder.
+                $chain = [];
+                while (count($parts) > 1 && preg_match('/\A[a-z]+_/', $parts[0])) {
+                    $chain[] = $parts[0];
+                    try {
+                        (new TransformationParser($this->limits))->parse(implode('/', $chain));
+                    } catch (ImageException) {
+                        break;
+                    }
+                    $components[] = array_shift($parts);
+                }
+            }
         }
         foreach ($parts as $part) {
             if ($part === '' || str_starts_with($part, '.') || str_contains($part, ':')) {

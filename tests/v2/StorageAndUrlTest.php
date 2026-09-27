@@ -70,6 +70,36 @@ final class StorageAndUrlTest extends TestCase
         }
     }
 
+    public function testCloudinaryVersionPrecedesTheChain(): void
+    {
+        $cases = [
+            // Cloudinary order: version, then the chain, then the public ID.
+            ['/image/upload/v1699999999/w_120/demo.jpg', null, 'v1699999999', 'demo', 'jpg', 'c_scale,w_120'],
+            ['/image/upload/v1699999999/c_fill,w_100,h_100/demo.webp', null, 'v1699999999', 'demo', 'webp', 'c_fill,h_100,w_100'],
+            ['/demo/image/upload/v1/c_fill,w_100/a_90/folder/photo.png', 'demo', 'v1', 'folder/photo', 'png', 'c_fill,w_100/a_90'],
+            ['/image/upload/v1699999999/f_auto,q_80/photo', null, 'v1699999999', 'photo', null, 'f_auto,q_80'],
+            // A version plus a transformation-like folder must not eat the folder.
+            ['/image/upload/v123/c_assets/photo.jpg', null, 'v123', 'c_assets/photo', 'jpg', ''],
+            ['/image/upload/v123/c_fill,w_100/c_assets/photo.jpg', null, 'v123', 'c_assets/photo', 'jpg', 'c_fill,w_100'],
+            // Without a version the historical ambiguity is unchanged.
+            ['/image/upload/c_assets/photo.jpg', null, null, null, null, null],
+        ];
+        $parser = new Parser();
+        foreach ($cases as [$path, $cloud, $version, $publicId, $format, $canonical]) {
+            if ($publicId === null) {
+                $this->expectException(ImageException::class);
+                $parser->parse($path);
+                continue;
+            }
+            $url = $parser->parse($path);
+            self::assertSame($cloud, $url->cloudName, $path);
+            self::assertSame($version, $url->version, $path);
+            self::assertSame($publicId, $url->publicId, $path);
+            self::assertSame($format, $url->format, $path);
+            self::assertSame($canonical, $url->transformation->canonical(), $path);
+        }
+    }
+
     public function testLocalResolutionAndMime(): void
     {
         Image::black(4, 4, ['bands' => 3])->pngsave($this->directory . '/photo.png');

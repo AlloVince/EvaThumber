@@ -21,7 +21,7 @@ EvaThumber 2 是 PHP 图片变换 Composer 库及自托管 HTTP 服务，接受 
 - 八个模块对应八个 `src/` 子目录，详见 [边界](boundaries.md)。没有数据库、远程源或分布式队列；只有 supervisor 内存中的本地有界等待队列。
 - FrankenPHP 配置 16 个 HTTP worker；PHP 入口每个最多处理 500 次请求。变换默认由 2 个常驻 PHP CLI worker 执行；`bin/serve.php` 负责 HTTP→pool 顺序停机。
 - 缓存容量不足时按最老写入时间淘汰未被租用条目；无磁盘 TTL。来源修订变化生成新键。
-- `bench/` 仅比较可信本地作业的启动开销，不是生产 worker；实验结果与六阶段待办见 [进度](../progress.md)。
+- `bench/` 用于真实 HTTP 压测与本地作业开销对照，不是生产 worker；报告与剩余门槛见 [进度](../progress.md)。
 - 当前实现直接使用 HttpKernelInterface、HttpFoundation、Process；虽然声明了 Routing/EventDispatcher 依赖，Kernel 没有使用路由表或事件分发流程。
 ## 相关
 - 代码：`public/index.php`、`src/Http/Kernel.php`、`src/Image/`、`bin/transform.php`。

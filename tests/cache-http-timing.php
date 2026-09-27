@@ -31,7 +31,7 @@ try {
     $args = ['docker', 'run', '-d', '--name', $name, '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges:true',
         '--memory', '512m', '--cpus', '2', '--pids-limit', '256', '--tmpfs', '/tmp', '--tmpfs', '/config/caddy:uid=33,gid=33',
         '--tmpfs', '/data/caddy:uid=33,gid=33', '--tmpfs', '/data/cache:uid=33,gid=33', '--tmpfs', '/data/images:uid=33,gid=33',
-        '-e', 'EVATHUMBER_SERVER_TIMING=1', '-e', 'EVATHUMBER_PHP_BINARY=/usr/local/bin/php', '-p', '127.0.0.1::8081'];
+        '-e', 'EVATHUMBER_SERVER_TIMING=1', '-e', 'EVATHUMBER_PHP_BINARY=/usr/local/bin/php', '-p', '127.0.0.1::8080'];
     $trace = getenv('EVATHUMBER_TRACE_BINARY');
     if ($trace !== false) {
         array_push($args, '--mount', 'type=bind,source=' . $trace . ',target=/usr/local/bin/eva-strace,readonly',
@@ -46,7 +46,7 @@ try {
         input: file_get_contents(dirname(__DIR__) . '/upload/demo.jpg'), timeout: 30);
     $copy->mustRun();
     $run(['docker', 'exec', $name, 'php', '-r', 'require "/app/vendor/autoload.php"; \Jcupitt\Vips\Image::newFromFile("/data/images/demo.jpg")->resize(8)->jpegsave("/data/images/large.jpg", ["Q"=>90]);']);
-    $base = 'http://' . $run(['docker', 'port', $name, '8081']);
+    $base = 'http://' . $run(['docker', 'port', $name, '8080']);
     $run(['curl', '-fsS', '--retry', '10', '--retry-connrefused', '--retry-delay', '0', '--max-time', '20', '--noproxy', '*', $base . '/healthz']);
     $start = hrtime(true);
     $deadline = $start + 10_000_000_000;

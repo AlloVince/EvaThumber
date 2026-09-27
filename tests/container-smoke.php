@@ -29,10 +29,10 @@ try {
         '--tmpfs', '/tmp', '--tmpfs', '/config/caddy:uid=33,gid=33',
         '--tmpfs', '/data/caddy:uid=33,gid=33', '--tmpfs', '/data/cache:uid=33,gid=33',
         '--tmpfs', '/data/images:uid=33,gid=33', '-e', 'EVATHUMBER_PHP_BINARY=/usr/local/bin/php',
-        '-p', '127.0.0.1::8081', $image]);
+        '-p', '127.0.0.1::8080', $image]);
     $created = true;
     $run(['docker', 'start', $name]);
-    $address = $run(['docker', 'port', $name, '8081']);
+    $address = $run(['docker', 'port', $name, '8080']);
     $base = 'http://' . $address;
     $request = static function (string $path, array $headers = [], string $method = 'GET', float $timeout = 20) use ($base): array {
         $context = stream_context_create(['http' => [
@@ -88,6 +88,8 @@ try {
     $readyMs = round((hrtime(true) - $started) / 1e6, 3);
     $check(($health['status'] ?? 0) === 200, 'Health endpoint did not become ready');
     $check(str_contains($health['cache-control'], 'no-store'), 'Health must not be cached');
+    $ready = $request('/readyz');
+    $check($ready['status'] === 200 && json_decode($ready['body'], true) === ['status' => 'ready'], 'Readiness must report ready: ' . $ready['body']);
     $check($run(['docker', 'exec', $name, 'id', '-u']) !== '0', 'Container must run nonroot');
     $run(['docker', 'exec', $name, 'php', '-d', 'ffi.enable=true', '-r',
         'require "/app/vendor/autoload.php"; \Jcupitt\Vips\Image::black(80, 60, ["bands" => 3])->pngsave("/data/images/smoke.png");']);
@@ -121,7 +123,7 @@ try {
     if ($created) {
         foreach ([['docker', 'logs', $name],
             ['docker', 'inspect', '--format', '{{json .State}} {{json .NetworkSettings.Ports}}', $name],
-            ['docker', 'exec', $name, 'curl', '--max-time', '2', '-v', 'http://127.0.0.1:8081/healthz'],
+            ['docker', 'exec', $name, 'curl', '--max-time', '2', '-v', 'http://127.0.0.1:8080/healthz'],
         ] as $command) {
             $diagnostic = new Process($command, timeout: 10);
             try {

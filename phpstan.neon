@@ -2,3 +2,10 @@ parameters:
   level: 8
   paths:
     - src
+    - bin
+  excludePaths:
+    analyse:
+      # prctl()/getppid() are declared at runtime through FFI::cdef, which PHPStan
+      # cannot resolve to a signature. Only this launcher is excluded; the rest of
+      # bin/ (supervisor, workers, HTTP entry) is analysed.
+      - bin/process-guard.php

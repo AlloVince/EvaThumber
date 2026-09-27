@@ -1,32 +1,45 @@
 # EvaThumber 2
 
-Cloudinary 兼容、可自托管的 PHP 图片变换服务。使用 Cloudinary 风格的 URL，EvaThumber 基于 libvips 从本地原图派生缩放、裁剪与重新编码的图片，落盘缓存并以标准 HTTP 缓存语义响应。
+可自托管的图片变换服务。使用 Cloudinary 风格的变换 URL，EvaThumber 基于 libvips 从本地原图派生缩放、裁剪与重新编码的图片，落盘缓存并以 HTTP 缓存语义响应。PHP 8.5 + FrankenPHP，单一非 root Docker 镜像。
 
-- PHP 8.5、strict types、Symfony 7.4 LTS HTTP 层
-- libvips（`jcupitt/vips`）惰性流水线，低内存
-- FrankenPHP worker 模式 Docker 镜像；本地 amd64/arm64 验收通过，[发布门槛仍未全部满足](docs/progress.md)
-- 独立 Composer 库核心（`EvaThumber\Image\Thumber`），HTTP 只是薄封装
-- 不支持的参数显式报错——不做错误的静默近似
+[English README](README.md)
 
-## 快速开始（Docker）
+## 快速开始
 
 ```bash
-mkdir -p data/images && cp your-image.jpg data/images/
-docker compose up --build
-curl -o out.webp 'http://localhost:8081/image/upload/c_fill,w_300,h_300,f_webp/your-image.jpg'
+docker run -p 8080:8080 -v /path/to/your/images:/data/images:ro ghcr.io/allovince/evathumber
 ```
 
-通过 `EVATHUMBER_PORT` 修改宿主端口。原图目录只读挂载（`./data/images:/data/images:ro`），缓存及配置的临时文件系统可写；容器以非 root 运行并丢弃全部 capabilities。
+然后请求一个变换：
+
+```bash
+curl -o out.webp 'http://localhost:8080/image/upload/c_fill,w_300,h_300/f_webp/your-image.jpg'
+```
+
+这就是全部配置。你唯一需要理解的业务参数是图片目录，以只读方式挂载到 `/data/images`。其他一切——worker、缓存、超时、上限——都有合理默认值。
+
+### 缓存
+
+派生图写入容器内 `/data/cache`。默认不挂载任何东西，因此缓存是临时的：随容器消失，永远不需要备份。如需跨重启保留派生图，加一个卷：
+
+```bash
+docker run -p 8080:8080 \
+  -v /path/to/your/images:/data/images:ro \
+  -v evathumber-cache:/data/cache \
+  ghcr.io/allovince/evathumber
+```
+
+缓存是可重建的派生数据：删除它不影响原图，服务会按需重新生成。`/healthz` 是存活探针；`/readyz` 是就绪探针（缓存不可写时返回 503）。
 
 ## URL 语法
 
 ```
-/{cloud_name}/image/upload/{transformation_chain}/{public_id}.{ext}
 /image/upload/{transformation_chain}/{public_id}.{ext}
+/{cloud_name}/image/upload/{transformation_chain}/{public_id}.{ext}
 ```
 
 - 链式步骤用 `/` 分隔，同一组件内参数用 `,` 分隔（如 `c_fill,w_300,h_300/q_80`）。
-- 输出扩展名（`.webp`、`.jpg` 等）决定投递格式；变换中的 `f_` 优先；`f_auto` 按 `Accept` 协商并附带 `Vary: Accept`。
+- 投递扩展名（`.webp`、`.jpg` 等）决定输出格式；链中 `f_` 优先；`f_auto` 按 `Accept` 协商（附带 `Vary: Accept`；同质量时 webp 优先）。
 - `v123` 版本段参与缓存身份、不改变原图定位；它不是历史快照，不启用 `immutable`。
 
 ### 支持的参数
@@ -47,42 +60,41 @@ curl -o out.webp 'http://localhost:8081/image/upload/c_fill,w_300,h_300,f_webp/y
 
 支持格式：JPEG、PNG、WebP、AVIF、GIF（仅静态帧）。
 
-### 明确不支持（返回 HTTP 400）
+### 明确不支持（返回 400/404/415，不做静默近似）
 
-- `q_auto:sensitive`、未知质量档位以及 PNG/GIF 输出的 `q_auto`。已支持档位使用[本地启发式](docs/components/Image/auto-quality.md)，不是 Cloudinary 感知算法；不按 Save-Data 切换档位，不保证视觉等价。
+- `q_auto:sensitive`、未知质量档位以及 PNG/GIF 输出的 `q_auto`。已支持档位使用[本地启发式](docs/components/Image/auto-quality.md)，不是 Cloudinary 感知算法。
 - `g_auto` / `g_face` —— AI 重心需要 Cloudinary 模型，不用其他算法冒充。
 - 动图输入（多帧 GIF/WebP）—— 直接拒绝，不会静默取首帧。
-- 远程抓取、SVG/PDF 源、图层叠加、文字、圆角（`r`）、模糊/锐化、`lfill`/`lpad`/`mfit`/`mpad`。
+- 远程/S3 抓取、SVG/PDF 源、图层叠加、文字、圆角（`r`）、模糊/锐化、`lfill`/`lpad`/`mfit`/`mpad`。
 - 标量 `_a`/`_i` analytics 之外的查询参数（这两个参数不影响图片身份）；仅支持 GET/HEAD。
 
-## 缓存与 HTTP
+## 缓存与 HTTP 行为
 
 - 派生图缓存在磁盘，键 = 源修订 + 规范化变换 + 协商格式 + 策略版本；命中完全不触碰 libvips。
-- 响应携带 `ETag`、`Last-Modified`、`Cache-Control: public, max-age=...`；条件请求返回 `304`。
-- 每个缓存根目录固定 8 个跨进程准入槽位，**包括唯一生产者**。命中绕过槽位和全局发布锁；槽位全满时 miss 立即返回 `503 processor_busy`（HTTP 已有 `Retry-After: 1`）。获准 miss 在全局发布锁上最多等待复查 250ms，可复用刚发布产物，否则返回同一忙错误。仅限制缓存层准入，不限制 HTTP 服务器队列；不是按键 single-flight，全局生产者瓶颈仍在。
-- 进程退出/SIGKILL 由操作系统文件锁释放槽位。任何实例运行期间都不能删除 `.admission-0.lock` 至 `.admission-7.lock` 或 `.publish.lock`；锁文件存在不代表槽位仍被占用。见[准入决策](docs/architecture/adr/0001-cache-admission.md)。
-- 容量不足按最老写入时间淘汰空闲条目，响应租约保护正在发送的文件。单产物超容量返回 `507 cache_full`，可回收空间不足返回 `503 cache_busy`。
-- 所有处理运行于有超时上限的子进程，超时返回 `504 processing_timeout`。
+- 响应携带 `ETag`、`Last-Modified`、`Cache-Control: public, max-age=3600`；条件请求返回 `304`。
+- 冷请求有准入上限：服务饱和时 miss 快速返回 `503`（`Retry-After: 1`）而不是排队堆积。同键 miss 共享一次变换。处理超时返回 `504`。
+- 容量按最老写入时间淘汰空闲条目；单产物超容量返回 `507 cache_full`。
+- 过载时你只会看到 `503`，不会看到错误图片。系统能排多少排多少，其余有界拒绝，负载下降后自动恢复。
 
-## 配置（环境变量）
+## 性能
 
-| 变量 | 默认值 | 说明 |
-| --- | --- | --- |
-| `EVATHUMBER_SOURCE` | `/data/images` | 原图根目录（只读） |
-| `EVATHUMBER_CACHE` | `/data/cache` | 派生图缓存（可写） |
-| `EVATHUMBER_MAX_SOURCE_BYTES` | `33554432` | 源文件大小上限 |
-| `EVATHUMBER_MAX_SOURCE_PIXELS` | `40000000` | 源像素总量上限 |
-| `EVATHUMBER_MAX_SOURCE_DIMENSION` | `20000` | 源宽高上限 |
-| `EVATHUMBER_MAX_OUTPUT_DIMENSION` | `4096` | 输出宽高上限 |
-| `EVATHUMBER_MAX_OUTPUT_PIXELS` | `16000000` | 输出像素总量上限 |
-| `EVATHUMBER_MAX_STEPS` | `8` | 链式变换上限 |
-| `EVATHUMBER_MAX_URL_LENGTH` | `4096` | URL 长度上限 |
-| `EVATHUMBER_TIMEOUT` | `15` | 处理子进程超时（秒） |
-| `EVATHUMBER_CACHE_BYTES` / `_ENTRIES` | 1 GiB / 10000 | 缓存容量 |
-| `EVATHUMBER_MAX_AGE` | `3600` | `Cache-Control` max-age |
-| `EVATHUMBER_PHP_BINARY` | `PHP_BINARY` | 处理子进程所用 PHP |
+生产 Docker 镜像实测（arm64，2 CPU / 512 MiB 限制，默认 2 个变换 worker），本地 fixture，每场景 8 秒窗口。完整原始证据：[`bench/results/rc1-http-full/`](bench/results/rc1-http-full/)。
 
-## 库方式使用
+| 场景 | 并发 | 成功率 | 成功吞吐 | p50 / p95 / p99 ms |
+| --- | ---: | ---: | ---: | ---: |
+| 热缓存 | 16 | 100%（37,740/37,740） | ~4,700/s | 3.3 / 5.7 / 7.1 |
+| 同键冷启动 | 16 | 98.7%（6,216/6,301） | ~775/s | 14.8 / 62.9 / 75.3 |
+| 不同键冷启动 | 4 | 100%（204/204） | ~25/s | 161 / 173 / 182 |
+| 不同键冷启动 | 16 | 2%（68/3,417），其余有界 503 | ~8/s | 804 / 915 / 1,613 |
+| 混合 | 16 | 15.7%（868/5,556），其余有界 503 | ~107/s | 2.8 / 612 / 1,134 |
+
+说明：
+
+- 同键冷启动在每种并发（2–16）下都只执行了**一次**变换；并发等待者复用该结果。
+- 所有 503 均为 `cache_admission_full` / `processor_busy`（另有 1 次 `queue_timeout`）——即设计的有界拒绝。健康探测全程 200，每个容器 exit 0 且无 OOM，后续场景立即恢复。
+- 冷启动吞吐刻意保持较小（2 worker，每次派生约 70–80ms）。如需更多并行派生，可调 `EVATHUMBER_POOL_SIZE`。
+
+## 库方式使用（Composer）
 
 ```php
 use EvaThumber\Image\Pipeline;
@@ -93,14 +105,30 @@ $source = (new LocalSource('/path/to/images'))->resolve('photo');
 (new Pipeline())->write($source, (new Parser())->parse('c_fill,w_300,h_300'), '/tmp/out.webp', 'webp');
 ```
 
+库核心独立于 HTTP 层（不包含 HTTP 缓存、准入与协商）。
+
 ## 开发
 
 ```bash
 composer install
 composer test      # PHPUnit
 composer analyse   # PHPStan level 8
-docker compose up --build
 ```
+
+Docker 验收套件（需要 Docker daemon 和 `upload/` 中的 fixture）：
+
+```bash
+docker build --platform linux/arm64 --target production -t evathumber:rc1 .
+php tests/container-smoke.php    evathumber:rc1 linux/arm64
+php tests/rc1-acceptance.php    evathumber:rc1 linux/arm64
+php tests/product-acceptance.php evathumber:rc1 linux/arm64
+php tests/docker-acceptance.php  evathumber:rc1 linux/arm64
+php tests/crash-recovery.php    evathumber:rc1 linux/arm64
+```
+
+所有套件都按 Quick Start 的方式运行镜像：只传 `-p` 和只读原图挂载，不挂缓存卷、不加调优参数。`crash-recovery.php` 还会在编码中途分别强杀忙碌 worker、容器本身和池 supervisor，并证明每个恢复后的产物与"从未崩溃的容器"逐字节一致。
+
+架构、验收状态与发布门槛见 [`docs/`](docs/index.md)。
 
 ## 兼容性矩阵
 
@@ -111,10 +139,10 @@ docker compose up --build
 | 直角旋转、翻转、灰度、反色 | 支持 |
 | 输出格式 jpg/png/webp/avif/gif、`f`、扩展名投递、`f_auto` | 支持 |
 | `q_auto[:best\|good\|eco\|low]` | JPEG/WebP/AVIF 的本地内容/格式自适应 Q，不等价于 Cloudinary |
-| `g_auto`、人脸检测 | 计划中（需真实检测模型） |
-| 动图 | 计划中 |
-| 叠加/图层、文字、风格化效果（`r`、模糊、晕影等） | 计划中 |
-| 远程/S3 源 | 计划中（源抽象已就绪） |
+| `g_auto`、人脸检测 | 不支持（需真实检测模型） |
+| 动图 | 不支持 |
+| 叠加/图层、文字、风格化效果（`r`、模糊、晕影等） | 不支持 |
+| 远程/S3 源 | 不支持 |
 | 视频、Upload/Admin API | 不适用 |
 
 从 EvaThumber 1.x 迁移见 [docs/migration-v1.md](docs/migration-v1.md)。

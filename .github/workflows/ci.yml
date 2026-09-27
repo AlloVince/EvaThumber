@@ -29,11 +29,20 @@ jobs:
       - name: Build development image with native libvips
         run: docker build --platform "${{ matrix.platform }}" --target development -t evathumber:test .
       - name: Run tests and analysis on actual architecture
-        run: docker run --rm --platform "${{ matrix.platform }}" --entrypoint sh evathumber:test -c 'uname -m && php -v && vips --version && composer test && composer analyse'
+        # uid 33 is the production image's user, so permission-sensitive assertions
+        # (readiness vs an unwritable cache) actually execute instead of being skipped.
+        run: >
+          docker run --rm --platform "${{ matrix.platform }}" --user 33:33
+          --entrypoint sh evathumber:test -c 'uname -m && php -v && vips --version
+          && composer test -- --do-not-cache-result && composer analyse'
       - name: Build production image
         run: docker build --platform "${{ matrix.platform }}" --target production -t evathumber:smoke .
       - name: Verify readonly nonroot HTTP and shutdown
         run: php tests/container-smoke.php evathumber:smoke "${{ matrix.platform }}"
+      - name: RC1 product acceptance on the documented two-flag invocation
+        run: php tests/rc1-acceptance.php evathumber:smoke "${{ matrix.platform }}"
+      - name: Crash recovery acceptance
+        run: php tests/crash-recovery.php evathumber:smoke "${{ matrix.platform }}"
 
   image:
     needs: test

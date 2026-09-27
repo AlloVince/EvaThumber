@@ -1,0 +1,241 @@
+{
+    "platform": "linux/arm64",
+    "result": "passed",
+    "image": "sha256:0392e1163b75ccc0611133e3ead774ab7e52fd4db921ac950a057c60510fd21e",
+    "architecture": "arm64",
+    "source": {
+        "file": "big.jpg",
+        "sha256": "811942bdcca37a97f5b4f2394fe03ffe146c14c452df381b466a9074b65a0259",
+        "bytes": 1320812,
+        "width": 4000,
+        "height": 3000
+    },
+    "delivery": "q_auto:best/f_webp",
+    "reference_products": 8,
+    "initial_ready_ms": 26.306,
+    "scenarios": {
+        "busy_worker_sigkill": {
+            "paths": [
+                "/image/upload/c_fill,w_2000,h_1500/q_auto:best/f_webp/v9101/big.jpg",
+                "/image/upload/c_fill,w_1993,h_1494/q_auto:best/f_webp/v9102/big.jpg"
+            ],
+            "in_flight": {
+                "job_started": 2,
+                "job_finished": 0,
+                "staging_files": 2,
+                "waited_ms": 225.891
+            },
+            "killed_pid": "8",
+            "responses": [
+                {
+                    "path": "/image/upload/c_fill,w_2000,h_1500/q_auto:best/f_webp/v9101/big.jpg",
+                    "status": 200,
+                    "bytes": 45310,
+                    "error": "",
+                    "decoded": "2000x1500"
+                },
+                {
+                    "path": "/image/upload/c_fill,w_1993,h_1494/q_auto:best/f_webp/v9102/big.jpg",
+                    "status": 503,
+                    "bytes": 62,
+                    "error": ""
+                }
+            ],
+            "healthz_after_kill": 200,
+            "recovery": {
+                "products": {
+                    "/image/upload/c_fill,w_2000,h_1500/q_auto:best/f_webp/v9101/big.jpg": {
+                        "status": 200,
+                        "sha256": "a7b4b4f5d96062deffdeb7f9616c3f86da024c56e8ea60b1735da08c82a1f86c",
+                        "width": 2000,
+                        "height": 1500,
+                        "cache": "HIT",
+                        "replay_cache": "HIT"
+                    },
+                    "/image/upload/c_fill,w_1993,h_1494/q_auto:best/f_webp/v9102/big.jpg": {
+                        "status": 200,
+                        "sha256": "4afbacf43340f41dcee751b383bf438f0e842bebc9bb7cdf197e79b20bc71e94",
+                        "width": 1993,
+                        "height": 1494,
+                        "cache": "MISS",
+                        "replay_cache": "HIT"
+                    }
+                },
+                "residue": {
+                    "pool_staging": 0,
+                    "cache_temporaries": 0
+                }
+            }
+        },
+        "container_sigkill": {
+            "paths": [
+                "/image/upload/c_fill,w_1986,h_1489/q_auto:best/f_webp/v9201/big.jpg",
+                "/image/upload/c_fill,w_1979,h_1484/q_auto:best/f_webp/v9202/big.jpg"
+            ],
+            "in_flight": {
+                "job_started": 5,
+                "job_finished": 2,
+                "staging_files": 2,
+                "waited_ms": 226.166
+            },
+            "responses": [
+                {
+                    "path": "/image/upload/c_fill,w_1986,h_1489/q_auto:best/f_webp/v9201/big.jpg",
+                    "status": 0,
+                    "bytes": 0,
+                    "error": "curl: (52) Empty reply from server"
+                },
+                {
+                    "path": "/image/upload/c_fill,w_1979,h_1484/q_auto:best/f_webp/v9202/big.jpg",
+                    "status": 0,
+                    "bytes": 0,
+                    "error": "curl: (52) Empty reply from server"
+                }
+            ],
+            "restart_ready_ms": 26.515,
+            "recovery": {
+                "products": {
+                    "/image/upload/c_fill,w_1986,h_1489/q_auto:best/f_webp/v9201/big.jpg": {
+                        "status": 200,
+                        "sha256": "3897bcd28fa918153eaf1f0b0bd62cf191e3c32b280bdec2cec76c33dc5a740e",
+                        "width": 1986,
+                        "height": 1489,
+                        "cache": "MISS",
+                        "replay_cache": "HIT"
+                    },
+                    "/image/upload/c_fill,w_1979,h_1484/q_auto:best/f_webp/v9202/big.jpg": {
+                        "status": 200,
+                        "sha256": "fa32d9e99fa664626626e39202e105ee6d07e2daa8c952042b28d6a5b5aff1ad",
+                        "width": 1979,
+                        "height": 1484,
+                        "cache": "MISS",
+                        "replay_cache": "HIT"
+                    }
+                },
+                "residue": {
+                    "pool_staging": 0,
+                    "cache_temporaries": 0
+                }
+            }
+        },
+        "pool_supervisor_sigkill": {
+            "paths": [
+                "/image/upload/c_fill,w_1972,h_1479/q_auto:best/f_webp/v9301/big.jpg",
+                "/image/upload/c_fill,w_1965,h_1473/q_auto:best/f_webp/v9302/big.jpg"
+            ],
+            "in_flight": {
+                "job_started": 5,
+                "job_finished": 2,
+                "staging_files": 2,
+                "waited_ms": 220.094
+            },
+            "killed_pid": "6",
+            "responses": [
+                {
+                    "path": "/image/upload/c_fill,w_1972,h_1479/q_auto:best/f_webp/v9301/big.jpg",
+                    "status": 503,
+                    "bytes": 75,
+                    "error": ""
+                },
+                {
+                    "path": "/image/upload/c_fill,w_1965,h_1473/q_auto:best/f_webp/v9302/big.jpg",
+                    "status": 503,
+                    "bytes": 75,
+                    "error": ""
+                }
+            ],
+            "exit_code": 1,
+            "oom_killed": false,
+            "restart_ready_ms": 24.247,
+            "recovery": {
+                "products": {
+                    "/image/upload/c_fill,w_1972,h_1479/q_auto:best/f_webp/v9301/big.jpg": {
+                        "status": 200,
+                        "sha256": "46274145951e54c2791f397f394bfdc9478c62739271f2a4fdc606e46c63960c",
+                        "width": 1972,
+                        "height": 1479,
+                        "cache": "MISS",
+                        "replay_cache": "HIT"
+                    },
+                    "/image/upload/c_fill,w_1965,h_1473/q_auto:best/f_webp/v9302/big.jpg": {
+                        "status": 200,
+                        "sha256": "935ce0abaa96dead688d85e4e3d99bdda03a4f195c45ae76f8e84d448fec5f05",
+                        "width": 1965,
+                        "height": 1473,
+                        "cache": "MISS",
+                        "replay_cache": "HIT"
+                    }
+                },
+                "residue": {
+                    "pool_staging": 0,
+                    "cache_temporaries": 0
+                }
+            }
+        },
+        "graceful_stop_inflight": {
+            "paths": [
+                "/image/upload/c_fill,w_1958,h_1468/q_auto:best/f_webp/v9401/big.jpg",
+                "/image/upload/c_fill,w_1951,h_1463/q_auto:best/f_webp/v9402/big.jpg"
+            ],
+            "in_flight": {
+                "job_started": 5,
+                "job_finished": 2,
+                "staging_files": 2,
+                "waited_ms": 210.799
+            },
+            "stop_ms": 305.252,
+            "responses": [
+                {
+                    "path": "/image/upload/c_fill,w_1958,h_1468/q_auto:best/f_webp/v9401/big.jpg",
+                    "status": 200,
+                    "bytes": 44134,
+                    "error": "",
+                    "decoded": "1958x1468"
+                },
+                {
+                    "path": "/image/upload/c_fill,w_1951,h_1463/q_auto:best/f_webp/v9402/big.jpg",
+                    "status": 200,
+                    "bytes": 41974,
+                    "error": "",
+                    "decoded": "1951x1463"
+                }
+            ],
+            "exit_code": 0,
+            "restart_ready_ms": 26.306,
+            "recovery": {
+                "products": {
+                    "/image/upload/c_fill,w_1958,h_1468/q_auto:best/f_webp/v9401/big.jpg": {
+                        "status": 200,
+                        "sha256": "07af01c2ed0d67ed4fd608db9f786368631954823bbbe1dfc904f51876641fe7",
+                        "width": 1958,
+                        "height": 1468,
+                        "cache": "HIT",
+                        "replay_cache": "HIT"
+                    },
+                    "/image/upload/c_fill,w_1951,h_1463/q_auto:best/f_webp/v9402/big.jpg": {
+                        "status": 200,
+                        "sha256": "5c6de6805c13785bddddaed1789d9d225f094e4c8dc4eb1d4a465889eef887f8",
+                        "width": 1951,
+                        "height": 1463,
+                        "cache": "HIT",
+                        "replay_cache": "HIT"
+                    }
+                },
+                "residue": {
+                    "pool_staging": 0,
+                    "cache_temporaries": 0
+                }
+            }
+        },
+        "after_all_scenarios": {
+            "path": "/image/upload/c_fill,w_1944,h_1458/q_auto:best/f_webp/v9501/big.jpg",
+            "status": 200,
+            "sha256": "5e2f6111baa9c33a344904aed2925ccba3bca989830d8867724d98267db810a2",
+            "cache": "MISS"
+        },
+        "final_stop": {
+            "exit_code": 0,
+            "oom_killed": false
+        }
+    }
+}

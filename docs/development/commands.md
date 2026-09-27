@@ -5,7 +5,7 @@
 | 目的 | 命令 | 前提/本次结果 |
 |---|---|---|
 | 安装依赖 | `composer install` | PHP/扩展就绪；本次未执行 |
-| 全部测试 | `composer test` | 当前完整 suite 通过，35 tests / 387 assertions；见 progress |
+| 全部测试 | `composer test` | 当前完整 suite 通过，63 tests / 877 assertions（arm64 容器内 uid 33）；见 progress |
 | 单文件测试 | `vendor/bin/phpunit tests/v2/HttpTest.php` | 同测试环境；本次未单跑 |
 | 单用例筛选 | `vendor/bin/phpunit --filter testRealFillAndChain` | 同测试环境；本次未单跑 |
 | 静态分析 | `composer analyse` | 当前通过；已移除不存在路径的 excludePaths |
@@ -17,7 +17,19 @@
 | 本地开发 HTTP | `EVATHUMBER_SOURCE="$PWD/data/images" EVATHUMBER_CACHE="$PWD/data/cache" php -d ffi.enable=true -S 127.0.0.1:8081 public/index.php` | 由入口非 worker 分支推导；本次未启动，不用于生产 |
 | 差异检查 | `git diff --check`、`git status --short` | 包括未追踪文档，勿自动 commit |
 ## 容器验收
-`docker build --platform linux/arm64 --target production -t evathumber:verify-arm64 .` 后运行 `php tests/container-smoke.php evathumber:verify-arm64 linux/arm64`；amd64 替换平台与标签。两个架构已本地通过，amd64 使用模拟器。development 目标同样构建后容器内执行 `composer test && composer analyse`。此脚本需要宿主机 Composer 依赖与 Docker，不在应用容器内运行。
+`docker build --platform linux/arm64 --target production -t evathumber:verify-arm64 .` 后依次运行：
+
+```bash
+php tests/container-smoke.php   evathumber:verify-arm64 linux/arm64
+php tests/rc1-acceptance.php   evathumber:verify-arm64 linux/arm64
+php tests/product-acceptance.php evathumber:verify-arm64 linux/arm64
+php tests/docker-acceptance.php  evathumber:verify-arm64 linux/arm64
+php tests/crash-recovery.php   evathumber:verify-arm64 linux/arm64
+```
+
+四套验收脚本只用 README 公开的 `docker run` 参数，不需要缓存卷或调优环境变量。amd64 替换平台与标签；本地 amd64 仅为 QEMU 模拟，原生 gate 是 CI。development 目标同样构建后，容器内以 uid 33 执行 `composer test -- --do-not-cache-result && composer analyse`。这些脚本需要宿主机 Composer 依赖与 Docker，不在应用容器内运行。
+
+真实 HTTP 压测报告：`php bench/http-load.php evathumber:verify-arm64 pool`（参数见脚本头），归档在 `bench/results/`。破坏恢复套件同时把 JSON 报告写入 `bench/results/rc1-crash-recovery/`。
 ## 说明
 composer test = phpunit；composer analyse = phpstan analyse --memory-limit=512M。`bin/transform.php` 是 stdin JSON 内部 IPC，不作为公共手工转换命令推荐。
 ## 相关

@@ -59,5 +59,5 @@ PHP 8.5.10 / libvips 8.18.6 / Darwin arm64 / concurrency=2、operation cache=0�
 **决定采用 rebuild-lazy**：大图去掉整张输出副本，实测节省 16.5–36 MiB 峰值中位数，无视觉变化/依赖；代价是重做解码和变换，最明显的大 PNG→JPEG 增加约 44.5% 延迟。小图没有内存收益、略增开销；不加未经充分校准的尺寸阈值或双策略公共开关。不声称所有场景更快、RSS 有硬上限或 AVIF 可在紧内存容器内运行。旋转/复杂变换的 RSS、冷盘/满源字节限额、常驻池并发/长期 RSS、Linux 双架构以及原生大图感知语料仍未测量。
 ## 验证与相关
 `tests/v2/AutoQualityTest.php` 覆盖内容适应性、档位顺序、极小/透明样本、三种格式四档实际编码与对应显式 Q 字节一致、PNG/GIF 拒绝、真实 Kernel/处理子进程与缓存身份。新增 16-bit RGBA 经 fill→rotate→grayscale→transparent pad 后，三格式四档与旧整图实体化策略输出 SHA256 完全相同；尺寸/alpha 也复核。SourceConsistencyTest 另覆盖 q_auto 双遍期间独立写进程的 ABA/原地替换。
-最终宿主 suite 51 tests / 641 assertions、PHPStan 通过（2026-09-17）。本次未编辑 `bin/pool-worker.php`、全局 Image README/测试/进度文档；常驻池释放快照和同步文档由主任务集成，见 [Source](../Source/README.md)。
+当前完整 suite 63 tests / 877 assertions、PHPStan level 8 通过（arm64 Linux 容器内 uid 33）。q_auto 的算法是本地启发式，真实摄影/文字/透明素材的视觉校准仍未完成，见 [进度](../../progress.md)。
 代码：`src/Image/AutoQuality.php`、`Pipeline.php`；基准：`bench/quality-memory.php`、`bench/quality-memory-worker.php`；[Image](README.md)、[Transformation](../Transformation/README.md)、[进度](../../progress.md)。

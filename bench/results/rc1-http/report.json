@@ -1,0 +1,689 @@
+{
+    "started_utc": "2026-09-27T07:22:27+00:00",
+    "options": {
+        "image": "evathumber:rc1",
+        "out": "bench/results/rc1-http",
+        "seconds": "8",
+        "rounds": "2",
+        "concurrency": "1,2,4,8,16",
+        "scenarios": "hot,same,different,mixed",
+        "modes": "pool"
+    },
+    "image_tag": "evathumber:rc1",
+    "initial_source": "59f3312625997677f95fb830cb3432bba6ba8351a4b17fd2dd9e51f1cf593d87",
+    "method": {
+        "closed_loop": true,
+        "seconds_per_scenario": 8,
+        "concurrencies": [
+            1,
+            2,
+            4,
+            8,
+            16
+        ],
+        "rounds": 2,
+        "probes": "Two extra independent health/HIT lanes every >=500ms; not included in load concurrency or throughput.",
+        "rate": "success_rps counts completed 200 within the fixed measurement window; drained_success_rps includes final in-flight drain.",
+        "same": "One initially cold key per scenario, then naturally HIT; jobs exactly 1 across the entire interval. Not sustained cold misses.",
+        "cold": "Different/mixed version segment is unique for every cold request, not an ignored query parameter.",
+        "decode": "Full libvips pixel evaluation once per unique response SHA256 after timing; dimensions/MIME validated; every successful response hashed.",
+        "limits": {
+            "memory_mib": 512,
+            "cpus": 2,
+            "pids": 256,
+            "http_workers": 16,
+            "timeout_seconds": 15
+        },
+        "rejection_phase": "Pool log errors prove pool rejection counts; residual HTTP errors are pre-pool/HTTP/cache, without unsupported exact lock-phase attribution.",
+        "fixtures_caveat": "Original local 300px photographs plus a deliberately enlarged derivative, not genuine native large-photo evidence. No downloaded fixtures."
+    },
+    "runs": [
+        {
+            "label": "pool-r1-c1-hot",
+            "mode": "pool",
+            "round": 1,
+            "concurrency": 1,
+            "scenario": "hot",
+            "window_seconds": 8,
+            "elapsed_seconds": 8.000070708003477,
+            "requests": 14309,
+            "codes": {
+                "200": 14309
+            },
+            "success_rps": 1788.5,
+            "drained_success_rps": 1788.6091913768846,
+            "latency_by_status": {
+                "200": {
+                    "count": 14309,
+                    "p50_ms": 0.496,
+                    "p95_ms": 0.711,
+                    "p99_ms": 1.225,
+                    "max_ms": 9.47
+                }
+            },
+            "class_latency_by_status": {
+                "hot": {
+                    "200": {
+                        "count": 14309,
+                        "p50_ms": 0.496,
+                        "p95_ms": 0.711,
+                        "p99_ms": 1.225,
+                        "max_ms": 9.47
+                    }
+                }
+            },
+            "latency_histogram_25ms": [
+                14309
+            ],
+            "errors": [],
+            "pool_rejection_errors": [],
+            "pre_pool_or_http_rejections": 0,
+            "hit_ratio": 1,
+            "probes": {
+                "health": {
+                    "count": 16,
+                    "p50_ms": 0.328,
+                    "p95_ms": 1.88,
+                    "p99_ms": 1.88,
+                    "max_ms": 1.88,
+                    "status_counts": {
+                        "200": 16
+                    }
+                },
+                "hit": {
+                    "count": 16,
+                    "p50_ms": 0.62,
+                    "p95_ms": 1.871,
+                    "p99_ms": 1.871,
+                    "max_ms": 1.871,
+                    "status_counts": {
+                        "200": 16
+                    }
+                }
+            },
+            "pool_jobs_started": 0,
+            "pool_job_latency": {
+                "count": 0
+            },
+            "max_pool_queue": 0,
+            "same_key_unique_hashes": null,
+            "unique_bodies_fully_decoded": 1,
+            "decode_evidence": {
+                "38b1069db9518bd1ec88489f5f138136d8b0a0f3ac87e907610b4478cd2bd6c9": {
+                    "width": 100,
+                    "height": 67,
+                    "pixel_average": 136.08641791044775,
+                    "class": "hot"
+                }
+            },
+            "cpu_seconds": 5.513313,
+            "cpu_cores_average": 0.688899336206639,
+            "cgroup_memory_peak_bytes": 85921792,
+            "process_rss_peak_bytes": 247103488,
+            "failures": []
+        },
+        {
+            "label": "pool-r1-c1-same",
+            "mode": "pool",
+            "round": 1,
+            "concurrency": 1,
+            "scenario": "same",
+            "window_seconds": 8,
+            "elapsed_seconds": 8.000671040994348,
+            "requests": 2631,
+            "codes": {
+                "200": 2631
+            },
+            "success_rps": 328.75,
+            "drained_success_rps": 328.84741623785237,
+            "latency_by_status": {
+                "200": {
+                    "count": 2631,
+                    "p50_ms": 2.715,
+                    "p95_ms": 3.255,
+                    "p99_ms": 3.673,
+                    "max_ms": 80.791
+                }
+            },
+            "class_latency_by_status": {
+                "same": {
+                    "200": {
+                        "count": 2631,
+                        "p50_ms": 2.715,
+                        "p95_ms": 3.255,
+                        "p99_ms": 3.673,
+                        "max_ms": 80.791
+                    }
+                }
+            },
+            "latency_histogram_25ms": {
+                "75": 1,
+                "0": 2630
+            },
+            "errors": [],
+            "pool_rejection_errors": [],
+            "pre_pool_or_http_rejections": 0,
+            "hit_ratio": 0.999619916381604,
+            "probes": {
+                "health": {
+                    "count": 16,
+                    "p50_ms": 0.447,
+                    "p95_ms": 1.125,
+                    "p99_ms": 1.125,
+                    "max_ms": 1.125,
+                    "status_counts": {
+                        "200": 16
+                    }
+                },
+                "hit": {
+                    "count": 16,
+                    "p50_ms": 0.691,
+                    "p95_ms": 1.599,
+                    "p99_ms": 1.599,
+                    "max_ms": 1.599,
+                    "status_counts": {
+                        "200": 16
+                    }
+                }
+            },
+            "pool_jobs_started": 1,
+            "pool_job_latency": {
+                "count": 1,
+                "p50_ms": 71.214,
+                "p95_ms": 71.214,
+                "p99_ms": 71.214,
+                "max_ms": 71.214
+            },
+            "max_pool_queue": 1,
+            "same_key_unique_hashes": 1,
+            "unique_bodies_fully_decoded": 2,
+            "decode_evidence": {
+                "38b1069db9518bd1ec88489f5f138136d8b0a0f3ac87e907610b4478cd2bd6c9": {
+                    "width": 100,
+                    "height": 67,
+                    "pixel_average": 136.08641791044775,
+                    "class": "hot"
+                },
+                "c1dc0aa707e4db2a8b09c7f45b87e7b481b14619a3033668f95c9645efeb317a": {
+                    "width": 900,
+                    "height": 700,
+                    "pixel_average": 140.7655962962963,
+                    "class": "same"
+                }
+            },
+            "cpu_seconds": 7.003217,
+            "cpu_cores_average": 0.8752015626065109,
+            "cgroup_memory_peak_bytes": 93421568,
+            "process_rss_peak_bytes": 254312448,
+            "failures": []
+        },
+        {
+            "label": "pool-r1-c1-different",
+            "mode": "pool",
+            "round": 1,
+            "concurrency": 1,
+            "scenario": "different",
+            "window_seconds": 8,
+            "elapsed_seconds": 8.013497666004696,
+            "requests": 103,
+            "codes": {
+                "200": 103
+            },
+            "success_rps": 12.75,
+            "drained_success_rps": 12.853313782938043,
+            "latency_by_status": {
+                "200": {
+                    "count": 103,
+                    "p50_ms": 75.781,
+                    "p95_ms": 85.328,
+                    "p99_ms": 92.408,
+                    "max_ms": 102.403
+                }
+            },
+            "class_latency_by_status": {
+                "different": {
+                    "200": {
+                        "count": 103,
+                        "p50_ms": 75.781,
+                        "p95_ms": 85.328,
+                        "p99_ms": 92.408,
+                        "max_ms": 102.403
+                    }
+                }
+            },
+            "latency_histogram_25ms": {
+                "75": 60,
+                "50": 42,
+                "100": 1
+            },
+            "errors": [],
+            "pool_rejection_errors": [],
+            "pre_pool_or_http_rejections": 0,
+            "hit_ratio": 0,
+            "probes": {
+                "health": {
+                    "count": 16,
+                    "p50_ms": 0.811,
+                    "p95_ms": 4.603,
+                    "p99_ms": 4.603,
+                    "max_ms": 4.603,
+                    "status_counts": {
+                        "200": 16
+                    }
+                },
+                "hit": {
+                    "count": 16,
+                    "p50_ms": 0.999,
+                    "p95_ms": 1.933,
+                    "p99_ms": 1.933,
+                    "max_ms": 1.933,
+                    "status_counts": {
+                        "200": 16
+                    }
+                }
+            },
+            "pool_jobs_started": 103,
+            "pool_job_latency": {
+                "count": 103,
+                "p50_ms": 67.036,
+                "p95_ms": 72.894,
+                "p99_ms": 80.939,
+                "max_ms": 83.324
+            },
+            "max_pool_queue": 1,
+            "same_key_unique_hashes": null,
+            "unique_bodies_fully_decoded": 2,
+            "decode_evidence": {
+                "38b1069db9518bd1ec88489f5f138136d8b0a0f3ac87e907610b4478cd2bd6c9": {
+                    "width": 100,
+                    "height": 67,
+                    "pixel_average": 136.08641791044775,
+                    "class": "hot"
+                },
+                "c1dc0aa707e4db2a8b09c7f45b87e7b481b14619a3033668f95c9645efeb317a": {
+                    "width": 900,
+                    "height": 700,
+                    "pixel_average": 140.7655962962963,
+                    "class": "different"
+                }
+            },
+            "cpu_seconds": 8.32265,
+            "cpu_cores_average": 1.0384333182748013,
+            "cgroup_memory_peak_bytes": 172093440,
+            "process_rss_peak_bytes": 271679488,
+            "failures": []
+        },
+        {
+            "label": "pool-r1-c1-mixed",
+            "mode": "pool",
+            "round": 1,
+            "concurrency": 1,
+            "scenario": "mixed",
+            "window_seconds": 8,
+            "elapsed_seconds": 8.000509250006871,
+            "requests": 131,
+            "codes": {
+                "200": 131
+            },
+            "success_rps": 16.25,
+            "drained_success_rps": 16.373957695241398,
+            "latency_by_status": {
+                "200": {
+                    "count": 131,
+                    "p50_ms": 19.54,
+                    "p95_ms": 176.06,
+                    "p99_ms": 186.255,
+                    "max_ms": 202.22
+                }
+            },
+            "class_latency_by_status": {
+                "hot": {
+                    "200": {
+                        "count": 19,
+                        "p50_ms": 0.649,
+                        "p95_ms": 3.94,
+                        "p99_ms": 3.94,
+                        "max_ms": 3.94
+                    }
+                },
+                "small_resize": {
+                    "200": {
+                        "count": 19,
+                        "p50_ms": 16.889,
+                        "p95_ms": 19.54,
+                        "p99_ms": 19.54,
+                        "max_ms": 19.54
+                    }
+                },
+                "crop_webp": {
+                    "200": {
+                        "count": 19,
+                        "p50_ms": 19.503,
+                        "p95_ms": 20.628,
+                        "p99_ms": 20.628,
+                        "max_ms": 20.628
+                    }
+                },
+                "avif": {
+                    "200": {
+                        "count": 19,
+                        "p50_ms": 91.76,
+                        "p95_ms": 99.249,
+                        "p99_ms": 99.249,
+                        "max_ms": 99.249
+                    }
+                },
+                "large_webp": {
+                    "200": {
+                        "count": 19,
+                        "p50_ms": 174.465,
+                        "p95_ms": 202.22,
+                        "p99_ms": 202.22,
+                        "max_ms": 202.22
+                    }
+                },
+                "q_auto_webp": {
+                    "200": {
+                        "count": 18,
+                        "p50_ms": 105.764,
+                        "p95_ms": 109.698,
+                        "p99_ms": 109.698,
+                        "max_ms": 109.698
+                    }
+                },
+                "small_webp": {
+                    "200": {
+                        "count": 18,
+                        "p50_ms": 16.834,
+                        "p95_ms": 20.106,
+                        "p99_ms": 20.106,
+                        "max_ms": 20.106
+                    }
+                }
+            },
+            "latency_histogram_25ms": {
+                "0": 75,
+                "75": 19,
+                "200": 1,
+                "100": 18,
+                "175": 8,
+                "150": 10
+            },
+            "errors": [],
+            "pool_rejection_errors": [],
+            "pre_pool_or_http_rejections": 0,
+            "hit_ratio": 0.1450381679389313,
+            "probes": {
+                "health": {
+                    "count": 16,
+                    "p50_ms": 0.813,
+                    "p95_ms": 1.825,
+                    "p99_ms": 1.825,
+                    "max_ms": 1.825,
+                    "status_counts": {
+                        "200": 16
+                    }
+                },
+                "hit": {
+                    "count": 16,
+                    "p50_ms": 1.012,
+                    "p95_ms": 2.049,
+                    "p99_ms": 2.049,
+                    "max_ms": 2.049,
+                    "status_counts": {
+                        "200": 16
+                    }
+                }
+            },
+            "pool_jobs_started": 112,
+            "pool_job_latency": {
+                "count": 112,
+                "p50_ms": 13.542,
+                "p95_ms": 166.858,
+                "p99_ms": 168.665,
+                "max_ms": 193.58
+            },
+            "max_pool_queue": 1,
+            "same_key_unique_hashes": null,
+            "unique_bodies_fully_decoded": 7,
+            "decode_evidence": {
+                "38b1069db9518bd1ec88489f5f138136d8b0a0f3ac87e907610b4478cd2bd6c9": {
+                    "width": 100,
+                    "height": 67,
+                    "pixel_average": 136.08641791044775,
+                    "class": "hot"
+                },
+                "c799abcdca4453707f8f0feff76be51e9ff17875ca456de0e6a1bf672c4ad19e": {
+                    "width": 100,
+                    "height": 144,
+                    "pixel_average": 82.03865740740741,
+                    "class": "small_resize"
+                },
+                "dae9c1acaf7b8f0aed56c6a6f0f15e6245578fe2388301d17def61a2fe7a9f59": {
+                    "width": 240,
+                    "height": 160,
+                    "pixel_average": 177.32326822916667,
+                    "class": "crop_webp"
+                },
+                "3df817e0e2a2773fd6c5e96fd87266fa5baa209c65d9d91ace07d680fa2e7926": {
+                    "width": 800,
+                    "height": 533,
+                    "pixel_average": 136.0957997185741,
+                    "class": "avif"
+                },
+                "afa5642968035c2834cdac549b905730b3dac012d63c59d5d11f1ab48d3a105e": {
+                    "width": 2400,
+                    "height": 1600,
+                    "pixel_average": 136.05224661458334,
+                    "class": "large_webp"
+                },
+                "7cc4399843179fec2301321c28a9d9cddde424a3261e0146e92c6dbe4de30479": {
+                    "width": 800,
+                    "height": 533,
+                    "pixel_average": 135.97907285803626,
+                    "class": "q_auto_webp"
+                },
+                "827c624f71563e73e45ae10768dc1c46c9a7f3d544b3f28dfbd9b163be40c562": {
+                    "width": 180,
+                    "height": 120,
+                    "pixel_average": 136.14737654320987,
+                    "class": "small_webp"
+                }
+            },
+            "cpu_seconds": 7.979304,
+            "cpu_cores_average": 0.9969238679026818,
+            "cgroup_memory_peak_bytes": 267558912,
+            "process_rss_peak_bytes": 333045760,
+            "failures": []
+        }
+    ],
+    "failures": [
+        "Symfony\\Component\\Process\\Exception\\ProcessFailedException: The command \"'docker' 'run' '-d' '--name' 'eva-sustained-0c5bd42289' '--read-only' '--cap-drop' 'ALL' '--security-opt' 'no-new-privileges:true' '--memory' '512m' '--cpus' '2' '--pids-limit' '256' '--tmpfs' '/tmp' '--tmpfs' '/config/caddy:uid=33,gid=33' '--tmpfs' '/data/caddy:uid=33,gid=33' '--tmpfs' '/data/cache:uid=33,gid=33' '--mount' 'type=bind,source=/var/folders/vf/cj7k724118bfg8_0cr09jtb80000gn/T/eva-sustained-b5d6f5a260/source,target=/data/images,readonly' '-e' 'EVATHUMBER_PHP_BINARY=/usr/local/bin/php' '-p' '127.0.0.1::8080' 'sha256:21abe7a38d865a50b3738d7058ce4eb8014e567c6f319bca9efb1381df7a064d'\" failed.\n\nExit Code: 125(Unknown error)\n\nWorking directory: /Users/allovince/Developer/EvaThumber\n\nOutput:\n================\n\n\nError Output:\n================\ndocker: Error response from daemon: No such image: sha256:21abe7a38d865a50b3738d7058ce4eb8014e567c6f319bca9efb1381df7a064d\n\nRun 'docker run --help' for more information\n"
+    ],
+    "image_id": "sha256:21abe7a38d865a50b3738d7058ce4eb8014e567c6f319bca9efb1381df7a064d",
+    "environment": {
+        "host_os": "Darwin AlloVincedeMacBook-Pro.local 27.0.0 Darwin Kernel Version 27.0.0: Tue Aug 11 21:06:40 PDT 2026; root:xnu-13432.1.9~1/RELEASE_ARM64_T6050 arm64",
+        "host_php": "8.5.11",
+        "curl": {
+            "version_number": 529920,
+            "age": 11,
+            "features": 1472137101,
+            "feature_list": {
+                "AsynchDNS": true,
+                "CharConv": false,
+                "Debug": false,
+                "GSS-Negotiate": false,
+                "IDN": true,
+                "IPv6": true,
+                "krb4": false,
+                "Largefile": true,
+                "libz": true,
+                "NTLM": false,
+                "NTLMWB": false,
+                "SPNEGO": true,
+                "SSL": true,
+                "SSPI": false,
+                "TLS-SRP": false,
+                "HTTP2": true,
+                "GSSAPI": true,
+                "KERBEROS5": true,
+                "UNIX_SOCKETS": true,
+                "PSL": true,
+                "HTTPS_PROXY": true,
+                "MULTI_SSL": false,
+                "BROTLI": true,
+                "ALTSVC": true,
+                "HTTP3": true,
+                "UNICODE": false,
+                "ZSTD": true,
+                "HSTS": true,
+                "GSASL": false
+            },
+            "ssl_version_number": 0,
+            "version": "8.22.0",
+            "host": "aarch64-apple-darwin25.6.0",
+            "ssl_version": "OpenSSL/3.6.4",
+            "libz_version": "1.2.12",
+            "protocols": [
+                "dict",
+                "file",
+                "ftp",
+                "ftps",
+                "gopher",
+                "gophers",
+                "http",
+                "https",
+                "imap",
+                "imaps",
+                "ldap",
+                "ldaps",
+                "mqtt",
+                "mqtts",
+                "pop3",
+                "pop3s",
+                "rtsp",
+                "scp",
+                "sftp",
+                "smtp",
+                "smtps",
+                "telnet",
+                "tftp",
+                "ws",
+                "wss"
+            ],
+            "ares": "",
+            "ares_num": 0,
+            "libidn": "",
+            "iconv_ver_num": 0,
+            "libssh_version": "libssh2/1.11.1",
+            "brotli_ver_num": 16785408,
+            "brotli_version": "brotli/1.2.0"
+        },
+        "docker": "OrbStack",
+        "docker_limits": "OS=linux Arch=aarch64 CPUs=15 Memory=16818823168",
+        "image_arch": "arm64",
+        "image_created": "2026-09-27T15:16:28.175957426+08:00",
+        "image_env": [
+            "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+            "PHPIZE_DEPS=autoconf \t\tdpkg-dev \t\tfile \t\tg++ \t\tgcc \t\tlibc-dev \t\tmake \t\tpkg-config \t\tre2c",
+            "PHP_INI_DIR=/usr/local/etc/php",
+            "PHP_CFLAGS=-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64",
+            "PHP_CPPFLAGS=-fstack-protector-strong -fpic -fpie -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64",
+            "PHP_LDFLAGS=-Wl,-O1 -pie",
+            "GPG_KEYS=1198C0117593497A5EC5C199286AF1F9897469DC 49D9AF6BC72A80D6691719C8AA23F5BE9C7097D4 D95C03BC702BE9515344AE3374E44BC9067701A5",
+            "PHP_VERSION=8.5.10",
+            "PHP_URL=https://www.php.net/distributions/php-8.5.10.tar.xz",
+            "PHP_ASC_URL=https://www.php.net/distributions/php-8.5.10.tar.xz.asc",
+            "PHP_SHA256=6a8bebaa4d5a979a38db29a9373e9851f60c6b11f72172c585947e78f3081957",
+            "XDG_CONFIG_HOME=/config",
+            "XDG_DATA_HOME=/data",
+            "GODEBUG=cgocheck=0",
+            "VIPS_CONCURRENCY=2",
+            "VIPS_DISC_THRESHOLD=32m",
+            "SERVER_NAME=:8080",
+            "EVATHUMBER_SOURCE=/data/images",
+            "EVATHUMBER_CACHE=/data/cache",
+            "EVATHUMBER_POOL_SOCKET=/tmp/evathumber/pool.sock"
+        ]
+    },
+    "image_vs_initial_source_mismatches": [
+        "src/Url/Parser.php"
+    ],
+    "fixtures": {
+        "demo.jpg": {
+            "provenance": "existing upload/demo.jpg; upstream author/license not established; not redistributed",
+            "sha256": "221a14a31070065a6b5e83b7e076e0d31fbcfa14edfee49172bb6038a1c54788",
+            "bytes": 24843,
+            "metadata": {
+                "0": 300,
+                "1": 200,
+                "2": 2,
+                "3": "width=\"300\" height=\"200\"",
+                "bits": 8,
+                "channels": 3,
+                "mime": "image/jpeg",
+                "width_unit": "px",
+                "height_unit": "px"
+            }
+        },
+        "face.jpg": {
+            "provenance": "existing upload/face.jpg; upstream author/license not established; not redistributed",
+            "sha256": "f8dd45e4b3e1921b2804226957d1585cdebb3b7a21aae34e46ccb6c41779aacd",
+            "bytes": 56412,
+            "metadata": {
+                "0": 300,
+                "1": 433,
+                "2": 2,
+                "3": "width=\"300\" height=\"433\"",
+                "bits": 8,
+                "channels": 3,
+                "mime": "image/jpeg",
+                "width_unit": "px",
+                "height_unit": "px"
+            }
+        },
+        "blend.png": {
+            "provenance": "existing upload/blend.png; upstream author/license not established; not redistributed",
+            "sha256": "87ed5009e86a097fce5baa9df37f8c3f47779ec360b312b1eddd326dd2e8af5a",
+            "bytes": 85640,
+            "metadata": {
+                "0": 300,
+                "1": 200,
+                "2": 3,
+                "3": "width=\"300\" height=\"200\"",
+                "bits": 8,
+                "mime": "image/png",
+                "width_unit": "px",
+                "height_unit": "px"
+            }
+        },
+        "large.jpg": {
+            "provenance": "local demo.jpg enlarged 8x via libvips resize default kernel, JPEG Q90; synthetic scale derivative",
+            "sha256": "2d153e26556880793482d2707b675d0b2f07d6ccd9ce357c8e7d97a44cfad873",
+            "bytes": 452223,
+            "metadata": {
+                "0": 2400,
+                "1": 1600,
+                "2": 2,
+                "3": "width=\"2400\" height=\"1600\"",
+                "bits": 8,
+                "channels": 3,
+                "mime": "image/jpeg",
+                "width_unit": "px",
+                "height_unit": "px"
+            }
+        }
+    },
+    "container_exits": [
+        {
+            "mode": "pool",
+            "round": 1,
+            "concurrency": 1,
+            "exit_code": 0,
+            "oom_killed": false
+        }
+    ],
+    "final_source": "59f3312625997677f95fb830cb3432bba6ba8351a4b17fd2dd9e51f1cf593d87",
+    "source_changed_during_run": false,
+    "finished_utc": "2026-09-27T07:23:03+00:00"
+}

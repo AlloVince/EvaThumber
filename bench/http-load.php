@@ -102,9 +102,12 @@ PHP;
 
 function poolEvents(string $name): array
 {
-    $p = new Process(['docker', 'logs', $name]); $p->mustRun();
+    // High-concurrency containers produce tens of thousands of access-log lines;
+    // keep only pool event lines so the driver itself stays bounded.
+    $p = new Process(['sh', '-c', 'docker logs ' . escapeshellarg($name) . ' 2>&1 | grep "\"event\":" || true']);
+    $p->mustRun();
     $events = [];
-    foreach (explode("\n", $p->getErrorOutput() . "\n" . $p->getOutput()) as $line) {
+    foreach (explode("\n", $p->getOutput()) as $line) {
         $row = json_decode($line, true);
         if (is_array($row) && isset($row['event'])) { $events[] = $row; }
     }
@@ -252,7 +255,7 @@ try {
                     '--memory', '512m', '--cpus', '2', '--pids-limit', '256', '--tmpfs', '/tmp', '--tmpfs', '/config/caddy:uid=33,gid=33',
                     '--tmpfs', '/data/caddy:uid=33,gid=33', '--tmpfs', '/data/cache:uid=33,gid=33',
                     '--mount', 'type=bind,source=' . $temporary . '/source,target=/data/images,readonly',
-                    '-e', 'EVATHUMBER_PHP_BINARY=/usr/local/bin/php', '-p', '127.0.0.1::8081'];
+                    '-e', 'EVATHUMBER_PHP_BINARY=/usr/local/bin/php', '-p', '127.0.0.1::8080'];
                 if (isset($options['workers'])) { array_push($args, '-e', 'EVATHUMBER_POOL_SIZE=' . (int) $options['workers']); }
                 if (isset($options['worker-max-jobs'])) { array_push($args, '-e', 'EVATHUMBER_WORKER_MAX_JOBS=' . (int) $options['worker-max-jobs']); }
                 if ($mode === 'isolated') { array_push($args, '-e', 'EVATHUMBER_POOL_SOCKET=', '--entrypoint', '/usr/local/bin/frankenphp'); }
@@ -270,7 +273,7 @@ try {
                         $copy->mustRun();
                     }
                 }
-                $base = 'http://' . command(['docker', 'port', $name, '8081']);
+                $base = 'http://' . command(['docker', 'port', $name, '8080']);
                 $ready = false; $readinessDeadline = microtime(true) + 20;
                 do {
                     $probe = new Process(['curl', '-fsS', '--max-time', '1', '--noproxy', '*', $base . '/healthz']);
@@ -375,8 +378,9 @@ PHP;
                 }
                 command(['docker', 'stop', '--timeout', '45', $name], 60);
                 $state = json_decode(command(['docker', 'inspect', '--format', '{{json .State}}', $name]), true, flags: JSON_THROW_ON_ERROR);
-                $log = new Process(['docker', 'logs', $name]); $log->mustRun();
-                file_put_contents($out . '/' . $mode . '-r' . $round . '-c' . $concurrency . '.log.gz', gzencode($log->getOutput() . $log->getErrorOutput(), 9));
+                $logPath = $out . '/' . $mode . '-r' . $round . '-c' . $concurrency . '.log.gz';
+                $log = new Process(['sh', '-c', 'docker logs ' . escapeshellarg($name) . ' 2>&1 | gzip -9 > ' . escapeshellarg($logPath)]);
+                $log->mustRun();
                 $report['container_exits'][] = ['mode' => $mode, 'round' => $round, 'concurrency' => $concurrency, 'exit_code' => $state['ExitCode'], 'oom_killed' => $state['OOMKilled']];
                 if ($state['ExitCode'] !== 0 || $state['OOMKilled']) { $report['failures'][] = $name . ': unclean shutdown'; }
                 command(['docker', 'rm', $name]); $name = null;
@@ -388,7 +392,7 @@ PHP;
 } finally {
     if ($sampler !== null && $sampler->isRunning()) { $sampler->stop(0); }
     if ($name !== null) {
-        $log = new Process(['docker', 'logs', $name]); $log->run(); file_put_contents($out . '/failure-container.log', $log->getOutput() . $log->getErrorOutput());
+        $log = new Process(['sh', '-c', 'docker logs ' . escapeshellarg($name) . ' > ' . escapeshellarg($out . '/failure-container.log') . ' 2>&1']); $log->run();
         $remove = new Process(['docker', 'rm', '-f', $name]); $remove->run();
     }
     $final = snapshot(); jsonSave($out . '/final-source.json', $final);

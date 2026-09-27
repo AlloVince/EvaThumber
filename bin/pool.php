@@ -198,6 +198,21 @@ try {
                 if (!str_contains($client['buffer'], "\n")) { continue; }
                 $job = json_decode(trim($client['buffer']), true, 16);
                 $valid = is_array($job) && ($job['protocol'] ?? null) === 1;
+                if ($valid && ($job['op'] ?? null) === 'status') {
+                    // Readiness probe: one cheap local frame, never a job, never an
+                    // event, so probes cannot be mistaken for served work.
+                    $idle = 0;
+                    $busy = 0;
+                    foreach ($workers as $probe) {
+                        if (!$probe['ready']) { continue; }
+                        if ($probe['client'] === null) { ++$idle; } else { ++$busy; }
+                    }
+                    @fwrite($client['stream'], json_encode(['protocol' => 1, 'status' => 200, 'idle' => $idle,
+                        'active' => $busy, 'queued' => count($queue), 'capacity' => $settings->poolSize], JSON_THROW_ON_ERROR) . "\n");
+                    fclose($client['stream']);
+                    unset($clients[$id]);
+                    continue;
+                }
                 foreach (['publicId', 'transformation', 'destination', 'format', 'identity'] as $field) { $valid = $valid && is_string($job[$field] ?? null); }
                 $cache = realpath($settings->cache);
                 $valid = $valid && $cache !== false && realpath(dirname($job['destination'])) === $cache

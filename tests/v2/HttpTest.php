@@ -231,4 +231,59 @@ final class HttpTest extends TestCase
             rmdir($root);
         }
     }
+
+    public function testReadinessReflectsSourceAndCacheAvailability(): void
+    {
+        $root = sys_get_temp_dir() . '/eva-readyz-' . bin2hex(random_bytes(8));
+        mkdir($root);
+        mkdir($root . '/images');
+        mkdir($root . '/cache');
+        try {
+            $kernel = new Kernel(new Settings($root . '/images', $root . '/cache'));
+            $ready = $kernel->handle(Request::create('/readyz'));
+            self::assertSame(200, $ready->getStatusCode());
+            self::assertSame(['status' => 'ready'], json_decode((string) $ready->getContent(), true));
+            self::assertStringContainsString('no-store', (string) $ready->headers->get('Cache-Control'));
+            // Liveness never depends on the transform path.
+            self::assertSame(200, $kernel->handle(Request::create('/healthz'))->getStatusCode());
+            if (function_exists('posix_geteuid') && posix_geteuid() === 0) {
+                // Root bypasses the mode bits, so a chmod cannot make the cache
+                // unwritable here. The production image is non-root, and
+                // tests/product-acceptance.php proves this against a real read-only mount.
+                self::markTestSkipped('Permission-based unwritable cache requires a non-root user.');
+            }
+            chmod($root . '/cache', 0500);
+            $unready = $kernel->handle(Request::create('/readyz'));
+            self::assertSame(503, $unready->getStatusCode());
+            self::assertSame(['source' => true, 'cache' => false], json_decode((string) $unready->getContent(), true)['checks']);
+            self::assertSame(200, $kernel->handle(Request::create('/healthz'))->getStatusCode());
+            chmod($root . '/cache', 0700);
+        } finally {
+            @chmod($root . '/cache', 0700);
+            rmdir($root . '/images');
+            rmdir($root . '/cache');
+            rmdir($root);
+        }
+    }
+
+    public function testReadinessRequiresAReachablePool(): void
+    {
+        $root = sys_get_temp_dir() . '/eva-readyz-pool-' . bin2hex(random_bytes(8));
+        mkdir($root);
+        mkdir($root . '/images');
+        mkdir($root . '/cache');
+        try {
+            $kernel = new Kernel(new Settings($root . '/images', $root . '/cache', poolSocket: $root . '/absent.sock'));
+            $response = $kernel->handle(Request::create('/readyz'));
+            self::assertSame(503, $response->getStatusCode());
+            $body = json_decode((string) $response->getContent(), true);
+            self::assertSame('unready', $body['status']);
+            self::assertFalse($body['checks']['pool']);
+            self::assertSame(200, $kernel->handle(Request::create('/healthz'))->getStatusCode());
+        } finally {
+            rmdir($root . '/images');
+            rmdir($root . '/cache');
+            rmdir($root);
+        }
+    }
 }

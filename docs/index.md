@@ -3,6 +3,7 @@
 | 任务 | 路径 |
 |---|---|
 | 产品推进、验证结果、剩余发布门槛 | [progress](progress.md) |
+| 发布评审与 Go/No-Go 结论 | [release-review](release-review.md) |
 | 理解项目、主数据流 | [架构概览](architecture/overview.md) |
 | 边界、耦合、职责归属 | [模块边界](architecture/boundaries.md) |
 | 固定槽位准入历史与当前常驻池 | [准入 ADR](architecture/adr/0001-cache-admission.md)、[常驻池 ADR](architecture/adr/0002-persistent-transform-pool.md) |
