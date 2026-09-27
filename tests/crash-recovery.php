@@ -47,16 +47,39 @@ $start = static function (string $name) use ($must, $work, $image, $platform, &$
     $containers[] = $name;
     return 'http://' . $must(['docker', 'port', $name, '8080']);
 };
-$awaitReady = static function (string $base) use ($try): float {
+// A readiness failure must say why. The pool supervisor reports its startup on the
+// first log lines, which a bare `--tail` drops once polling has filled the buffer.
+$logExcerpt = static function (string $name) use ($try): string {
+    $logs = $try(['docker', 'logs', $name], 30);
+    $lines = explode("\n", $logs['out'] . $logs['err']);
+    return "--- log head ---\n" . implode("\n", array_slice($lines, 0, 40))
+        . "\n--- log tail ---\n" . implode("\n", array_slice($lines, -25));
+};
+$probe = static function (string $url) use ($try): array {
+    $result = $try(['curl', '--silent', '--show-error', '--max-time', '2', '--noproxy', '*',
+        '--write-out', "\n%{http_code}", $url], 6);
+    $split = strrpos($result['out'], "\n");
+    return $split === false
+        ? ['status' => 0, 'body' => $result['out']]
+        : ['status' => (int) trim(substr($result['out'], $split + 1)), 'body' => trim(substr($result['out'], 0, $split))];
+};
+$awaitReady = static function (string $base, string $name = '') use ($probe, $check, $logExcerpt, $try): float {
     $started = hrtime(true);
+    $live = ['status' => 0, 'body' => ''];
+    $ready = ['status' => 0, 'body' => 'no probe reached the container'];
     do {
-        if ($try(['curl', '-fsS', '--max-time', '1', '--noproxy', '*', $base . '/healthz'], 5)['code'] === 0
-            && $try(['curl', '-fsS', '--max-time', '2', '--noproxy', '*', $base . '/readyz'], 5)['code'] === 0) {
+        $live = $probe($base . '/healthz');
+        $ready = $probe($base . '/readyz');
+        if ($live['status'] === 200 && $ready['status'] === 200) {
             return round((hrtime(true) - $started) / 1e6, 3);
         }
         usleep(100_000);
     } while (hrtime(true) - $started < 30_000_000_000);
-    throw new RuntimeException('Container never became ready at ' . $base);
+    $check(false, 'Container never became ready at ' . $base
+        . "\nlast healthz: " . json_encode($live, JSON_UNESCAPED_SLASHES)
+        . "\nlast readyz: " . json_encode($ready, JSON_UNESCAPED_SLASHES)
+        . ($name === '' ? '' : "\nstate: " . $try(['docker', 'inspect', '--format', '{{json .State}}', $name], 20)['out'] . "\n" . $logExcerpt($name)));
+    return -1.0;
 };
 // OrbStack reassigns the ephemeral host port on every stop/start, so re-read it.
 $rebase = static fn (string $name): string => 'http://' . $must(['docker', 'port', $name, '8080']);
@@ -167,7 +190,7 @@ $residue = static function (string $name) use ($must): array {
 // A recovered product must be indistinguishable from one built by a container that never
 // crashed. Anything else means the cache survived the kill in a wrong state.
 $recover = static function (string $name, string $base, array $reference, array $paths) use ($check, $awaitReady, $settled, $residue, $scratch): array {
-    $awaitReady($base);
+    $awaitReady($base, $name);
     $recovered = ['products' => [], 'residue' => null];
     foreach ($paths as $path) {
         $file = $scratch('recovered');
@@ -238,7 +261,7 @@ try {
     // Pristine reference: what the product looks like when nothing ever goes wrong.
     $referenceName = 'eva-crash-ref-' . bin2hex(random_bytes(4));
     $referenceBase = $start($referenceName);
-    $awaitReady($referenceBase);
+    $awaitReady($referenceBase, $referenceName);
     $reference = [];
     foreach ($scenarios as $keys) {
         foreach ($keys as [$transform, $version]) {
@@ -258,7 +281,7 @@ try {
 
     $name = 'eva-crash-' . bin2hex(random_bytes(4));
     $base = $start($name);
-    $facts['initial_ready_ms'] = $awaitReady($base);
+    $facts['initial_ready_ms'] = $awaitReady($base, $name);
     $log = $work . '/pool.log';
     $tail($name, $log);
 
@@ -290,7 +313,7 @@ try {
                 $check($response['status'] !== 200, 'A SIGKILLed container cannot answer 200: ' . $response['path']);
             }
             $base = $restart($name);
-            $entry['restart_ready_ms'] = $facts['initial_ready_ms'] = $awaitReady($base);
+            $entry['restart_ready_ms'] = $facts['initial_ready_ms'] = $awaitReady($base, $name);
             $entry['recovery'] = $recover($name, $base, $reference, $paths);
         } elseif ($scenario === 'pool_supervisor_sigkill') {
             // Parent sudden death: PID 1 must reap the tree and the container must exit.
@@ -313,7 +336,7 @@ try {
             $entry['exit_code'] = $state['ExitCode'];
             $entry['oom_killed'] = $state['OOMKilled'];
             $base = $restart($name);
-            $entry['restart_ready_ms'] = $facts['initial_ready_ms'] = $awaitReady($base);
+            $entry['restart_ready_ms'] = $facts['initial_ready_ms'] = $awaitReady($base, $name);
             $entry['recovery'] = $recover($name, $base, $reference, $paths);
         } else {
             // Graceful stop with real work in flight: drain or bounded failure, never a
@@ -331,7 +354,7 @@ try {
             $check($state['ExitCode'] === 0, 'Graceful stop must exit 0, got ' . $state['ExitCode']);
             $entry['exit_code'] = $state['ExitCode'];
             $base = $restart($name);
-            $entry['restart_ready_ms'] = $facts['initial_ready_ms'] = $awaitReady($base);
+            $entry['restart_ready_ms'] = $facts['initial_ready_ms'] = $awaitReady($base, $name);
             $entry['recovery'] = $recover($name, $base, $reference, $paths);
         }
         $report[$scenario] = $entry;
@@ -353,7 +376,7 @@ try {
         JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
 } catch (Throwable $error) {
     foreach ($containers as $container) {
-        $logs = $try(['docker', 'logs', '--tail', '120', $container], 30);
+        fwrite(STDERR, $logExcerpt($container) . "\n");
         if ($logs['err'] !== '' || $logs['out'] !== '') {
             fwrite(STDERR, $logs['out'] . $logs['err'] . "\n");
         }

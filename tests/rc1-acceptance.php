@@ -37,22 +37,49 @@ $check = static function (bool $condition, string $message): void {
         throw new RuntimeException($message);
     }
 };
+// A readiness failure must say why. Capture the container's log head as well as its
+// tail: the pool supervisor reports its startup on the first lines, which a bare
+// `--tail` drops once a polling loop has filled the buffer with access-log lines.
+$logExcerpt = static function (string $name) use ($try): string {
+    $logs = $try(['docker', 'logs', $name], 30);
+    $lines = explode("\n", $logs['out'] . $logs['err']);
+    return "--- log head ---\n" . implode("\n", array_slice($lines, 0, 40))
+        . "\n--- log tail ---\n" . implode("\n", array_slice($lines, -25));
+};
 // The documented invocation, unchanged: only the image mount and the published port.
-$start = static function (string $name, array $extra = []) use ($must, $work, $image, $platform, &$containers): string {
+$probe = static function (string $url): array {
+    $process = new Process(['curl', '--silent', '--show-error', '--max-time', '2', '--noproxy', '*',
+        '--write-out', "\n%{http_code}", $url], timeout: 5);
+    $process->run();
+    $output = $process->getOutput();
+    $split = strrpos($output, "\n");
+    return $split === false
+        ? ['status' => 0, 'body' => trim($output)]
+        : ['status' => (int) trim(substr($output, $split + 1)), 'body' => trim(substr($output, 0, $split))];
+};
+$start = static function (string $name, array $extra = []) use ($must, $try, $check, $probe, $logExcerpt, $work, $image, $platform, &$containers): string {
     array_push($extra, '-d', '--name', $name, '--platform', $platform,
         '-p', '127.0.0.1::8080', '-v', $work . '/images:/data/images:ro', $image);
     $must(array_merge(['docker', 'run'], $extra));
     $containers[] = $name;
     $base = 'http://' . $must(['docker', 'port', $name, '8080']);
     $started = hrtime(true);
+    $live = ['status' => 0, 'body' => ''];
+    $ready = ['status' => 0, 'body' => 'no probe reached the container'];
     do {
-        if ((new Process(['curl', '-fsS', '--max-time', '1', '--noproxy', '*', $base . '/healthz'], timeout: 5))->run() === 0
-            && (new Process(['curl', '-fsS', '--max-time', '2', '--noproxy', '*', $base . '/readyz'], timeout: 5))->run() === 0) {
+        $live = $probe($base . '/healthz');
+        $ready = $probe($base . '/readyz');
+        if ($live['status'] === 200 && $ready['status'] === 200) {
             return $base;
         }
         usleep(100_000);
     } while (hrtime(true) - $started < 30_000_000_000);
-    throw new RuntimeException('Container never became ready: ' . $name . "\n" . $try(['docker', 'logs', $name])['err']);
+    $check(false, 'Container never became ready: ' . $name
+        . "\nlast healthz: " . json_encode($live, JSON_UNESCAPED_SLASHES)
+        . "\nlast readyz: " . json_encode($ready, JSON_UNESCAPED_SLASHES)
+        . "\nstate: " . $try(['docker', 'inspect', '--format', '{{json .State}}', $name], 20)['out']
+        . "\n" . $logExcerpt($name));
+    throw new LogicException('unreachable');
 };
 $stop = static function (string $name) use ($try, $must, $check): array {
     $began = hrtime(true);
@@ -197,10 +224,7 @@ try {
         JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR) . "\n";
 } catch (Throwable $error) {
     foreach ($containers as $name) {
-        $logs = $try(['docker', 'logs', '--tail', '80', $name], 20);
-        if ($logs['err'] !== '' || $logs['out'] !== '') {
-            fwrite(STDERR, $logs['out'] . $logs['err'] . "\n");
-        }
+        fwrite(STDERR, $logExcerpt($name) . "\n");
     }
     throw $error;
 } finally {
