@@ -41,6 +41,10 @@ jobs:
         run: php tests/container-smoke.php evathumber:smoke "${{ matrix.platform }}"
       - name: RC1 product acceptance on the documented two-flag invocation
         run: php tests/rc1-acceptance.php evathumber:smoke "${{ matrix.platform }}"
+      - name: Product acceptance across cache volume modes
+        run: php tests/product-acceptance.php evathumber:smoke "${{ matrix.platform }}"
+      - name: Docker acceptance matrix
+        run: php tests/docker-acceptance.php evathumber:smoke "${{ matrix.platform }}"
       - name: Crash recovery acceptance
         run: php tests/crash-recovery.php evathumber:smoke "${{ matrix.platform }}"
 

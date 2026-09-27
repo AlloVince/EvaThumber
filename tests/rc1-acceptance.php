@@ -11,7 +11,6 @@ declare(strict_types=1);
 //   php tests/rc1-acceptance.php IMAGE [PLATFORM]
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-use Jcupitt\Vips\Image;
 use Symfony\Component\Process\Process;
 
 $image = $argv[1] ?? throw new InvalidArgumentException('Usage: php tests/rc1-acceptance.php IMAGE [PLATFORM]');
@@ -110,8 +109,11 @@ try {
     $facts['image'] = ['id' => $must(['docker', 'image', 'inspect', '--format', '{{.Id}}', $image]),
         'architecture' => $must(['docker', 'image', 'inspect', '--format', '{{.Architecture}}', $image])];
 
+    $active = '';
+    $oracleContainer = static function () use (&$active): string { return $active; };
     $phaseA = 'eva-rc1-a-' . bin2hex(random_bytes(4));
     $base = $start($phaseA);
+    $active = $phaseA;
     $request = static function (string $path, array $headers = [], string $method = 'GET', float $timeout = 60) use (&$base): array {
         $context = stream_context_create(['http' => [
             'method' => $method, 'header' => implode("\r\n", $headers), 'timeout' => $timeout, 'ignore_errors' => true,
@@ -135,24 +137,27 @@ try {
             fclose($stream);
         }
     };
-    // Every successful image response must decode, not merely return 200.
-    $expect = static function (string $label, array $response, int $status, string $mime, ?int $width = null, ?int $height = null) use ($check): array {
+    // Every successful image response must decode, not merely return 200. Decoding
+    // happens inside the container under test: libvips is guaranteed there and not
+    // necessarily on the host running this script.
+    $oracle = require __DIR__ . '/image-oracle.php';
+    $expect = static function (string $label, array $response, int $status, string $mime, ?int $width = null, ?int $height = null) use ($check, $oracle, $oracleContainer): array {
         $check($response['status'] === $status, $label . ': expected HTTP ' . $status . ', got ' . $response['status'] . ' ' . substr($response['body'], 0, 120));
         if ($mime !== '') {
             $check(($response['content-type'] ?? '') === $mime, $label . ': expected ' . $mime . ', got ' . ($response['content-type'] ?? 'none'));
         }
         try {
-            $size = Image::newFromBuffer($response['body']);
+            [$decodedWidth, $decodedHeight] = $oracle($oracleContainer(), $response['body']);
         } catch (Throwable $error) {
             throw new RuntimeException($label . ': response is not a decodable image: ' . $error->getMessage());
         }
         if ($width !== null) {
-            $check($size->width === $width, $label . ': expected width ' . $width . ', got ' . $size->width);
+            $check($decodedWidth === $width, $label . ': expected width ' . $width . ', got ' . $decodedWidth);
         }
         if ($height !== null) {
-            $check($size->height === $height, $label . ': expected height ' . $height . ', got ' . $size->height);
+            $check($decodedHeight === $height, $label . ': expected height ' . $height . ', got ' . $decodedHeight);
         }
-        return [$size->width, $size->height];
+        return [$decodedWidth, $decodedHeight];
     };
 
     $check($request('/healthz')['status'] === 200, 'Liveness must answer 200.');
@@ -206,6 +211,7 @@ try {
     $must(['docker', 'volume', 'create', $volume]);
     $phaseB = 'eva-rc1-b-' . bin2hex(random_bytes(4));
     $base = $start($phaseB, ['-v', $volume . ':/data/cache']);
+    $active = $phaseB;
     $second = '/image/upload/c_fill,w_321,h_321/f_webp/face.jpg';
     $cold = $request($second);
     $check($cold['status'] === 200 && $cold['x-evathumber-cache'] === 'MISS', 'A fresh cache volume must MISS first.');

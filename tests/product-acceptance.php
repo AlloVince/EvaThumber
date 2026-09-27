@@ -12,8 +12,11 @@ declare(strict_types=1);
 // Usage: php tests/product-acceptance.php IMAGE [PLATFORM]
 require dirname(__DIR__) . '/vendor/autoload.php';
 
-use Jcupitt\Vips\Image;
 use Symfony\Component\Process\Process;
+
+// libvips is guaranteed inside the image under test, not on the host running
+// this script, so every decode and fixture generation happens in a container.
+$oracle = require __DIR__ . '/image-oracle.php';
 
 $image = $argv[1] ?? throw new InvalidArgumentException('Usage: php tests/product-acceptance.php IMAGE [PLATFORM]');
 $platform = $argv[2] ?? 'linux/arm64';
@@ -85,7 +88,11 @@ try {
     }
     $facts['image'] = ['id' => $run(['docker', 'image', 'inspect', '--format', '{{.Id}}', $image]),
         'architecture' => $run(['docker', 'image', 'inspect', '--format', '{{.Architecture}}', $image])];
-    Image::newFromFile($work . '/source/demo.jpg')->resize(6)->jpegsave($work . '/source/large.jpg', ['Q' => 90]);
+    $run(['docker', 'run', '--rm', '--platform', $platform, '-v', $work . '/source:/out',
+        '--entrypoint', 'php', $image, '-r',
+        'require "/app/vendor/autoload.php";'
+        . '\Jcupitt\Vips\Image::newFromFile("/out/demo.jpg")->resize(6)->jpegsave("/out/large.jpg", ["Q" => 90]);'], 180);
+    $check(is_file($work . '/source/large.jpg'), 'The container did not produce the enlarged fixture.');
     $facts['fixtures']['large.jpg'] = ['provenance' => 'upload/demo.jpg enlarged 6x, JPEG Q90',
         'sha256' => hash_file('sha256', $work . '/source/large.jpg'), 'bytes' => filesize($work . '/source/large.jpg'),
         'size' => array_slice(getimagesize($work . '/source/large.jpg'), 0, 3)];
@@ -117,10 +124,10 @@ try {
             fclose($stream);
         }
     };
-    $decode = static function (string $body, string $label): array {
+    $active = $phaseA;
+    $decode = static function (string $body, string $label) use ($oracle, &$active): array {
         try {
-            $decoded = Image::newFromBuffer($body);
-            return [$decoded->width, $decoded->height];
+            return $oracle($active, $body);
         } catch (Throwable $error) {
             throw new RuntimeException('Response is not a decodable image (' . $label . '): ' . $error->getMessage());
         }
@@ -191,6 +198,7 @@ try {
     $run(['docker', 'volume', 'create', $volume]);
     $phaseB = 'eva-product-b-' . bin2hex(random_bytes(4));
     $base = $start($phaseB, ['-v', $volume . ':/data/cache']);
+    $active = $phaseB;
     $path = '/image/upload/c_fill,w_321,h_321/f_webp/face.jpg';
     $cold = $request($path);
     $check($cold['status'] === 200 && $cold['x-evathumber-cache'] === 'MISS', 'First request on a fresh volume must be a MISS.');
