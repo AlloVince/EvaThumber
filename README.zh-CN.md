@@ -7,7 +7,7 @@
 ## 快速开始
 
 ```bash
-docker run -p 8080:8080 -v /path/to/your/images:/data/images:ro ghcr.io/allovince/evathumber
+docker run -p 8080:8080 -v /path/to/your/images:/data/images:ro docker.io/allovince/evathumber
 ```
 
 然后请求一个变换：
@@ -17,6 +17,8 @@ curl -o out.webp 'http://localhost:8080/image/upload/c_fill,w_300,h_300/f_webp/y
 ```
 
 这就是全部配置。你唯一需要理解的业务参数是图片目录，以只读方式挂载到 `/data/images`。其他一切——worker、缓存、超时、上限——都有合理默认值。
+
+发布的镜像支持 `linux/amd64` 与 `linux/arm64`，以非 root 用户运行，不需要配置文件、migration 或初始化命令。`docker.io/allovince/evathumber` 指向最新发布版本；需要固定版本时请用 `docker.io/allovince/evathumber:2.0.0`。
 
 > 图片目录必须能被容器内用户（uid 33）读取。`mkdir -m 700 ~/photos` 这类私有目录在 macOS 上可用，但 Linux 容器读不到；请对挂载目录使用 `chmod 755`（或组可读）。配置错误时 `/healthz` 仍返回 200，但 `/readyz` 会报 `"source": false`，图片请求返回 404。
 
@@ -28,7 +30,7 @@ curl -o out.webp 'http://localhost:8080/image/upload/c_fill,w_300,h_300/f_webp/y
 docker run -p 8080:8080 \
   -v /path/to/your/images:/data/images:ro \
   -v evathumber-cache:/data/cache \
-  ghcr.io/allovince/evathumber
+  docker.io/allovince/evathumber
 ```
 
 缓存是可重建的派生数据：删除它不影响原图，服务会按需重新生成。`/healthz` 是存活探针；`/readyz` 是就绪探针（缓存不可写时返回 503）。
@@ -135,12 +137,12 @@ composer analyse   # PHPStan level 8
 Docker 验收套件（需要 Docker daemon 和 `upload/` 中的 fixture）：
 
 ```bash
-docker build --platform linux/arm64 --target production -t evathumber:rc1 .
-php tests/container-smoke.php    evathumber:rc1 linux/arm64
-php tests/rc1-acceptance.php    evathumber:rc1 linux/arm64
-php tests/product-acceptance.php evathumber:rc1 linux/arm64
-php tests/docker-acceptance.php  evathumber:rc1 linux/arm64
-php tests/crash-recovery.php    evathumber:rc1 linux/arm64
+docker build --platform linux/arm64 --target production -t evathumber:2.0.0 .
+php tests/container-smoke.php    evathumber:2.0.0 linux/arm64
+php tests/rc1-acceptance.php    evathumber:2.0.0 linux/arm64
+php tests/product-acceptance.php evathumber:2.0.0 linux/arm64
+php tests/docker-acceptance.php  evathumber:2.0.0 linux/arm64
+php tests/crash-recovery.php    evathumber:2.0.0 linux/arm64
 ```
 
 所有套件都按 Quick Start 的方式运行镜像：只传 `-p` 和只读原图挂载，不挂缓存卷、不加调优参数。`crash-recovery.php` 还会在编码中途分别强杀忙碌 worker、容器本身和池 supervisor，并证明每个恢复后的产物与"从未崩溃的容器"逐字节一致。

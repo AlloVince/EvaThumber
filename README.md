@@ -7,7 +7,7 @@ Self-hosted image transformation service. Send Cloudinary-style transformation U
 ## Quick start
 
 ```bash
-docker run -p 8080:8080 -v /path/to/your/images:/data/images:ro ghcr.io/allovince/evathumber
+docker run -p 8080:8080 -v /path/to/your/images:/data/images:ro docker.io/allovince/evathumber
 ```
 
 Then request a transformation:
@@ -17,6 +17,8 @@ curl -o out.webp 'http://localhost:8080/image/upload/c_fill,w_300,h_300/f_webp/y
 ```
 
 That is the whole setup. The only thing you configure is your image directory, mounted read-only at `/data/images`. Everything else — workers, cache, timeouts, limits — has working defaults.
+
+The published image is `linux/amd64` and `linux/arm64`, runs as a nonroot user, and needs no configuration file, migration or setup command. `docker.io/allovince/evathumber` follows the latest release; pin `docker.io/allovince/evathumber:2.0.0` to stay on a fixed version.
 
 > The image directory must be readable by the container's user (uid 33). A private directory such as `mkdir -m 700 ~/photos` works on macOS but is unreadable inside a Linux container; use `chmod 755` (or group-readable) on the directory you mount. When this is wrong the service still answers `/healthz`, but `/readyz` reports `"source": false` and image requests return 404.
 
@@ -28,7 +30,7 @@ Generated images go to `/data/cache` inside the container. By default nothing is
 docker run -p 8080:8080 \
   -v /path/to/your/images:/data/images:ro \
   -v evathumber-cache:/data/cache \
-  ghcr.io/allovince/evathumber
+  docker.io/allovince/evathumber
 ```
 
 The cache is derived data: deleting it never affects your originals, and the service regenerates everything on demand. `/healthz` is liveness; `/readyz` is readiness (fails with 503 while the cache is not writable).
@@ -135,12 +137,12 @@ composer analyse   # PHPStan level 8
 Docker acceptance suites (require a Docker daemon and the fixtures in `upload/`):
 
 ```bash
-docker build --platform linux/arm64 --target production -t evathumber:rc1 .
-php tests/container-smoke.php    evathumber:rc1 linux/arm64
-php tests/rc1-acceptance.php    evathumber:rc1 linux/arm64
-php tests/product-acceptance.php evathumber:rc1 linux/arm64
-php tests/docker-acceptance.php  evathumber:rc1 linux/arm64
-php tests/crash-recovery.php    evathumber:rc1 linux/arm64
+docker build --platform linux/arm64 --target production -t evathumber:2.0.0 .
+php tests/container-smoke.php    evathumber:2.0.0 linux/arm64
+php tests/rc1-acceptance.php    evathumber:2.0.0 linux/arm64
+php tests/product-acceptance.php evathumber:2.0.0 linux/arm64
+php tests/docker-acceptance.php  evathumber:2.0.0 linux/arm64
+php tests/crash-recovery.php    evathumber:2.0.0 linux/arm64
 ```
 
 Every suite runs the image exactly as the Quick Start does — only `-p` and the read-only image mount, no cache volume, no tuning flags. `crash-recovery.php` additionally kills a busy worker, the container and the pool supervisor mid-encode, then proves every recovered product is byte-identical to one from a container that never crashed.

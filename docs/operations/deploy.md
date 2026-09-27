@@ -32,7 +32,7 @@
 - 实测同一份源码连续构建的 `RootFS.Layers` 逐层一致；镜像 config/manifest ID 会因 BuildKit attestation 元数据而变化，属预期，不是内容漂移。
 
 ## 发布边界
-CI image job 使用 buildx 构建 linux/amd64、linux/arm64，仅 v* tag 推送 ghcr.io。缓存是纯派生数据，删除即重建，不需要备份；TLS 终止与多副本编排由部署方负责，README 未承诺。当前无独立生产编排、回滚脚本或监控告警配置可引用。
+CI image job 使用 buildx 构建 linux/amd64、linux/arm64；分支 push 只构建缓存，`v*` tag 才用 `secrets.DOCKERHUB_TOKEN` 登录 Docker Hub 并推送 `docker.io/allovince/evathumber:2.0.0` 与 `:latest`。缓存是纯派生数据，删除即重建，不需要备份；TLS 终止与多副本编排由部署方负责，README 未承诺。当前无独立生产编排、回滚脚本或监控告警配置可引用。
 
 ## 相关
 - [配置](config.md)、[运行排障](runtime.md)、[测试与 CI](../development/testing.md)、[进度](../progress.md)。

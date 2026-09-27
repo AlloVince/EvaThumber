@@ -82,7 +82,7 @@ final readonly class Kernel implements HttpKernelInterface
                 return new JsonResponse(['error' => 'method_not_allowed'], 405, ['Allow' => 'GET, HEAD']);
             }
             if ($request->getPathInfo() === '/healthz') {
-                return new JsonResponse(['status' => 'ok', 'version' => '2.0.0-dev'], 200, ['Cache-Control' => 'no-store']);
+                return new JsonResponse(['status' => 'ok', 'version' => '2.0.0'], 200, ['Cache-Control' => 'no-store']);
             }
             if ($request->getPathInfo() === '/readyz') {
                 return $this->readiness();

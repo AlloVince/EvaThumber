@@ -4,9 +4,9 @@
 
 一个第一次看到 EvaThumber 的用户，只挂载自己的图片目录，就能可靠跑起官方 Docker 镜像并开始使用。
 
-本文件只记录 RC1 验收项、已完成、未完成、实测结果与当前 blocker。历史基线与阶段流水账已移除；证据优先级为源码 > 测试 > 已确认决策 > 本文件。
+本文件只记录 2.0.0 验收项、已完成、未完成、实测结果与当前 blocker。历史基线与阶段流水账已移除；证据优先级为源码 > 测试 > 已确认决策 > 本文件。
 
-## RC1 验收项
+## 2.0.0 验收项
 
 | # | 验收项 | 状态 | 证据 |
 |---|---|---|---|
@@ -23,7 +23,7 @@
 | 11 | 自动测试、静态分析、production smoke 全通过 | 通过 | 两个原生 runner 容器内 uid 33：**63 tests / 877 assertions，0 skip**；PHPStan level 8（`src` + `bin`）通过；`tests/container-smoke.php` 通过 |
 | 12 | 有真实 HTTP 压测报告 | 通过 | [`bench/results/rc1-http-full/`](../bench/results/rc1-http-full/)，32 场原始记录 |
 | 13 | README Quick Start 可由首次接触者直接执行 | 通过 | 四套 Docker 验收脚本均只使用 README 公开的 `docker run` 参数 |
-| 14 | 当前 commit 的 CI 与镜像构建证据完整 | 通过 | [run 36321362079](https://github.com/AlloVince/EvaThumber/actions/runs/36321362079)，commit `79ce709`：`test` amd64 与 arm64 均 success，`image` 双架构 buildx 构建 success；证据归档在 [`bench/results/rc1-ci/`](../bench/results/rc1-ci/) |
+| 14 | 当前 commit 的 CI 与镜像构建证据完整 | 通过 | 主干最近一次全绿：run `36322300814`（commit `aade6db`），`test` amd64/arm64 与 `image` 双架构构建全部 success；tag 发布记录见「发布」节 |
 
 ## 实测结果
 
@@ -75,7 +75,7 @@
 
 ## 未完成
 
-以下均不属于 RC1 门槛，属发布后的迭代：
+以下均不属于 2.0.0 门槛，属发布后的迭代：
 
 1. **硬 OOM 隔离**：现有的是 RSS 采样回收加有界拒绝，不是内核级内存硬上限。
 2. **q_auto 真实语料视觉校准**：本地边缘密度启发式，真实摄影/文字/透明素材的视觉验收未做。README 与兼容矩阵已标注不等同 Cloudinary。
@@ -91,7 +91,13 @@
 
 ## 当前状态
 
-RC1 清单 14 项全部具备当前 commit（`79ce709`）的实测证据。下一项是打 `v2.0.0-rc1` tag 触发 GHCR 双架构推送；这属于发布动作，需要单独授权，本次未执行。
+2.0.0 清单 14 项全部具备实测证据。发布链路：给仓库加 secret `DOCKERHUB_TOKEN`（Docker Hub access token，账号 `allovince`），再推 `v2.0.0` tag，CI 即推送 `docker.io/allovince/evathumber:2.0.0` 与 `:latest`。缺 secret 时发布步会直接失败而不产出半发布镜像。
+
+## 发布
+
+- 目标仓库：`docker.io/allovince/evathumber`（沿用 2018 年 v1 已存在的公开仓库；旧的 `latest`/`1.0.0`/`1.0.1` 标签被 2.0.0 覆盖）。
+- git tag 用 `v2.0.0`（CI 触发条件是 `v*`），镜像标签去掉 `v` 以延续 v1 的历史命名习惯。
+- tag 推送后的实测记录（run id、双架构 digest、匿名 pull 与真实挂载请求结果）写在本节。
 
 ## 入口
 

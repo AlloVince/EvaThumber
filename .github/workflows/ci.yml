@@ -53,28 +53,47 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write
+    env:
+      IMAGE: docker.io/allovince/evathumber
     steps:
       - uses: actions/checkout@v4
-      # OCI references must be lowercase, but GitHub keeps the repository's own
-      # capitalisation, so ghcr.io/Owner/Repo is rejected by the registry.
-      - name: Resolve the lowercase image reference
-        id: ref
-        run: echo "image=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
-        if: startsWith(github.ref, 'refs/tags/v')
+      # Branch and pull request runs only build and cache. A v* tag publishes
+      # docker.io/allovince/evathumber:<version without v> plus :latest, which is
+      # what the README quick start pulls.
+      - name: Resolve the release tags
+        id: meta
+        env:
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          if [ "${{ startsWith(github.ref, 'refs/tags/v') }}" != "true" ]; then
+            echo "push=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -z "$DOCKERHUB_TOKEN" ]; then
+            echo "::error::secrets.DOCKERHUB_TOKEN is required to publish a v* tag"
+            exit 1
+          fi
+          {
+            echo "push=true"
+            echo "tags<<EOF"
+            echo "$IMAGE:${GITHUB_REF_NAME#v}"
+            echo "$IMAGE:latest"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+      - name: Log in to Docker Hub
+        if: steps.meta.outputs.push == 'true'
+        uses: docker/login-action@v3
         with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: allovince
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
           context: .
           target: production
           platforms: linux/amd64,linux/arm64
-          push: ${{ startsWith(github.ref, 'refs/tags/v') }}
-          tags: ${{ steps.ref.outputs.image }}:${{ startsWith(github.ref, 'refs/tags/v') && github.ref_name || 'edge' }}
+          push: ${{ steps.meta.outputs.push == 'true' }}
+          tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
