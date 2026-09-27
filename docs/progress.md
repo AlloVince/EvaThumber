@@ -95,9 +95,17 @@
 
 ## 发布
 
-- 目标仓库：`docker.io/allovince/evathumber`（沿用 2018 年 v1 已存在的公开仓库；旧的 `latest`/`1.0.0`/`1.0.1` 标签被 2.0.0 覆盖）。
+- 目标仓库：`docker.io/allovince/evathumber`（沿用 2018 年 v1 已存在的公开仓库；旧的 `latest`/`1.0.0`/`1.0.1` 标签中 `latest` 被 2.0.0 覆盖，`1.0.0`/`1.0.1` 保留）。
 - git tag 用 `v2.0.0`（CI 触发条件是 `v*`），镜像标签去掉 `v` 以延续 v1 的历史命名习惯。
-- tag 推送后的实测记录（run id、双架构 digest、匿名 pull 与真实挂载请求结果）写在本节。
+
+### 已发布：2.0.0
+
+- tag `v2.0.0` → commit `f383e21`。
+- CI run [`36328625145`](https://github.com/AlloVince/EvaThumber/actions/runs/36328625145)：`test`（amd64、arm64 原生）与 `image` 三个 job 全部 success；`image` 登录 Docker Hub 后由 buildx 推送双架构。
+- 多架构 index digest `sha256:e87bbdab3c0d23c70ebad214a9d9a0ea9046879bfe815f098ec431fa7f238c5f`，`:2.0.0` 与 `:latest` 指向同一 index；amd64 manifest `sha256:fdc4f5fb…`、arm64 manifest `sha256:ed5ba789…`。
+- 匿名可拉取：`auth.docker.io` 匿名 token 请求两个标签的 manifest 均返回 200，无需登录。
+- 本机（arm64 macOS + OrbStack）用 README 原样两参数命令实测已发布镜像：`/healthz` 报 `2.0.0`、`/readyz` ready、`c_fill,w_300,h_300/f_webp` 冷请求 200（300×300，52ms）→ 第二次 `X-Evathumber-Cache: HIT`（2.4ms，带 ETag）、`f_avif` 200、容器内为 uid 33。
+- 对已发布镜像重跑 `tests/rc1-acceptance.php` 与 `tests/docker-acceptance.php`（141 项）均 exit 0。权限位相关的结论仍以原生两架构 CI 为准（OrbStack 会重映射 bind mount 属主）。
 
 ## 入口
 

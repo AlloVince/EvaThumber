@@ -4,9 +4,10 @@
 置信：Confirmed（代码/测试/人确认）｜Assumed（待验证，用完删除或升格）。
 更新：2026-09-27
 ## 当前焦点
-- Confirmed：RC1 清单 14 项全部具备当前 commit `79ce709` 的实测证据，含原生 amd64/arm64 CI（run 36321362079，三个 job 全 success）。清单与实测数据见 `docs/progress.md`，不要在别处重复数字。
-- Confirmed：开发主干是 `main`（已设为默认分支并推送）。远端 `master` 与 `feat/v2-cloudinary-compat` 仍在，但内容与 `main` 相同，尚未删除。
-- Confirmed：未授权打 tag 或发布镜像；`ghcr.io` 尚无推送。下一项是 `v2.0.0-rc1`（需单独授权）。
+- Confirmed：2.0.0 已发布。tag `v2.0.0` = commit `f383e21`，镜像 `docker.io/allovince/evathumber:2.0.0` 与 `:latest`（同一 index digest `sha256:e87bbdab…`）。CI run 36328625145 三 job 全 success，GitHub Release 已建（非 prerelease）。发布实测记录只写在 `docs/progress.md` 的「发布」节，数字不要在别处重复。
+- Confirmed：远端只剩 `main` 一条分支，`master` 与 `feat/v2-cloudinary-compat` 已确认是 main 的祖先后删除。
+- Confirmed：发布走 Docker Hub 而非 ghcr。CI image job 在 `v*` tag 时用 `secrets.DOCKERHUB_TOKEN`（Docker Hub access token，账号 `allovince`）登录，推 `:<去 v 版本号>` + `:latest`；分支 push 只构建缓存。secret 只存在于 GitHub，从未读取其值。
+- Confirmed：发布后 Docker Hub 上旧 `1.0.0`/`1.0.1` 标签仍是 2018 年的 v1 代码，只有 `latest` 被 2.0.0 覆盖。Hub 仓库 description 仍为空，需用户在网页端补。
 - Confirmed：验收脚本的 fixture 生成必须 `--user 0:0`（容器内 uid 33 写不进宿主目录）；解码必须走 `tests/image-oracle.php` 在容器内做，宿主 PHP 不保证有 libvips。
 ## 雷区与禁忌
 - Confirmed：外部旧会话记忆可能停留在中间状态；本仓 docs 与当前代码优先，不据旧任务清单重新实现已有模块。
