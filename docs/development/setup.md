@@ -11,7 +11,7 @@
 macOS；PHP 8.5.10、Composer 2.10.3、libvips 8.18.6。本地 lock：jcupitt/vips 2.6.1、PHPUnit 12.5.35、PHPStan 2.2.14；直接 Symfony HTTP/Routing/Process 依赖为 7.4.x，部分传递包为 8.1.x，不能说全部 Symfony 包锁在 7.4。
 ## 既有约定
 PSR-4 `EvaThumber\\` → src，strict_types=1、显式类型、final/readonly 小类；PHPDoc 描述集合形状。测试命名空间映射到 tests。无单独 formatter 配置；PHPStan level 8。
-当前分支为 master，CI 接受 master/main；defaults 偏好 main 不授权重命名。默认 Node/Python 工具偏好不适用于替换本项目 PHP 栈。
+开发主干为 `main`，CI 接受 master/main push、`v*` tag 与 PR。默认 Node/Python 工具偏好不适用于替换本项目 PHP 栈。
 ## 相关
 - 代码/配置：`composer.json`、`composer.lock`（本地）、`phpunit.xml`、`phpstan.neon`。
 - [命令](commands.md)、[测试](testing.md)。

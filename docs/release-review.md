@@ -13,7 +13,7 @@ RC1 清单 14 项全部具备当前 commit `79ce709` 的实测证据，包括原
 | 项目 | 当前事实 |
 |---|---|
 | 项目 | EvaThumber 2，自托管图片变换服务与 Composer 库 |
-| 分支 | `feat/v2-cloudinary-compat` |
+| 分支 | `main`（原 `master` + `feat/v2-cloudinary-compat` 已合并） |
 | 运行栈 | PHP 8.5、libvips 8.14.1、FrankenPHP |
 | 生产入口 | `php /app/bin/serve.php`，同时管理 HTTP 与本地变换池 |
 | HTTP 端口 | 容器 `8080`（README Quick Start 唯一暴露的端口） |

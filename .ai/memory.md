@@ -5,7 +5,7 @@
 更新：2026-09-27
 ## 当前焦点
 - Confirmed：RC1 清单 14 项全部具备当前 commit `79ce709` 的实测证据，含原生 amd64/arm64 CI（run 36321362079，三个 job 全 success）。清单与实测数据见 `docs/progress.md`，不要在别处重复数字。
-- Confirmed：开发主干已并到 `master`，用户要求后续改用 `main`。
+- Confirmed：开发主干是 `main`（已设为默认分支并推送）。远端 `master` 与 `feat/v2-cloudinary-compat` 仍在，但内容与 `main` 相同，尚未删除。
 - Confirmed：未授权打 tag 或发布镜像；`ghcr.io` 尚无推送。下一项是 `v2.0.0-rc1`（需单独授权）。
 - Confirmed：验收脚本的 fixture 生成必须 `--user 0:0`（容器内 uid 33 写不进宿主目录）；解码必须走 `tests/image-oracle.php` 在容器内做，宿主 PHP 不保证有 libvips。
 ## 雷区与禁忌
