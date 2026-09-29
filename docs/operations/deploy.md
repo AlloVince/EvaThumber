@@ -20,7 +20,7 @@
 
 ## 当前验证
 完整证据与剩余门槛见 [progress](../progress.md)。要点：
-- arm64 原生：容器内 uid 33 跑完整 suite **77 tests / 949 assertions，0 skip**；PHPStan level 8（`src` + `bin`）通过。
+- arm64 原生：容器内 uid 33 跑完整 suite **78 tests / 952 assertions，0 skip**；PHPStan level 8（`src` + `bin`）通过。
 - 五套 Docker 验收全部通过，只用 README 公开的两条 `docker run` 参数：`container-smoke`、`rc1-acceptance`、`product-acceptance`、`docker-acceptance`、`crash-recovery`。
 - `crash-recovery.php` 在编码中途分别强杀忙碌 worker、容器与池 supervisor，并加在途 graceful stop；每次恢复产物与纯净容器逐字节一致，staging/临时文件零残留。
 - 32 场真实 HTTP 压测零失败，报告在 `bench/results/rc1-http-full/`。
@@ -32,7 +32,28 @@
 - 实测同一份源码连续构建的 `RootFS.Layers` 逐层一致；镜像 config/manifest ID 会因 BuildKit attestation 元数据而变化，属预期，不是内容漂移。
 
 ## 发布边界
-CI image job 使用 buildx 构建 linux/amd64、linux/arm64；分支 push 只构建缓存，`v*` tag 才用 `secrets.DOCKERHUB_TOKEN` 登录 Docker Hub 并推送 `docker.io/allovince/evathumber:2.0.0` 与 `:latest`。缓存是纯派生数据，删除即重建，不需要备份；TLS 终止与多副本编排由部署方负责，README 未承诺。当前无独立生产编排、回滚脚本或监控告警配置可引用。
+CI image job 使用 buildx 构建 linux/amd64、linux/arm64。版本号只写在 `src/Version.php` 的 `Version::VERSION`（`/healthz` 直接回报它），发布时按语义化版本解析：
+
+| 触发 | 结果 |
+|---|---|
+| 分支 push / pull request | 只构建并写 gha 缓存，`push=false`；镜像带 OCI source/revision/version 标签 |
+| `v<major>.<minor>.<patch>` | 推送 `docker.io/allovince/evathumber:<version without v>` 与 `:latest` |
+| `v<major>.<minor>.<patch>-<prerelease>` | 只推 `<version without v>`，`:latest` 留在上一个稳定版 |
+
+任一条件不满足就整步失败、不推半成品镜像：tag 去掉 `v` 后不是合法 semver（Docker tag 不能含 `+`，因此拒绝 build metadata）、tag 与 `Version::VERSION` 不一致、或缺 `secrets.DOCKERHUB_TOKEN`（Docker Hub access token，账号 `allovince`）。tag 指向的 commit 必须先过 test job 的 amd64 与 arm64 原生 gate，image job `needs: test`。
+
+缓存是纯派生数据，删除即重建，不需要备份；TLS 终止与多副本编排由部署方负责，README 未承诺。当前无独立生产编排、回滚脚本或监控告警配置可引用。
+
+## 发布流程
+1. 确认要发布的 commit 已在 `main` 且 CI 全绿。
+2. 发一个 commit 把 `src/Version.php` 的 `Version::VERSION` 改成目标版本（patch 修 bug、minor 加能力、major 改不兼容语义），不改其他内容。
+3. 本地按 [命令](../development/commands.md) 跑 `composer test` 与 `composer analyse`，两者都要过。
+4. `git tag v<Version::VERSION> && git push origin main v<Version::VERSION>`。
+5. 看 `image` job：stable 版本的 run 要出现 `docker.io/allovince/evathumber:<version>` 与 `:latest` 两个 tag。
+6. 验收已发布镜像：匿名拉 `<version>`，用 README 原样两参数命令起容器，确认 `/healthz` 回报的版本号与 tag 一致、`/readyz` ready、一次冷请求 200 后转 `X-Evathumber-Cache: HIT`。
+7. 把 tag、commit、CI run、index digest 与第 6 步结果记进 [进度](../progress.md) 的发布小节。
+
+发布后 `main` 上的新提交不会自动进镜像：README Quick Start 拉的 `:latest` 只在下一个 stable tag 时前进。
 
 ## 相关
 - [配置](config.md)、[运行排障](runtime.md)、[测试与 CI](../development/testing.md)、[进度](../progress.md)。

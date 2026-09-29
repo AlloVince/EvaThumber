@@ -10,6 +10,7 @@ use EvaThumber\Image\IsolatedProcessor;
 use EvaThumber\Image\PoolProcessor;
 use EvaThumber\Source\LocalSource;
 use EvaThumber\Url\Parser;
+use EvaThumber\Version;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -82,7 +83,7 @@ final readonly class Kernel implements HttpKernelInterface
                 return new JsonResponse(['error' => 'method_not_allowed'], 405, ['Allow' => 'GET, HEAD']);
             }
             if ($request->getPathInfo() === '/healthz') {
-                return new JsonResponse(['status' => 'ok', 'version' => '2.0.0'], 200, ['Cache-Control' => 'no-store']);
+                return new JsonResponse(['status' => 'ok', 'version' => Version::VERSION], 200, ['Cache-Control' => 'no-store']);
             }
             if ($request->getPathInfo() === '/readyz') {
                 return $this->readiness();

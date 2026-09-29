@@ -13,10 +13,10 @@ libvips 测试中的同一 PHP 进程重复处理可能受进程内状态影响�
 | `tests/v2/StorageAndUrlTest.php` | cloud/version/chain/嵌套及歧义边界 URL、来源 MIME 与歧义、缓存命中绕过 producer、容量失败原子性与临时清理；ar canonical 回读与无指数记法断言 |
 | `tests/v2/CacheLifecycleTest.php` | 最老写入淘汰、生产失败保留旧条目、跳过被租用条目 |
 | `tests/v2/CacheConcurrencyTest.php` | 跨 PHP 进程同键 miss 复用发布产物、忙等 250ms 截止后 503、命中绕过忙锁、强杀 producer 后锁释放与孤儿临时清理；7 占用槽位加真实 producer 填满 8 槽、溢出立即 503、命中绕过满槽、SIGKILL 后全部槽位恢复 |
-| `tests/v2/HttpTest.php` | 直接 Kernel 调用：真实子进程变换、f_auto WebP、Vary、MISS/HIT、ETag 304、非法变换、healthz；发送租约与回收、版本隔离、analytics 白名单与 URI 限长、投递分段共享缓存、忙准入 503 Retry-After 后恢复 |
+| `tests/v2/HttpTest.php` | 直接 Kernel 调用：真实子进程变换、f_auto WebP、Vary、MISS/HIT、ETag 304、非法变换、healthz（含 `/healthz` 回报的版本号必须能转成镜像 tag）；发送租约与回收、版本隔离、analytics 白名单与 URI 限长、投递分段共享缓存、忙准入 503 Retry-After 后恢复 |
 | `tests/v2/AutoQualityTest.php` | 内容/格式自适应 Q、四档顺序、极小/透明图、三格式四档编码与显式 Q 字节一致、PNG/GIF 拒绝、HTTP 缓存身份 |
 新增 `tests/v2/ProcessorFailureTest.php`：真实 Symfony Process 的超时 504、异常退出 422、结构化拒绝 413，均验证部分文件不发布、临时清理及下一次真实变换恢复。`HttpTest` 另验证编码空格/加号在单条目淘汰后的身份与 ETag。
-当前完整 suite（`vendor/bin/phpunit`）：**77 tests / 949 assertions，0 skip**（Linux 容器内以 uid 33 运行，与生产镜像同一用户；原生 CI 的 amd64 与 arm64 runner 结果一致）。同一 suite 以 root 运行时为 77 / 946、1 skip（权限位断言对 root 不成立）。macOS 宿主的数字本次未重测（宿主 PHP 无 libvips，只有容器内可跑），需要时在装了 libvips 的 macOS 上重跑再回填。详细证据见 [进度](../progress.md)。
+当前完整 suite（`vendor/bin/phpunit`）：**78 tests / 952 assertions，0 skip**（Linux 容器内以 uid 33 运行，与生产镜像同一用户；原生 CI 的 amd64 与 arm64 runner 结果一致）。同一 suite 以 root 运行时为 78 / 949、1 skip（权限位断言对 root 不成立）。macOS 宿主的数字本次未重测（宿主 PHP 无 libvips，只有容器内可跑），需要时在装了 libvips 的 macOS 上重跑再回填。详细证据见 [进度](../progress.md)。
 
 `progress.md` 与 `release-review.md` 里的 63 / 877 是 2.0.0 发布时按 commit 与 CI run 冻结的发布证据，不要改写；它们与本页数字不一致是预期的。
 
@@ -53,7 +53,7 @@ libvips 测试中的同一 PHP 进程重复处理可能受进程内状态影响�
 ## CI 当前配置
 `.github/workflows/ci.yml` 在 master/main push、v* tag、PR 触发；test job 将 linux/amd64 对应 ubuntu-24.04、linux/arm64 对应 ubuntu-24.04-arm。每个 runner 构建 development 镜像（Dockerfile 安装 libvips），容器内以 **uid 33** 运行完整测试（`--do-not-cache-result`）与 PHPStan，使权限敏感断言真正执行而不是被跳过；再构建 production 镜像，由宿主 PHP 依次运行 `container-smoke`、`rc1-acceptance`、`product-acceptance`、`docker-acceptance`、`crash-recovery` 五套验收。
 
-image job 依赖 test，QEMU/buildx 构建 linux/amd64、linux/arm64。分支与 PR 只构建并缓存；`v*` tag 才登录 Docker Hub（用户 `allovince` + `secrets.DOCKERHUB_TOKEN`）并推送 `docker.io/allovince/evathumber:<去掉 v 的版本号>` 与 `:latest`，`latest` 正是 README Quick Start 拉取的标签。缺 secret 时该步直接失败并给出 `::error::`，不会产出半发布状态。secret 只存在于 Actions，未读取其值。容器原生库输出 heifload nclx 警告，测试通过不代表无警告。
+image job 依赖 test，QEMU/buildx 构建 linux/amd64、linux/arm64。分支与 PR 只构建并缓存；`v*` tag 才登录 Docker Hub（用户 `allovince` + `secrets.DOCKERHUB_TOKEN`）并推送 `docker.io/allovince/evathumber:<去掉 v 的版本号>`，stable 版本额外推 `:latest`（README Quick Start 拉的就是它），预发布版本不推 `latest`。版本号来自 `src/Version.php` 的 `Version::VERSION`，tag 不是合法 semver、tag 与该常量不一致、或缺 secret 时该步都直接失败并给出 `::error::`，不会产出半发布状态。secret 只存在于 Actions，未读取其值。容器原生库输出 heifload nclx 警告，测试通过不代表无警告。
 
 最近一次远程运行：run `36322300814`（commit `aade6db`，main），`test`（amd64、arm64）与 `image` 三个 job 全部 success，证据归档在 [`bench/results/rc1-ci/`](../bench/results/rc1-ci/)。分支 push 不推送镜像，只有 tag 会。
 

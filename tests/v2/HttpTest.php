@@ -6,6 +6,7 @@ namespace EvaThumber\Tests;
 
 use EvaThumber\Http\Kernel;
 use EvaThumber\Http\Settings;
+use EvaThumber\Version;
 use Jcupitt\Vips\Image;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\HttpFoundation\Request;
@@ -260,6 +261,31 @@ final class HttpTest extends TestCase
             chmod($root . '/cache', 0700);
         } finally {
             @chmod($root . '/cache', 0700);
+            rmdir($root . '/images');
+            rmdir($root . '/cache');
+            rmdir($root);
+        }
+    }
+
+    public function testHealthzReportsTheReleasableVersion(): void
+    {
+        // The release workflow reads Version::VERSION and refuses to publish a
+        // tag that disagrees with it, so a value it cannot turn into an image
+        // tag has to fail here first, not on the tag push.
+        self::assertMatchesRegularExpression(
+            '/^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$/',
+            Version::VERSION,
+        );
+        $root = sys_get_temp_dir() . '/eva-healthz-version-' . bin2hex(random_bytes(8));
+        mkdir($root);
+        mkdir($root . '/images');
+        mkdir($root . '/cache');
+        try {
+            $kernel = new Kernel(new Settings($root . '/images', $root . '/cache'));
+            $response = $kernel->handle(Request::create('/healthz'));
+            self::assertSame(200, $response->getStatusCode());
+            self::assertSame(Version::VERSION, json_decode((string) $response->getContent(), true)['version']);
+        } finally {
             rmdir($root . '/images');
             rmdir($root . '/cache');
             rmdir($root);
