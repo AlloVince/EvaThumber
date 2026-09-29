@@ -55,16 +55,16 @@ final class PoolRecoveryTest extends TestCase
         self::fail('Missing ' . $name . ': ' . $this->pool->getErrorOutput());
     }
 
-    private function send(): array
+    private function send(string $publicId = 'foo', string $transformation = 'w_20', string $format = 'png'): array
     {
         $socket = stream_socket_client('unix://' . $this->root . '/pool.sock', $errno, $error, 1);
         self::assertIsResource($socket, $error);
         stream_set_timeout($socket, 4);
         $this->sockets[] = $socket;
         $destination = tempnam($this->root . '/cache', '.tmp-');
-        fwrite($socket, json_encode(['protocol' => 1, 'publicId' => 'foo',
-            'identity' => (new LocalSource($this->root))->resolve('foo')->identity,
-            'transformation' => 'w_20', 'format' => 'png', 'destination' => $destination], JSON_THROW_ON_ERROR) . "\n");
+        fwrite($socket, json_encode(['protocol' => 1, 'publicId' => $publicId,
+            'identity' => (new LocalSource($this->root))->resolve($publicId)->identity,
+            'transformation' => $transformation, 'format' => $format, 'destination' => $destination], JSON_THROW_ON_ERROR) . "\n");
         return [$socket, $destination];
     }
 
@@ -75,6 +75,14 @@ final class PoolRecoveryTest extends TestCase
         $reply = json_decode($line, true, flags: JSON_THROW_ON_ERROR);
         self::assertSame(1, $reply['protocol']);
         return $reply;
+    }
+
+    private function residentMiB(int $pid): int
+    {
+        $status = @file_get_contents('/proc/' . $pid . '/status');
+        self::assertIsString($status, 'Worker RSS unavailable on this platform');
+        self::assertSame(1, preg_match('/VmRSS:\s+(\d+)/', $status, $match));
+        return intdiv((int) $match[1], 1024);
     }
 
     public function testReadyCrashLoopBackoffIsExponentialCappedAndRecovers(): void
@@ -188,6 +196,50 @@ final class PoolRecoveryTest extends TestCase
             if ($pid !== null && posix_kill($pid, 0)) { posix_kill($pid, SIGKILL); pcntl_waitpid($pid, $status); }
             $libc->prctl(36, 0, 0, 0, 0);
         }
+    }
+
+    public function testOverBudgetWorkerFinishesItsJobAndIsRecycledOnlyWhileIdle(): void
+    {
+        // The RSS guard itself is Linux-only: it samples /proc, so this cannot be
+        // observed on a host without it.
+        if (PHP_OS_FAMILY !== 'Linux') { self::markTestSkipped('Worker RSS sampling reads /proc'); }
+        // A worker never gives memory back between jobs, so a long-lived one drifts
+        // up to the high water mark of the largest source it has served and then
+        // crosses WORKER_RSS_MIB on a *later*, unrelated job. Killing the worker
+        // there answers 503 worker_memory_limit for work that would have succeeded:
+        // that is what the README q_auto example hit on the progressive 17.9 MPix
+        // demo.jpg, which needs 178 MiB against the 192 MiB default.
+        //
+        // Calibrate from the worker itself instead of hardcoding megabytes: measure
+        // its idle RSS and its RSS after one large transform, then put the cap
+        // strictly between the two.
+        Image::black(4000, 3000, ['bands' => 3])->jpegsave($this->root . '/big.jpg', ['interlace' => true]);
+        // The first pool only measures: a cap high enough that the supervisor cannot
+        // recycle the worker out from under the sampling.
+        $this->start(['EVATHUMBER_TIMEOUT' => '10', 'EVATHUMBER_WORKER_RSS_MIB' => '4096']);
+        $pid = $this->await('worker_ready', 1)['pid'];
+        $idle = $this->residentMiB($pid);
+        [$socket, $destination] = $this->send('big', 'w_600', 'jpg');
+        self::assertSame(200, $this->receive($socket)['status']);
+        self::assertSame('image/jpeg', getimagesize($destination)['mime']);
+        self::assertSame(600, getimagesize($destination)[0]);
+        $retained = $this->residentMiB($pid);
+        $this->pool->signal(SIGTERM);
+        self::assertSame(0, $this->pool->wait(), $this->pool->getErrorOutput());
+        self::assertGreaterThan($idle, $retained, 'A worker must be observed retaining memory between jobs');
+
+        $this->start(['EVATHUMBER_WORKER_RSS_MIB' => (string) intdiv($idle + $retained, 2), 'EVATHUMBER_TIMEOUT' => '10']);
+        $this->await('worker_ready', 1);
+        [$socket, $destination] = $this->send('big', 'w_600', 'jpg');
+        self::assertSame(200, $this->receive($socket)['status'], 'A running job must not be killed for RSS');
+        self::assertSame('image/jpeg', getimagesize($destination)['mime']);
+        self::assertSame(600, getimagesize($destination)[0]);
+        $stop = $this->await('worker_stop', 1);
+        self::assertSame('worker_memory_limit', $stop['reason'], 'An over budget worker must be recycled between jobs');
+        $this->await('worker_start', 2);
+        self::assertSame([], $this->events('worker_backoff'), 'A planned retirement must not delay the replacement');
+        $this->pool->signal(SIGTERM);
+        self::assertSame(0, $this->pool->wait(), $this->pool->getErrorOutput());
     }
 
     protected function tearDown(): void

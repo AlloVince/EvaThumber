@@ -30,7 +30,7 @@ FrankenPHP worker 中 Settings/Kernel 持久，Request/Response 局部创建；�
 | 500 internal_error / 启动失败 | Kernel 未知异常写 PHP 日志；Settings 初始化在请求外，需查进程启动日志 |
 | Compose unhealthy | 健康端口已统一 8080；检查启动日志、挂载目录权限与 CLI，见 deploy |
 ## 池事件与限制
-supervisor stderr 输出 worker_start/ready/stop、job_started/finished、pool_response 与单调时间；pool_response 带 active/capacity/queued。sequence 是响应序号，不是贯穿 HTTP 的请求 ID；不能据数量差逐请求归因。worker RSS 采样超限会回收，但不能保证内核 OOM 只杀 worker。healthz 只表示进程存活，不检查池 readiness；池与磁盘状态看 /readyz。
+supervisor stderr 输出 worker_start/ready/stop、job_started/finished、pool_response 与单调时间；pool_response 带 active/capacity/queued。sequence 是响应序号，不是贯穿 HTTP 的请求 ID；不能据数量差逐请求归因。worker RSS 采样超限会在空闲时回收（正在执行的任务跑完再回收，不误杀成 503），但不能保证内核 OOM 只杀 worker。healthz 只表示进程存活，不检查池 readiness；池与磁盘状态看 /readyz。
 ## 缓存与日志约束
 缓存生成旧键不会随 max-age 或源变化自动删除；没有已验证的在线清理/备份流程。维护者需确定停写协调、保留策略再执行，不能直接删正在使用的锁文件。
 Caddy access log → stdout；Docker PHP error_log → stderr。子进程 stderr 未由 IsolatedProcessor 显式转发，不能保证能从服务日志看到完整子进程异常。客户端不返回本地路径；共享日志前脱敏。

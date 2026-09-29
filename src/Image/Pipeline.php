@@ -75,9 +75,15 @@ final readonly class Pipeline
         // Random access, not sequential: vips_rot and vips_flip are in-place
         // operations, and libvips aborts with "out of order read" when they run
         // against a sequential source above roughly a megapixel. A copy() does
-        // not help -- the loader contract is what breaks. Measured peak worker
-        // RSS is within ~14 MiB of sequential across the whole size envelope,
-        // against the 192 MiB WORKER_RSS_MIB cap.
+        // not help -- the loader contract is what breaks.
+        //
+        // Peak RSS here is set by the source encoding, not by this choice: on the
+        // 17.9 MPix demo.jpg one w_600 job peaks at 167 MiB because it is a
+        // progressive JPEG, against 67 MiB for the same pixels stored as a
+        // baseline JPEG, and sequential access is no cheaper there (179 MiB).
+        // q_auto builds the graph twice and peaks at 178 MiB, against the 192 MiB
+        // WORKER_RSS_MIB default, which the pool enforces by recycling idle
+        // workers rather than by killing a running one.
         $image = Image::{$loader}($content, ['access' => 'random', 'fail_on' => 'warning']);
         $this->limits->source($image->width, $image->height);
         if ($image->getType('n-pages') !== 0 && $image->get('n-pages') > 1) {

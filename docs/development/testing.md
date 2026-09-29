@@ -16,13 +16,14 @@ libvips 测试中的同一 PHP 进程重复处理可能受进程内状态影响�
 | `tests/v2/HttpTest.php` | 直接 Kernel 调用：真实子进程变换、f_auto WebP、Vary、MISS/HIT、ETag 304、非法变换、healthz（含 `/healthz` 回报的版本号必须能转成镜像 tag）；发送租约与回收、版本隔离、analytics 白名单与 URI 限长、投递分段共享缓存、忙准入 503 Retry-After 后恢复 |
 | `tests/v2/AutoQualityTest.php` | 内容/格式自适应 Q、四档顺序、极小/透明图、三格式四档编码与显式 Q 字节一致、PNG/GIF 拒绝、HTTP 缓存身份 |
 新增 `tests/v2/ProcessorFailureTest.php`：真实 Symfony Process 的超时 504、异常退出 422、结构化拒绝 413，均验证部分文件不发布、临时清理及下一次真实变换恢复。`HttpTest` 另验证编码空格/加号在单条目淘汰后的身份与 ETag。
-当前完整 suite（`vendor/bin/phpunit`）：**78 tests / 952 assertions，0 skip**（Linux 容器内以 uid 33 运行，与生产镜像同一用户；原生 CI 的 amd64 与 arm64 runner 结果一致）。同一 suite 以 root 运行时为 78 / 949、1 skip（权限位断言对 root 不成立）。macOS 宿主的数字本次未重测（宿主 PHP 无 libvips，只有容器内可跑），需要时在装了 libvips 的 macOS 上重跑再回填。详细证据见 [进度](../progress.md)。
+当前完整 suite（`vendor/bin/phpunit`）：**79 tests / 973 assertions，0 skip**（Linux 容器内以 uid 33 运行，与生产镜像同一用户；原生 CI 的 amd64 与 arm64 runner 结果一致）。同一 suite 以 root 运行时为 79 / 970、1 skip（权限位断言对 root 不成立）。macOS 宿主为 79 / 936、2 skip（Linux 专属 PDEATHSIG 与 RSS 采样用例）。详细证据见 [进度](../progress.md)。
 
 `progress.md` 与 `release-review.md` 里的 63 / 877 是 2.0.0 发布时按 commit 与 CI run 冻结的发布证据，不要改写；它们与本页数字不一致是预期的。
 
 **fixture 尺寸必须覆盖真实体量。** 2.0.0 的 `a_90` 只在 300×200 这类 fixture 上验证过，而 `vips_rot`/`vips_flip` 配 `access=sequential` 的源要超过约 1 MPix 才失败，于是整套测试与 `tests/docker-acceptance.php` 的 300×200 矩阵一起漏掉了「任何相机尺寸原图直接旋转都返回 422」。回归用例因此固定用 1200×800。新增涉及 libvips 操作、编解码或内存的用例时，先确认阈值落在 fixture 尺寸的另一侧。
 
 - `PoolQueueTest`：真实 supervisor，默认/非默认队列容量与截止、暂停 worker 硬超时、reap、恢复。
+- `PoolRecoveryTest`：启动崩溃循环退避、坏可执行文件保持队列截止、空闲停机、Linux PDEATHSIG；RSS 超限按 worker 自身实测校准上限，证明超限 worker 跑完在途任务并发布后才在空闲时回收，且计划内回收不触发失败退避（Linux 专属）。
 - `PoolLifecycleTest`：删除/替换临时目标不被写回；断连回收；活动 SIGKILL 与人工部分 stage；直接 IPC 停机拒绝待处理请求、完成活动任务。人工 stage 不等于真实编码写入时刻强杀；不等于生产 HTTP drain。
 - `SourceConsistencyTest`：atime 不影响身份、producer 回调内同步替换导致 409 且不发布。尚未验证真实 worker 解码期间的并发替换。
 - `tests/pool-http.php [image] [pool|isolated]`：真实 arm64 容器 HTTP 迁移 URL、冷热/同键/混合 40 请求 burst、资源采样、超时恢复和空闲 SIGKILL/停止。设置 EVATHUMBER_EVIDENCE 保存报告与日志。不是持续固定并发 benchmark；当前接受任意 503，报告通过不意味着拒绝来源正确。

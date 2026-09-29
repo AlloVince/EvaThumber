@@ -5,7 +5,7 @@
 | 目的 | 命令 | 前提/本次结果 |
 |---|---|---|
 | 安装依赖 | `composer install` | PHP/扩展就绪；本次未执行 |
-| 全部测试 | `composer test` | 当前完整 suite 通过，78 tests / 952 assertions（arm64 容器内 uid 33）；见 progress |
+| 全部测试 | `composer test` | 当前完整 suite 通过，79 tests / 973 assertions（arm64 容器内 uid 33）；见 progress |
 | 单文件测试 | `vendor/bin/phpunit tests/v2/HttpTest.php` | 同测试环境；本次未单跑 |
 | 单用例筛选 | `vendor/bin/phpunit --filter testRealFillAndChain` | 同测试环境；本次未单跑 |
 | 静态分析 | `composer analyse` | 当前通过；已移除不存在路径的 excludePaths |

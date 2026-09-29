@@ -144,15 +144,29 @@ try {
             if ((!$worker['ready'] || $worker['client'] !== null) && $now >= $worker['deadline']) { $reason = 'processing_timeout'; }
             if ($worker['client'] !== null && feof($worker['client'])) { $reason = 'client_disconnected'; }
             // Linux actual RSS includes native allocations, unlike PHP memory_limit.
+            // A worker never gives memory back between jobs, so a long-lived one drifts
+            // up to the high-water mark of the largest source it has served. Recycling
+            // on that alone turns healthy work into 503: a progressive JPEG of 17.9 MPix
+            // needs 167 MiB for one 600px resize, and q_auto builds the graph twice for
+            // 178 MiB, against this 192 MiB cap. So over budget retires an *idle*
+            // worker, before it is handed the next job, and a job already running is
+            // left to finish and publish its cache entry. See docs/components/Image.
             $procStatus = @file_get_contents('/proc/' . $worker['pid'] . '/status');
-            if ($procStatus !== false && preg_match('/VmRSS:\s+(\d+)/', $procStatus, $match) && (int) $match[1] > $settings->workerRssMiB * 1024) { $reason = 'worker_memory_limit'; }
+            if ($procStatus !== false && preg_match('/VmRSS:\s+(\d+)/', $procStatus, $match)
+                && (int) $match[1] > $settings->workerRssMiB * 1024 && $worker['client'] === null) {
+                $reason = 'worker_memory_limit';
+            }
             if ($reason !== null) {
                 $client = $worker['client'];
                 $retire($worker, $reason);
                 if ($client !== null) { $respond($client, ['status' => $reason === 'processing_timeout' ? 504 : 503, 'error' => $reason]); }
                 $history = $restarts[$slot];
                 $restarts[$slot] = ['failures' => $now - $worker['started'] >= 30 ? 0 : $history['failures'], 'at' => 0.0];
-                if (!$stopping && !in_array($reason, ['max_jobs', 'client_disconnected'], true)) {
+                // Budget and lifetime retirements are planned and follow successful
+                // work, so they must not count as failures: escalating them delays
+                // every later job by up to 5s while a fresh worker would serve the
+                // same job several times over before drifting back over the cap.
+                if (!$stopping && !in_array($reason, ['max_jobs', 'client_disconnected', 'worker_memory_limit'], true)) {
                     $backoff($slot, $reason);
                 }
                 unset($workers[$slot]);

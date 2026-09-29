@@ -15,7 +15,8 @@ resize 支持 scale/fit/fill/crop/thumb/pad/limit；中间缩放尺寸也受输�
 Pipeline/Thumber 依赖 SourceImage、Transformation、Limits、ImageException、jcupitt/vips；不依赖 HTTP。IsolatedProcessor 额外依赖 Http\Settings 和 Symfony Process。整个 Image 目录并非完全 HTTP 无依赖。
 库直接调用不提供超时隔离、磁盘缓存或 Accept 协商；f_auto 在 Pipeline 不自行选择格式，使用已传入的格式。
 ## 雷区
-**源必须以 `access=random` 加载。** `vips_rot`/`vips_flip` 是 in-place 操作，跑在 `access=sequential` 的源上、且原图超过约 1 MPix 时 libvips 会以 `VipsJpeg: out of order read` 中止，被 `Pipeline::write` 的 catch 压成通用 422。实测在本仓 1200×800 fixture 上只有 90°/270° 旋转会触发，`a_180`/`a_hflip`/`a_vflip` 仍然通过——**不能用后者判断这条路径健康**。`copy()` 救不回来（实测前后都无效），必须改 loader 契约；代价是峰值 RSS 最多高约 14 MiB（28 MPix 源实测 85 MiB，仍远低于 192 MiB 的 WORKER_RSS_MIB）。
+**源必须以 `access=random` 加载。** `vips_rot`/`vips_flip` 是 in-place 操作，跑在 `access=sequential` 的源上、且原图超过约 1 MPix 时 libvips 会以 `VipsJpeg: out of order read` 中止，被 `Pipeline::write` 的 catch 压成通用 422。实测在本仓 1200×800 fixture 上只有 90°/270° 旋转会触发，`a_180`/`a_hflip`/`a_vflip` 仍然通过——**不能用后者判断这条路径健康**。`copy()` 救不回来（实测前后都无效），必须改 loader 契约。
+这个选择在渐进式源上不花代价：17.9 MPix 的 demo.jpg（渐进式）一次 `w_600` 峰值 167 MiB，改成 `sequential` 是 179 MiB。峰值由源编码而非 access 模式决定，见 [config](../../operations/config.md) 中 WORKER_RSS_MIB 与 MAX_SOURCE_PIXELS 的关系。
 只有 alpha 才调用 flatten；三波段 Image::black 不自带 alpha。Config 调用及库执行会影响进程级 libvips 设置。不要将可信 IPC 当成公开用户接口；输出目标由调用方负责。
 `bin/transform.php` 对 ImageException 写 STDERR：响应体保持通用措辞不泄露内部，若无这行日志，libvips 失败原因不会出现在任何日志里。
 ## 相关
