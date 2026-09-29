@@ -1,67 +1,25 @@
-# docs 规范
+# Agent 文档准入
 
-给 bootstrap 与日常维护用。docs = 全部项目事实；可验证；按需加载。
+`docs/` 服务未来 Agent，不追求文档齐全。写入前确认信息长期有效、能减少误判/重复研究/恢复成本，并且代码、测试、schema、配置或 CLI help 不能更准确表达。
 
-## 目录
-```
-docs/
-├── index.md
-├── architecture/
-│   ├── overview.md
-│   ├── boundaries.md
-│   └── adr/           # 有决策再建
-├── components/
-│   └── <module>/      # 与代码模块对齐；改谁读谁
-├── development/
-│   ├── setup.md
-│   ├── commands.md
-│   └── testing.md
-└── operations/
-    ├── deploy.md
-    ├── config.md
-    └── runtime.md
-```
+## 信息归属
+- README 面向使用者；`owner/` 保存人类长期意图，Agent 默认只读。
+- 代码与测试表达实际行为；Composer、Docker、Caddy、CI 等原生配置表达版本、命令、部署和运行事实。
+- `docs/` 只保存原生载体难以表达、但未来 Agent 需要的边界、外部语义、排障经验和高返工决策理由。
+- docs 与可执行事实冲突时先核实，再修正文档或实现；不维护平行事实。
 
-## Profile 裁剪
-- **minimal**：`development/commands.md` + 极简 `architecture/overview.md`；可无 components/operations
-- **standard**：上表按真实情况生成；无的能力不建空目录凑数
-- **full**（未做）：另含 skills 等
+## 内容与结构
+- 使用 `docs/index.md` 导航，按任务只加载相关页面；已有的 `architecture/`、`components/`、`development/`、`operations/` 目录按需使用，不要求新增空分类或固定目录树。
+- 组件说明聚焦职责、边界、主要入口和难从代码恢复的约束，不复制大段源码或其它模块说明。
+- 不把 session 流水账、当前焦点、进度、下一步、临时调试过程或 Git 已表达的变化写入 docs。跨 session 进度使用当前对话或项目已有任务载体，不另建 memory/workflow。
+- 过期或误导性文档应修正或删除；没有明确未来 Agent 收益时宁可不写。
 
-## index.md
-任务类型 → 文件路径的地图。AGENTS 可指向此文件。保持短表。
+## Design 与 ADR
+- 可从代码和测试清楚恢复的局部方案不另写 Design。
+- 只有会持续指导后续多轮实现、且仅凭代码恢复成本较高的结构、接口、数据流或产品机制才写普通 Design。
+- 只有高返工成本、存在真实可行替代方案、且未来维护者需要保留取舍理由时才写 ADR；记录上下文、决定、主要弃选与后果。
+- 大改动开工前先在任务对话简述问题、现有能力为何不足、最简方案、影响与验收方式；不把设计文档变成审批流程。
 
-## 模块文档 `components/<module>/`
-建议 `README.md`（或单文件 `components/<module>.md`，全仓统一一种）。
-必含：职责、边界（不做的）、主要接口/入口路径、依赖、雷区（若有）、相关代码路径。
-禁止：粘贴大段源码；写其它模块的说明书。
-
-## architecture
-- overview：系统是什么、主路径、关键结构
-- boundaries：负责/不负责、模块边界
-- adr：重要决策（上下文/决策/弃选/后果）
-
-## development
-setup 环境；commands 常用命令；testing 怎么测、惯例。
-
-## operations
-deploy；config（不写密钥原文）；runtime 运行特征与排障入口。
-
-## 单篇骨架（紧凑）
-```markdown
-# 标题
-## 何时读
-## 内容
-## 相关
-- 代码：
-- 其它 docs：
-```
-可选：`验证于：<日期或 commit>`
-
-## 生成规则（bootstrap）
-1. 先扫代码与既有文档，再写；不确定标「待确认」，不编造
-2. 只为真实模块建 components
-3. 合并旧 AI 文档：代码 > 测试 > 已确认文档 > 历史 > 新生成
-4. 文风：中文、紧凑、少空行
-
-## 维护
-代码变更后按规模走 sync/end。稳定事实只留 docs；memory 不重复。
+## 更新
+- 按任务阅读源码、测试与当前文档后再改；保留明确的人类意图与已确认的项目边界。
+- 文档链接与命令必须指向仓库内真实路径或原生入口；验证结果注明实际环境与证据，不把历史数字当成当前状态。

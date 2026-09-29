@@ -1,37 +1,43 @@
+<!-- agent.protocol reference: https://github.com/AlloVince/agent.protocol, Version 0.3.0 README, untagged main @ 0f98a089a5f3b176171a9059cc9968cbb5c1dd0f (2026-09-30). -->
 # AGENTS.md
-## 身份与角色
-- 项目：EvaThumber；自托管图片变换服务与 Composer 库；当前阶段见 `docs/architecture/overview.md`。
-- 作为长期维护工程师：先理解、最小改动、保持代码与知识一致。中文、紧凑、不编造。
-## 每个 session
-1. 本文件 → `.ai/defaults/preferences.md` → `.ai/defaults/ai-coding.md` → `.ai/memory.md`。
-2. 按 `.ai/workflow/start.md` 明确目标、范围、不改什么、完成标准。
-3. 查 `docs/index.md`，只加载任务相关文档，再读相关代码/测试；不无目的整仓扫描。上下文膨胀先总结。
-## 按需加载
-| 任务 | 入口 |
-|---|---|
-| 项目地图、选择模块 | `docs/index.md` |
-| 跨模块结构与边界 | `docs/architecture/overview.md`、`docs/architecture/boundaries.md` |
-| 修改模块 | index 指向的 `docs/components/` 对应模块 |
-| 环境、命令、测试 | `docs/development/` |
-| 部署、配置、排障 | `docs/operations/` |
-| 维护文档、同步知识 | `docs/spec.md`、`.ai/workflow/sync.md` |
-| 改架构或核心接口 | `.ai/workflow/design-review.md`；必要时新建 ADR |
-| 收工 | `.ai/workflow/end.md` |
-## 边界
-- 负责：当前任务内的实现、验证、相关文档与交接；业务边界以 `docs/architecture/boundaries.md` 为准。
-- 不负责：未授权的重写、扩需求、技术栈迁移、基础设施变更或发布。仅文档任务不得顺手修业务或配置。
-- defaults 是通用偏好，不覆盖已核实项目约束，不授权改分支或替换技术栈。
-## 规模门闩
-| 规模 | 做前 | 做后 |
-|---|---|---|
-| 微：文案/typo | 直接改 | 极简确认 |
-| 小：局部 bug/调整 | 读相关代码/docs | end 核对影响 |
-| 中：feature/跨文档任务 | 简述影响与风险 | 完整 end，按需 sync |
-| 大：架构/边界/核心模型 | design-review | end + sync，必要 ADR |
-## 事实与禁止项
-- 业务事实只进 docs；memory 只留非显性约束与当前焦点，≤150 行。
-- 冲突：代码 > 测试 > 已确认决策 > docs > memory；历史陈述低于已确认文档，不确定标待确认。
-- 一次一事；不静默改公共接口，不提前抽象，不无故加依赖，不删测试假装通过。
-- 不读取密钥内容，不提交凭据；未经要求不 git commit、不发布。
-## 完成
-需求满足、验证结果如实报告、无无关 diff；按 end/sync 更新 docs 与 memory。文档有变按 `docs/spec.md` 校验路径与事实。
+
+## 项目与入口
+- EvaThumber：PHP Composer 图片变换库与自托管 HTTP 服务；架构入口 `docs/architecture/overview.md`。
+- 边界与产品支持范围：`docs/architecture/boundaries.md`、`README.md`。
+- 按任务阅读：模块入口见 `docs/index.md`；开发/测试见 `docs/development/`；部署、配置、运行见 `docs/operations/`。
+- 正式命令：`composer.json` scripts（`composer test`、`composer analyse`）；Docker 构建/验收命令见 `docs/development/commands.md`。重复维护操作使用人和 Agent 共用的正式入口。
+- 本仓未声明所属 `.super` 或共享仓。新增基础能力前先检查本仓代码、Composer scripts、Docker/Caddy 与 CI；不得仅凭相邻目录推定共享能力。
+
+## 权威与事实
+- 当前人类指令优先；若仓库存在 `owner/`，其中长期意图默认只读，只有人类明确要求修改具体文件时才可改写或创建。
+- 更近目录的 `AGENTS.md` 可补充局部规则。实际行为以代码、测试、schema、配置和运行验证为准；docs 用于导航及保存这些载体难表达的稳定知识。发现冲突先核实并报告，不把实现自动当成正确目标。
+- 先明确目标、范围、禁止项和验收条件；只读任务相关文档、代码与测试，不无目的整仓扫描。改动范围需要扩大时，先说明原因、影响和风险。
+- 不读取密钥值、不提交凭据；未经明确要求不 commit、push 或 release。
+
+## 复用与正式操作入口
+- 新建 logger、config、storage、queue、HTTP client、validation、deployment 等基础能力前，先查本仓已有实现与依赖；优先扩展现有层。
+- 仅当已有能力不足，或复用会破坏明确的依赖、部署、数据或模块边界时才新增；说明缺口/边界原因，不为了复用制造远距离耦合，也不留下第二套永久实现。
+- 开发、构建、测试、迁移、部署和诊断等重复操作必须走人和 Agent 共用的正式 CLI、Composer scripts 或标准任务入口；入口缺失时先补正式入口。一次性调查可临时执行，成为重复流程后收敛到正式入口。
+
+## 人类可读与改动纪律
+- 代码优先清晰命名、直接控制流、显式数据流和副作用；沿用项目模式，注释解释原因和非显然约束。
+- 避免过度抽象、隐式魔法、复杂泛型、层层 helper 和压缩表达式；不做无关重构、依赖升级或格式化，不为假想需求增加服务/依赖，不静默改变接口、数据语义和系统边界。
+- 长任务每个可验证阶段结束前检查本任务累积的代码，及时整理混杂职责、重复实现、过长函数/文件与废弃分支；按职责重构，不机械拆文件或叠抽象。
+- 不删除测试来制造通过；按改动运行匹配的验证，如实说明失败和未验证项。
+
+## 工程与生产默认
+- 使用 Composer 原生配置表达 PHP/依赖版本、脚本和锁定事实，不在 docs/AGENTS 重复维护平行真相；配置变更先验证。
+- 处理服务、部署或配置时，检查适用的生产模式、配置校验、可重复构建、错误与超时、密钥来源、缓存及静态/文本压缩。已有 CDN/反代承担时不重复建设；当前 Caddy 已配置 `encode zstd gzip`。
+- CLI、批处理与长任务应提供适量阶段/进度、失败原因、最终摘要及正确退出状态；复用现有日志设施，避免长时间静默。
+
+## 文档
+- `docs/` 只保留能持续减少未来 Agent 误判、重复探索或重建成本，且代码、测试、配置、schema、CLI help 不能更准确表达的稳定知识。详见 `docs/spec.md`；导航从 `docs/index.md` 开始。
+- 不把 session 流水账、当前焦点、进度、下一步或一次性调试过程写入 docs；使用当前对话或项目已有任务载体。过期 docs 应修正或删除。
+- Design 仅在结构、接口或机制会持续指导后续工作且代码难以恢复时写普通文档；高返工成本、有真实替代方案且需要保留取舍理由时写 ADR。
+
+## 大改动与长任务
+- 架构、核心模型或技术栈大改动前，先简要说明：问题、现有能力为何不够、最简方案、影响、验收方式。可在当前对话说明，不强制另建流程。
+- 长任务从最终用户可见成果反推；每阶段结果应可复核、可继续，必要时可由明确输入重建。控制日志、数据和中间产物规模，使用流式/分块或已有存储，保护不可重建输入。
+- 可重复运行的任务每轮都重新核对当前代码、数据、配置和实际产物；旧 plan、进度记录或上轮路径不能代替当前证据。下一步明确、已获授权且无真实阻塞时继续。
+- 按最初验收条件提供真实证据；验证匹配改动，不为绿灯弱化检查。交接说明成果、改动、验证、未完成项及真实阻塞。
+- 未经明确要求，不自动 git commit、push 或 release。

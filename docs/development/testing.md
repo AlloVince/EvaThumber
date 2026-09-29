@@ -4,6 +4,8 @@
 ## 运行与惯例
 PHPUnit 12，vendor/autoload.php 引导；tests/v2 为唯一 suite，warning/risky 视为失败。数据提供器用 `#[DataProvider]` 属性，不使用旧 doc-comment 注解。
 测试用 libvips 实时生成小图片、随机临时目录，并在 finally/tearDown 清理；不要引入生产原图。macOS 路径断言使用 realpath。无 alpha 的三波段图不能假定可直接 flatten。
+
+libvips 测试中的同一 PHP 进程重复处理可能受进程内状态影响；定位这类差异时用 fresh process 隔离请求。libvips 也可能按 inode 缓存已 mmap 的文件：不要原地覆写后复用同一路径验证图像内容，改用新文件名或 `Image::newFromBuffer()`。
 ## 已有覆盖
 | 文件 | 实际覆盖 |
 |---|---|
