@@ -13,5 +13,5 @@ namespace EvaThumber;
  */
 final class Version
 {
-    public const string VERSION = '2.0.0';
+    public const string VERSION = '2.0.1';
 }

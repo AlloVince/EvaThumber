@@ -3,7 +3,7 @@
 首次定位项目、跨模块变更、确认库与服务的运行差异。
 ## 系统与阶段
 EvaThumber 2 是 PHP 图片变换 Composer 库及自托管 HTTP 服务，接受 Cloudinary 风格 URL 的有限子集，原图来自本地目录，处理引擎为 libvips。不是 Cloudinary 全量替代品。
-`composer.json` 要求 PHP `~8.5.0`、FFI/fileinfo、jcupitt/vips `^2.5` 与直接依赖的 Symfony `7.4.*`；BSD-3-Clause。健康接口标记 `2.0.0-dev`，不能据 README 推定已经生产验收。
+`composer.json` 要求 PHP `~8.5.0`、FFI/fileinfo、jcupitt/vips `^2.5` 与直接依赖的 Symfony `7.4.*`；BSD-3-Clause。健康接口回报 `src/Version.php` 里 `Version::VERSION` 声明的版本号（当前 `2.0.1`），不能据 README 推定已经生产验收。
 ## 主数据流
 1. `public/index.php` 从环境创建 `Settings` 和复用的 `Kernel`；每次请求独立创建 Request/Response。
 2. `Kernel::handle()` 先限定 GET/HEAD；`/healthz` 直接返回。图片请求限制完整 URI 长度，仅接受并忽略标量 `_a`/`_i` analytics 查询参数。
