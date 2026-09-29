@@ -17,7 +17,7 @@
 依赖 Security\Limits、ImageException、PHP fileinfo/文件系统；不做像素解码、动画检查、变换或远程下载。
 ## 验证与集成交接
 `SourceConsistencyTest` 覆盖先 resolve 后替换、独立 PHP 写进程屏障协调的 rename-ABA/同 inode 等长 inplace（保留 mtime）、单遍 PNG 和 q_auto 双遍 JPEG、旧键缓存内容/HIT、边界字节与摘要、atime、持续改变拒绝发布。原实现失败回归：旧黑图期望像素 0，实际为替换图 200；快照实现通过。早期六用例版本重复 10 次通过；最终完整宿主 suite 51 tests / 641 assertions，PHPStan 通过（2026-09-17）。
-写进程在整个 decode/encode 阶段保持 B，结束后恢复 A；这是确定性跨进程反例，不是实际 pool-worker 的随机压力或读取 syscall 中点故障注入。来源替换的 HTTP 与池路径验收已随完整 suite 与 `tests/crash-recovery.php` 通过；真实池 worker 解码期间的随机并发替换压力测试仍未做。当前完整 suite 63 tests / 877 assertions、PHPStan level 8 通过（arm64 Linux 容器内 uid 33），见 [进度](../../progress.md)。
+写进程在整个 decode/encode 阶段保持 B，结束后恢复 A；这是确定性跨进程反例，不是实际 pool-worker 的随机压力或读取 syscall 中点故障注入。来源替换的 HTTP 与池路径验收已随完整 suite 与 `tests/crash-recovery.php` 通过；真实池 worker 解码期间的随机并发替换压力测试仍未做。当前完整 suite 77 tests / 949 assertions、PHPStan level 8 通过（arm64 Linux 容器内 uid 33），见 [进度](../../progress.md)。
 `bin/transform.php` 与 `bin/pool-worker.php` 都在编码结束后先释放 source 再复核身份，避免同时持有两个完整副本；`pool-worker.php` 用 `finally { unset($source); }` 覆盖失败路径，常驻循环不会保留上一任务的 source。
 ## 雷区
 同 ID 的多个格式原图会冲突，投递扩展名不用于消歧。每次 resolve（包括 HIT）均分配完整压缩副本并计算摘要，冷请求多次复核；完整 HTTP 命中/冷请求成本尚待测量。macOS 临时目录可能经 `/private/var` 解析，路径测试应比较 realpath。

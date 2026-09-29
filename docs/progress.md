@@ -37,6 +37,8 @@
 | macOS 宿主（PHP 8.5.11） | 63 tests / 861 assertions，1 skip（Linux 专属 PDEATHSIG 用例） |
 | PHPStan level 8（`src`、`bin`，仅排除 `process-guard.php`） | 通过 |
 
+上表是 2.0.0 发布时按 commit `aade6db` 与 CI run `36322300814` 记录的发布证据，数字按该时点冻结，不要改写。发布后工作树新增了 `access=random` 修复、`ar` 精度修复与相应回归用例，**当前** suite 为 77 tests / 949 assertions（arm64 容器 uid 33，0 skip；root 下 77 / 946、1 skip），本机重跑 `container-smoke`、`rc1-acceptance`、`product-acceptance`、`docker-acceptance`（141 项）、`crash-recovery` 五套全通过。原生 CI 尚未在这些改动之后运行；以 [测试与 CI](development/testing.md) 与 [命令](development/commands.md) 记录的数字为准。
+
 ### 并发压测
 
 [`bench/results/rc1-http-full/`](../bench/results/rc1-http-full/)：production 镜像 arm64，512 MiB / 2 CPU / 默认 2 worker，2 轮 × 并发 2/4/8/16 × 4 场景，8s 窗口，**32 场零失败**。

@@ -68,11 +68,17 @@ final readonly class Pipeline
         }
     }
 
-    /** Build a fresh graph; callers may evaluate it once with sequential access. */
+    /** Build a fresh graph; callers may evaluate it once. */
     private function prepare(string $content, string $loader, Transformation $transform, string $format): Image
     {
         // Explicit raster buffer loader: no filename dispatch or mutable path reads.
-        $image = Image::{$loader}($content, ['access' => 'sequential', 'fail_on' => 'warning']);
+        // Random access, not sequential: vips_rot and vips_flip are in-place
+        // operations, and libvips aborts with "out of order read" when they run
+        // against a sequential source above roughly a megapixel. A copy() does
+        // not help -- the loader contract is what breaks. Measured peak worker
+        // RSS is within ~14 MiB of sequential across the whole size envelope,
+        // against the 192 MiB WORKER_RSS_MIB cap.
+        $image = Image::{$loader}($content, ['access' => 'random', 'fail_on' => 'warning']);
         $this->limits->source($image->width, $image->height);
         if ($image->getType('n-pages') !== 0 && $image->get('n-pages') > 1) {
             throw new ImageException('Animated images are not yet supported.', 415, 'unsupported_animation');

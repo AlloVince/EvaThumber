@@ -1,173 +1,453 @@
 # EvaThumber 2
 
-Self-hosted image transformation service. Send Cloudinary-style transformation URLs; EvaThumber derives resized, cropped and re-encoded images from your local originals with libvips, caches them on disk and serves them with HTTP caching. PHP 8.5 + FrankenPHP in a single nonroot Docker image.
+A self-hosted image transformation service.
 
-[中文文档](README.zh-CN.md)
+Put your original images in a directory, start one Docker container, then resize, crop and convert them by changing the URL.
 
-## Quick start
-
-```bash
-docker run -p 8080:8080 -v /path/to/your/images:/data/images:ro docker.io/allovince/evathumber
+```text
+/image/upload/c_fill,w_640,h_360/demo.jpg
 ```
 
-Then request a transformation:
+No upload API. No database. No configuration file.
 
-```bash
-curl -o out.webp 'http://localhost:8080/image/upload/c_fill,w_300,h_300/f_webp/your-image.jpg'
+EvaThumber keeps your originals untouched and generates everything else on demand.
+
+## See it
+
+The demo image is 5184×3456. EvaThumber never emits anything larger than 4096 pixels on a side, so the picture below is the file as it sits in your images directory. It is not something you can fetch back through a transformation URL.
+
+![Original image](docs/readme/demo.jpg)
+
+Resize to 600px wide:
+
+```text
+/image/upload/w_600/demo.jpg
 ```
 
-That is the whole setup. The only thing you configure is your image directory, mounted read-only at `/data/images`. Everything else — workers, cache, timeouts, limits — has working defaults.
+![Resize to 600px](docs/readme/w_600.jpg)
 
-The published image is `linux/amd64` and `linux/arm64`, runs as a nonroot user, and needs no configuration file, migration or setup command. `docker.io/allovince/evathumber` follows the latest release; pin `docker.io/allovince/evathumber:2.0.0` to stay on a fixed version.
+Crop it to a 600×300 image:
 
-> The image directory must be readable by the container's user (uid 33). A private directory such as `mkdir -m 700 ~/photos` works on macOS but is unreadable inside a Linux container; use `chmod 755` (or group-readable) on the directory you mount. When this is wrong the service still answers `/healthz`, but `/readyz` reports `"source": false` and image requests return 404.
+```text
+/image/upload/c_fill,w_600,h_300/demo.jpg
+```
 
-### Cache
+![Fill 600x300](docs/readme/c_fill,w_600,h_300.jpg)
 
-Generated images go to `/data/cache` inside the container. By default nothing is mounted there, so the cache is ephemeral: it disappears with the container and never needs backup. To keep derived images across restarts, add a volume:
+Turn it into a square:
+
+```text
+/image/upload/c_fill,w_400,h_400/demo.jpg
+```
+
+![Square crop](docs/readme/c_fill,w_400,h_400.jpg)
+
+Keep the whole image and fit it inside 600×300:
+
+```text
+/image/upload/c_fit,w_600,h_300/demo.jpg
+```
+
+![Fit 600x300](docs/readme/c_fit,w_600,h_300.jpg)
+
+Add a white canvas instead of cropping:
+
+```text
+/image/upload/c_pad,w_600,h_300,b_white/demo.jpg
+```
+
+![Pad 600x300](docs/readme/c_pad,w_600,h_300,b_white.jpg)
+
+Convert to grayscale:
+
+```text
+/image/upload/w_600/e_grayscale/demo.jpg
+```
+
+![Grayscale](docs/readme/w_600,e_grayscale.jpg)
+
+Convert to WebP with automatic quality:
+
+```text
+/image/upload/w_600/q_auto/f_webp/demo.jpg
+```
+
+![WebP auto quality](docs/readme/w_600,q_auto,f_webp.webp)
+
+Transformations can be chained:
+
+```text
+/image/upload/c_fill,w_600,h_300/e_grayscale/q_80/f_webp/demo.jpg
+```
+
+![Transformation chain](docs/readme/c_fill,w_600,h_300_e_grayscale_q_80_f_webp.webp)
+
+That is basically how EvaThumber works.
+
+## Run it
+
+Mount the directory containing your original images:
 
 ```bash
-docker run -p 8080:8080 \
+docker run \
+  -p 8080:8080 \
+  -v /path/to/your/images:/data/images:ro \
+  docker.io/allovince/evathumber
+```
+
+If `/path/to/your/images/demo.jpg` exists, open:
+
+```text
+http://localhost:8080/image/upload/w_600/demo.jpg
+```
+
+The image is generated on the first request and cached afterwards.
+
+The original directory is mounted read-only. EvaThumber never modifies your source images.
+
+## Cache
+
+Generated images are cached in `/data/cache`.
+
+You do not have to configure it.
+
+With the command above, the cache lives inside the container. Removing the container effectively clears all generated images. They will simply be generated again when requested.
+
+If you want the cache to survive container replacement, mount it:
+
+```bash
+docker run \
+  -p 8080:8080 \
   -v /path/to/your/images:/data/images:ro \
   -v evathumber-cache:/data/cache \
   docker.io/allovince/evathumber
 ```
 
-The cache is derived data: deleting it never affects your originals, and the service regenerates everything on demand. `/healthz` is liveness; `/readyz` is readiness (fails with 503 while the cache is not writable).
+The cache contains derived data only. It does not need to be backed up.
 
-## URL syntax
+## URL
 
+EvaThumber uses Cloudinary-style transformation URLs:
+
+```text
+/image/upload/{transformations}/{public_id}.{ext}
 ```
-/image/upload/{transformation_chain}/{public_id}.{ext}
-/{cloud_name}/image/upload/{transformation_chain}/{public_id}.{ext}
+
+It also accepts the Cloudinary form with a cloud name:
+
+```text
+/{cloud_name}/image/upload/{transformations}/{public_id}.{ext}
 ```
 
-- Chain steps with `/`, qualifiers with `,` (e.g. `c_fill,w_300,h_300/q_80`).
-- The delivery extension (`.webp`, `.jpg`, …) sets the output format; `f_` inside the chain overrides it; `f_auto` negotiates via `Accept` (adds `Vary: Accept`; webp wins ties).
-- A `v123` version segment changes cache identity, not source resolution. It is not a historical snapshot and does not enable `immutable` caching.
+Parameters inside one transformation are separated by commas:
 
-### Supported parameters
+```text
+c_fill,w_600,h_400
+```
 
-| Parameter | Values | Notes |
-| --- | --- | --- |
-| `c` | `scale` (default), `fit`, `fill`, `crop`, `thumb`, `pad`, `limit` | Cloudinary semantics; `thumb` requires explicit `g` |
-| `w`, `h` | integer pixels or `0.x` relative | One dimension may be omitted to preserve aspect ratio |
-| `ar` | `4:3` or decimal | Requires `w` or `h` to anchor the other dimension |
-| `g` | compass: `center`, `north`, `north_east`, … | For `fill`/`crop`/`thumb`/`pad` positioning |
-| `x`, `y` | non-negative integers | Only with `c_crop,g_north_west` |
-| `dpr` | 1.0–4.0 | Multiplies target dimensions |
-| `a` | `0`, `90`, `180`, `270`, `-90`, `hflip`, `vflip` | |
-| `q` | 1–100, `auto[:best\|good\|eco\|low]` | Auto: local content-adaptive heuristic, JPEG/WebP/AVIF only; default `good` |
-| `f` | `jpg`, `png`, `webp`, `avif`, `gif`, `auto` | `auto` = Accept negotiation |
-| `b` | `rgb:RRGGBB` or `white`/`black`/`red`/`green`/`blue`/`transparent` | Pad background |
-| `e` | `grayscale`, `negate` | |
+Multiple transformations are separated by `/`:
 
-Supported sources/formats: JPEG, PNG, WebP, AVIF, GIF (static frames only).
+```text
+c_fill,w_600,h_400/e_grayscale/q_80/f_webp
+```
 
-### Explicitly unsupported (rejected with HTTP 400/404/415, never silently approximated)
+So:
 
-- `q_auto:sensitive`, unknown quality tiers, and `q_auto` with PNG/GIF output. Supported auto tiers use a [local heuristic](docs/components/Image/auto-quality.md), not Cloudinary's perceptual algorithm.
-- `g_auto` / `g_face` — AI gravity requires Cloudinary's models; not emulated.
-- Animated inputs (multi-frame GIF/WebP) — rejected rather than silently flattening.
-- Remote/S3 fetch, SVG/PDF sources, layer overlays, text, rounded corners (`r`), blur/sharpen, `lfill`/`lpad`/`mfit`/`mpad`.
-- Query parameters other than scalar `_a`/`_i` analytics (ignored for image identity); GET/HEAD only.
+```text
+/image/upload/c_fill,w_600,h_400/e_grayscale/q_80/f_webp/demo.jpg
+```
 
-## Caching and HTTP behaviour
+means:
 
-- Derived images are cached on disk, keyed by source revision + canonical transformation + negotiated format + policy version. Hits bypass libvips entirely.
-- Responses carry `ETag`, `Last-Modified`, `Cache-Control: public, max-age=3600`; conditional `If-None-Match` returns `304`.
-- Cold requests are admission-bounded: when the service is saturated, misses are rejected fast with `503` (`Retry-After: 1`) instead of piling up. Same-key misses share one transformation. Processing timeouts return `504`.
-- Capacity is enforced by oldest-write eviction of idle entries; an oversized product returns `507 cache_full`.
-- Under overload you will see `503`, never wrong images. The service queues what it can, rejects the rest boundedly, and recovers on its own when load drops.
+```text
+demo.jpg
+    ↓
+fill 600×400
+    ↓
+grayscale
+    ↓
+quality 80
+    ↓
+WebP
+```
 
-## Performance
+## Transformations
 
-Measured on the production Docker image (arm64, 2 CPU / 512 MiB limit, default 2 transform workers) against local fixtures, 8-second windows per scenario. Full raw evidence: [`bench/results/rc1-http-full/`](bench/results/rc1-http-full/).
+### Resize
 
-| Scenario | Concurrency | Success rate | Throughput (200s) | p50 / p95 / p99 ms |
-| --- | ---: | ---: | ---: | ---: |
-| Hot cache | 16 | 100% (37,740/37,740) | ~4,700/s | 3.3 / 5.7 / 7.1 |
-| Same-key cold | 16 | 98.7% (6,216/6,301) | ~775/s | 14.8 / 62.9 / 75.3 |
-| Different-key cold | 4 | 100% (204/204) | ~25/s | 161 / 173 / 182 |
-| Different-key cold | 16 | 2% (68/3,417), rest bounded 503 | ~8/s | 804 / 915 / 1,613 |
-| Mixed | 16 | 15.7% (868/5,556), rest bounded 503 | ~107/s | 2.8 / 612 / 1,134 |
+Resize by width:
 
-Notes:
+```text
+/image/upload/w_600/demo.jpg
+```
 
-- Same-key cold ran exactly **one** transformation at every concurrency (2–16); concurrent waiters reused it.
-- All 503s were `cache_admission_full` / `processor_busy` (one `queue_timeout`) — the designed bounded rejection. Health probes stayed 200 throughout, every container exited 0 with no OOM, and later scenarios recovered immediately.
-- Cold-miss throughput is intentionally small (2 workers, ~70–80 ms per derivation). Raise `EVATHUMBER_POOL_SIZE` only if you need more parallel derivations.
+Resize by height:
 
-These figures are for one machine, one shape of image and one set of fixtures — treat them as a reference point, not a promise. Every 200 response in the report was decoded pixel by pixel, and the 32 scenarios had zero failures.
+```text
+/image/upload/h_400/demo.jpg
+```
 
-## Correctness under failure
+Relative size:
 
-`tests/crash-recovery.php` kills the service at the worst possible moment and checks that the published cache is never wrong. Each kill is proven to land mid-encode (the supervisor log shows work started and not finished, and the worker's private staging file exists), and every recovered product must be byte-identical to one from a container that never crashed.
+```text
+/image/upload/w_0.5/demo.jpg
+```
 
-| Scenario | In-flight requests | Container | After restart |
-| --- | --- | --- | --- |
-| Busy worker `SIGKILL` | bounded 503 plus a valid 200 | service stays up, `/healthz` 200 | ready in ~24 ms, products byte-identical |
-| Container `SIGKILL` (PID 1) | no response, as expected | container gone | ready in ~30 ms, products byte-identical, no residue |
-| Pool supervisor `SIGKILL` | bounded 503s | container exits by itself | ready in ~34 ms, products byte-identical, no residue |
-| `docker stop` mid-encode | both complete as full 200s | exit 0, no OOM | ready in ~25 ms, cache still HIT |
+### Crop and fit
 
-No staging or temporary cache files survive any of them. Evidence: [`bench/results/rc1-crash-recovery/`](bench/results/rc1-crash-recovery/).
+Scale:
 
-## Library usage (Composer)
+```text
+/image/upload/c_scale,w_600/demo.jpg
+```
+
+Fit inside a box without cropping:
+
+```text
+/image/upload/c_fit,w_600,h_300/demo.jpg
+```
+
+Fill a box and crop overflow:
+
+```text
+/image/upload/c_fill,w_600,h_300/demo.jpg
+```
+
+Crop:
+
+```text
+/image/upload/c_crop,w_600,h_400,g_center/demo.jpg
+```
+
+Thumbnail:
+
+```text
+/image/upload/c_thumb,w_400,h_400,g_center/demo.jpg
+```
+
+Pad:
+
+```text
+/image/upload/c_pad,w_600,h_300,b_white/demo.jpg
+```
+
+Limit an image without enlarging it:
+
+```text
+/image/upload/c_limit,w_1600,h_1600/demo.jpg
+```
+
+### Gravity
+
+```text
+/image/upload/c_fill,w_400,h_400,g_north/demo.jpg
+/image/upload/c_fill,w_400,h_400,g_south/demo.jpg
+/image/upload/c_fill,w_400,h_400,g_east/demo.jpg
+/image/upload/c_fill,w_400,h_400,g_west/demo.jpg
+```
+
+Compass gravity is supported:
+
+```text
+center
+north
+north_east
+east
+south_east
+south
+south_west
+west
+north_west
+```
+
+### Aspect ratio
+
+```text
+/image/upload/c_fill,w_600,ar_16:9/demo.jpg
+```
+
+### DPR
+
+```text
+/image/upload/c_fill,w_300,h_200,dpr_2/demo.jpg
+```
+
+The resulting image is rendered at 600×400 pixels.
+
+### Rotate and flip
+
+```text
+/image/upload/w_600/a_90/demo.jpg
+/image/upload/w_600/a_180/demo.jpg
+/image/upload/w_600/a_hflip/demo.jpg
+/image/upload/w_600/a_vflip/demo.jpg
+```
+
+### Effects
+
+```text
+/image/upload/w_600/e_grayscale/demo.jpg
+/image/upload/w_600/e_negate/demo.jpg
+```
+
+### Quality
+
+Explicit quality:
+
+```text
+/image/upload/w_600/q_80/demo.jpg
+```
+
+Automatic quality:
+
+```text
+/image/upload/w_600/q_auto/demo.jpg
+/image/upload/w_600/q_auto:best/demo.jpg
+/image/upload/w_600/q_auto:good/demo.jpg
+/image/upload/w_600/q_auto:eco/demo.jpg
+/image/upload/w_600/q_auto:low/demo.jpg
+```
+
+`q_auto` is EvaThumber's local content-adaptive heuristic. It is not Cloudinary's proprietary perceptual algorithm.
+
+### Output size limit
+
+The result of every request must fit within 4096 pixels on each side and 16 megapixels in total. Rotation, flipping, effects and quality settings do not change the pixel count, so applying them on their own to a large original is rejected with `413 image_too_large`. Resize in the same request, as in every example above.
+
+### Format
+
+The URL extension can choose the output format:
+
+```text
+/image/upload/w_600/demo.webp
+```
+
+Or use `f_`:
+
+```text
+/image/upload/w_600/f_webp/demo.jpg
+/image/upload/w_600/f_avif/demo.jpg
+/image/upload/w_600/f_png/demo.jpg
+```
+
+Automatic format negotiation is also supported:
+
+```text
+/image/upload/w_600/f_auto/demo.jpg
+```
+
+EvaThumber uses the request's `Accept` header to choose the output format.
+
+## Supported formats
+
+Input:
+
+```text
+JPEG
+PNG
+WebP
+AVIF
+GIF (static only)
+```
+
+Output:
+
+```text
+JPEG
+PNG
+WebP
+AVIF
+GIF
+```
+
+## What EvaThumber does not do
+
+EvaThumber 2 deliberately keeps its scope small.
+
+It does not currently implement:
+
+- remote or S3 image sources
+- animated image processing
+- SVG or PDF
+- text and image overlays
+- face detection
+- automatic AI gravity
+- rounded corners
+- blur, sharpen and other stylized effects
+- video transformation
+- upload or administration APIs
+
+Unsupported transformations fail explicitly instead of being silently approximated.
+
+## Production behavior
+
+EvaThumber 2 is built on PHP 8.5, FrankenPHP and libvips.
+
+The Docker image:
+
+- supports `linux/amd64` and `linux/arm64`
+- runs as a non-root user
+- keeps source images read-only
+- publishes cached files atomically
+- deduplicates concurrent generation of the same image
+- uses bounded work queues under load
+- returns `503` instead of allowing overload to corrupt images or exhaust the process
+- supports `ETag`, `Last-Modified` and conditional `304` responses
+- exposes `/healthz` and `/readyz`
+
+The default configuration is intended to work without tuning.
+
+If you need to know exactly how it behaves under load or process failure, see [`bench/`](bench/) and [`docs/`](docs/). The repository contains the benchmark and crash-recovery evidence used for the 2.0 release.
+
+## Using it as a PHP library
+
+The transformation engine can also be used without the HTTP service:
 
 ```php
 use EvaThumber\Image\Pipeline;
 use EvaThumber\Source\LocalSource;
 use EvaThumber\Transformation\Parser;
 
-$source = (new LocalSource('/path/to/images'))->resolve('photo');
-(new Pipeline())->write($source, (new Parser())->parse('c_fill,w_300,h_300'), '/tmp/out.webp', 'webp');
+$source = (new LocalSource('/path/to/images'))->resolve('demo');
+
+(new Pipeline())->write(
+    $source,
+    (new Parser())->parse('c_fill,w_600,h_400'),
+    '/tmp/demo.webp',
+    'webp'
+);
 ```
 
-The library core is independent of the HTTP layer (no HTTP cache, admission or negotiation there).
+The library core does not depend on the HTTP cache or server layer.
 
 ## Development
 
 ```bash
 composer install
-composer test      # PHPUnit
-composer analyse   # PHPStan level 8
+composer test
+composer analyse
 ```
 
-Docker acceptance suites (require a Docker daemon and the fixtures in `upload/`):
+See [`docs/`](docs/) for architecture, testing and release documentation.
 
-```bash
-docker build --platform linux/arm64 --target production -t evathumber:2.0.0 .
-php tests/container-smoke.php    evathumber:2.0.0 linux/arm64
-php tests/rc1-acceptance.php    evathumber:2.0.0 linux/arm64
-php tests/product-acceptance.php evathumber:2.0.0 linux/arm64
-php tests/docker-acceptance.php  evathumber:2.0.0 linux/arm64
-php tests/crash-recovery.php    evathumber:2.0.0 linux/arm64
-```
+## From EvaThumber 1.x
 
-Every suite runs the image exactly as the Quick Start does — only `-p` and the read-only image mount, no cache volume, no tuning flags. `crash-recovery.php` additionally kills a busy worker, the container and the pool supervisor mid-encode, then proves every recovered product is byte-identical to one from a container that never crashed.
+EvaThumber started in 2012 as a small PHP image thumbnail library.
 
-CI runs the whole suite on native `linux/amd64` and `linux/arm64` runners: 63 tests / 877 assertions, PHPStan level 8, and all five acceptance suites per architecture, then a buildx build of both platforms. Latest green run: [`bench/results/rc1-ci/`](bench/results/rc1-ci/).
+Version 2 is a complete rewrite. The basic idea is still the same:
 
-Architecture, acceptance status and release gates live in [`docs/`](docs/index.md).
+> change the URL, get the image you need.
 
-## Compatibility matrix
+The URL syntax, processing engine and deployment model have changed.
 
-| Area | Status |
-| --- | --- |
-| Resize/crop modes (`c_scale/fit/fill/crop/thumb/pad/limit`) | Supported |
-| Dimensions, `ar`, `dpr`, compass gravity, NW-coordinate crop | Supported |
-| Right-angle rotation, flips, grayscale, negate | Supported |
-| Output formats jpg/png/webp/avif/gif, `f`, extension delivery, `f_auto` | Supported |
-| `q_auto[:best\|good\|eco\|low]` | Local content/format-adaptive Q for JPEG/WebP/AVIF; not Cloudinary-equivalent |
-| `g_auto`, face detection | Not supported (requires real detection models) |
-| Animated images | Not supported |
-| Overlays/layers, text, stylized effects (`r`, blur, vignette, …) | Not supported |
-| Remote/S3 sources | Not supported |
-| Video, Upload/Admin APIs | Not applicable |
-
-See [docs/migration-v1.md](docs/migration-v1.md) for moving from EvaThumber 1.x.
+See [`docs/migration-v1.md`](docs/migration-v1.md).
 
 ## License
 
-BSD-3-Clause — see [LICENSE](LICENSE).
+BSD-3-Clause. See [LICENSE](LICENSE).
+
+### Demo image
+
+`demo.jpg` uses **Lake Mountain Landscape** by Bonnie Moreland, released under CC0 / public domain.
+
+Source: Wikimedia Commons.

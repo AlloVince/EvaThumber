@@ -21,6 +21,8 @@ try {
     unset($source); // Release encoded snapshot before allocating the final revision check.
     $local->assertIdentity($job['publicId'], $identity);
 } catch (ImageException $error) {
+    // The response body stays generic; without this the reason never reaches a log.
+    fwrite(STDERR, $error::class . ': ' . $error->getMessage() . PHP_EOL);
     echo json_encode(['status' => $error->status, 'error' => $error->error], JSON_THROW_ON_ERROR);
     exit(1);
 } catch (Throwable $error) {

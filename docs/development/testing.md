@@ -9,14 +9,19 @@ libvips 测试中的同一 PHP 进程重复处理可能受进程内状态影响�
 ## 已有覆盖
 | 文件 | 实际覆盖 |
 |---|---|
-| `tests/v2/PipelineTest.php` | f 覆盖、投递格式默认值、4 组不支持参数、fill 像素/尺寸、fit 后旋转；末尾 q/f 分段等价、直接模型构建、重复键与后续像素操作拒绝 |
-| `tests/v2/StorageAndUrlTest.php` | cloud/version/chain/嵌套及歧义边界 URL、来源 MIME 与歧义、缓存命中绕过 producer、容量失败原子性与临时清理 |
+| `tests/v2/PipelineTest.php` | f 覆盖、投递格式默认值、4 组不支持参数、fill 像素/尺寸、fit 后旋转；末尾 q/f 分段等价、直接模型构建、重复键与后续像素操作拒绝；1200×800 原图上 a_90/a_180/a_270/a_-90/a_hflip/a_vflip 六个方向；ar 尺寸 7 例（含 600×16:9 的 .5 像素边界，按 canonical 串回读渲染） |
+| `tests/v2/StorageAndUrlTest.php` | cloud/version/chain/嵌套及歧义边界 URL、来源 MIME 与歧义、缓存命中绕过 producer、容量失败原子性与临时清理；ar canonical 回读与无指数记法断言 |
 | `tests/v2/CacheLifecycleTest.php` | 最老写入淘汰、生产失败保留旧条目、跳过被租用条目 |
 | `tests/v2/CacheConcurrencyTest.php` | 跨 PHP 进程同键 miss 复用发布产物、忙等 250ms 截止后 503、命中绕过忙锁、强杀 producer 后锁释放与孤儿临时清理；7 占用槽位加真实 producer 填满 8 槽、溢出立即 503、命中绕过满槽、SIGKILL 后全部槽位恢复 |
 | `tests/v2/HttpTest.php` | 直接 Kernel 调用：真实子进程变换、f_auto WebP、Vary、MISS/HIT、ETag 304、非法变换、healthz；发送租约与回收、版本隔离、analytics 白名单与 URI 限长、投递分段共享缓存、忙准入 503 Retry-After 后恢复 |
 | `tests/v2/AutoQualityTest.php` | 内容/格式自适应 Q、四档顺序、极小/透明图、三格式四档编码与显式 Q 字节一致、PNG/GIF 拒绝、HTTP 缓存身份 |
 新增 `tests/v2/ProcessorFailureTest.php`：真实 Symfony Process 的超时 504、异常退出 422、结构化拒绝 413，均验证部分文件不发布、临时清理及下一次真实变换恢复。`HttpTest` 另验证编码空格/加号在单条目淘汰后的身份与 ETag。
-当前完整 suite（`vendor/bin/phpunit`）：**63 tests / 877 assertions，0 skip**（Linux 容器内以 uid 33 运行，与生产镜像同一用户，PHP 8.5.10 / libvips 8.14.1；原生 CI 的 amd64 与 arm64 runner 结果一致）。同一 suite 以 root 运行时为 63 / 874、1 skip（权限位断言对 root 不成立）；macOS 宿主（PHP 8.5.11）为 63 / 861、1 skip（Linux 专属 PDEATHSIG 用例）。详细证据见 [进度](../progress.md)。
+当前完整 suite（`vendor/bin/phpunit`）：**77 tests / 949 assertions，0 skip**（Linux 容器内以 uid 33 运行，与生产镜像同一用户；原生 CI 的 amd64 与 arm64 runner 结果一致）。同一 suite 以 root 运行时为 77 / 946、1 skip（权限位断言对 root 不成立）。macOS 宿主的数字本次未重测（宿主 PHP 无 libvips，只有容器内可跑），需要时在装了 libvips 的 macOS 上重跑再回填。详细证据见 [进度](../progress.md)。
+
+`progress.md` 与 `release-review.md` 里的 63 / 877 是 2.0.0 发布时按 commit 与 CI run 冻结的发布证据，不要改写；它们与本页数字不一致是预期的。
+
+**fixture 尺寸必须覆盖真实体量。** 2.0.0 的 `a_90` 只在 300×200 这类 fixture 上验证过，而 `vips_rot`/`vips_flip` 配 `access=sequential` 的源要超过约 1 MPix 才失败，于是整套测试与 `tests/docker-acceptance.php` 的 300×200 矩阵一起漏掉了「任何相机尺寸原图直接旋转都返回 422」。回归用例因此固定用 1200×800。新增涉及 libvips 操作、编解码或内存的用例时，先确认阈值落在 fixture 尺寸的另一侧。
+
 - `PoolQueueTest`：真实 supervisor，默认/非默认队列容量与截止、暂停 worker 硬超时、reap、恢复。
 - `PoolLifecycleTest`：删除/替换临时目标不被写回；断连回收；活动 SIGKILL 与人工部分 stage；直接 IPC 停机拒绝待处理请求、完成活动任务。人工 stage 不等于真实编码写入时刻强杀；不等于生产 HTTP drain。
 - `SourceConsistencyTest`：atime 不影响身份、producer 回调内同步替换导致 409 且不发布。尚未验证真实 worker 解码期间的并发替换。
@@ -53,7 +58,7 @@ image job 依赖 test，QEMU/buildx 构建 linux/amd64、linux/arm64。分支与
 最近一次远程运行：run `36322300814`（commit `aade6db`，main），`test`（amd64、arm64）与 `image` 三个 job 全部 success，证据归档在 [`bench/results/rc1-ci/`](../bench/results/rc1-ci/)。分支 push 不推送镜像，只有 tag 会。
 
 ## 覆盖缺口
-尚未完整覆盖所有 resize/codec、动画拒绝、全部 Limits 边界、Accept 各 q/通配符组合、方法限制、来源并发变更。处理中停止与强杀恢复已由 `tests/crash-recovery.php` 在真实容器与真实 HTTP 上覆盖。HEAD/304 已由独立容器 HTTP 验收覆盖，跨进程准入与处理超时已有回归；满槽准入另经 `tests/compose-admission.php` 在真实 Compose HTTP 入口验证。硬 OOM 隔离尚无证据：现有的是 RSS 采样回收加有界拒绝。新增行为时按影响选择测试，不冒称完整覆盖。
+尚未完整覆盖所有 resize/codec、动画拒绝、全部 Limits 边界、Accept 各 q/通配符组合、方法限制、来源并发变更。处理中停止与强杀恢复已由 `tests/crash-recovery.php` 在真实容器与真实 HTTP 上覆盖。HEAD/304 已由独立容器 HTTP 验收覆盖，跨进程准入与处理超时已有回归；满槽准入另经 `tests/compose-admission.php` 在真实 Compose HTTP 入口验证。硬 OOM 隔离尚无证据：现有的是 RSS 采样回收加有界拒绝。`access=random` 的内存代价目前只有单次 28 MPix 峰值测量，没有负载下的 RSS 分布证据。新增行为时按影响选择测试，不冒称完整覆盖。
 
 ## 相关
 - 配置：`phpunit.xml`、`phpstan.neon`、`.github/workflows/ci.yml`。

@@ -36,7 +36,7 @@ final class ParameterRules
                 $value = (string) (float) $value;
             }
             if ($key === 'ar') {
-                $value = (string) self::ratio($value);
+                $value = self::decimal(self::ratio($value));
             }
             if ($key === 'f' && $value === 'jpeg') {
                 $value = 'jpg';
@@ -86,6 +86,30 @@ final class ParameterRules
         $parts = explode(':', $value);
         $denominator = (float) ($parts[1] ?? 1);
         return $denominator > 0 ? (float) $parts[0] / $denominator : 0;
+    }
+
+    /**
+     * Canonical text for a ratio, and the only channel by which the ratio
+     * reaches the transform subprocess, so it must survive the round trip
+     * through float. A plain (string) cast keeps 14 significant digits, which
+     * is lossy: 16:9 becomes "1.7777777777778", and 600 / that is 337.4999...
+     * instead of 337.5, so w_600,ar_16:9 rounds down to a 600x337 image that is
+     * not 16:9. var_export() round trips exactly but may emit exponent notation
+     * ("1.0E-5") for extreme ratios, which the `ar` grammar above rejects when
+     * the canonical string is parsed again. Fixed notation with the fewest
+     * digits that still parse back to the identical double avoids both.
+     */
+    private static function decimal(float $value): string
+    {
+        foreach ([15, 16, 17] as $digits) {
+            $text = rtrim(rtrim(sprintf('%.' . $digits . 'F', $value), '0'), '.');
+            if ($text !== '' && $text !== '-' && (float) $text === $value) {
+                return $text;
+            }
+        }
+        $text = rtrim(rtrim(sprintf('%.17F', $value), '0'), '.');
+
+        return $text === '' ? '0' : $text;
     }
 
     private static function unsupported(string $message): never

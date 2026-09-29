@@ -20,7 +20,7 @@
 
 ## 当前验证
 完整证据与剩余门槛见 [progress](../progress.md)。要点：
-- arm64 原生：容器内 uid 33 跑完整 suite **63 tests / 877 assertions，0 skip**；PHPStan level 8（`src` + `bin`）通过。
+- arm64 原生：容器内 uid 33 跑完整 suite **77 tests / 949 assertions，0 skip**；PHPStan level 8（`src` + `bin`）通过。
 - 五套 Docker 验收全部通过，只用 README 公开的两条 `docker run` 参数：`container-smoke`、`rc1-acceptance`、`product-acceptance`、`docker-acceptance`、`crash-recovery`。
 - `crash-recovery.php` 在编码中途分别强杀忙碌 worker、容器与池 supervisor，并加在途 graceful stop；每次恢复产物与纯净容器逐字节一致，staging/临时文件零残留。
 - 32 场真实 HTTP 压测零失败，报告在 `bench/results/rc1-http-full/`。

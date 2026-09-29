@@ -117,6 +117,25 @@ final class StorageAndUrlTest extends TestCase
         (new LocalSource($this->directory))->resolve('photo');
     }
 
+    /**
+     * ar is canonicalised to a ratio and shipped to the transform subprocess as
+     * part of the canonical string, so the text has to parse back to the same
+     * double. A 14-digit cast lost that, and var_export() would emit exponent
+     * notation for extreme ratios, which the ar grammar then rejects.
+     */
+    public function testAspectRatioCanonicalRoundTrip(): void
+    {
+        $parser = new \EvaThumber\Transformation\Parser();
+        foreach (['c_fill,w_600,ar_16:9', 'c_fill,w_600,ar_4:3', 'c_fill,w_600,ar_1:1',
+            'c_fill,w_600,ar_1:99999', 'c_fill,w_600,ar_99999:1', 'c_fill,w_600,ar_0.5'] as $expression) {
+            $canonical = $parser->parse($expression)->canonical();
+            self::assertSame($canonical, $parser->parse($canonical)->canonical(), $expression);
+            self::assertDoesNotMatchRegularExpression('/[eE][+-]?\d/', $canonical, $expression);
+        }
+        // Lossy truncation used to turn 16:9 into "1.7777777777778".
+        self::assertSame('ar_1.7777777777777777,c_fill,w_600', $parser->parse('c_fill,w_600,ar_16:9')->canonical());
+    }
+
     public function testCacheHitBypassesProducer(): void
     {
         $calls = 0;

@@ -116,4 +116,84 @@ final class PipelineTest extends TestCase
             unlink($output);
         }
     }
+
+    /**
+     * vips_rot and vips_flip are in-place operations. Against a source loaded
+     * with sequential access libvips aborts with "out of order read" once the
+     * image passes roughly a megapixel, which the pipeline reported as a generic
+     * invalid_image. Measured on this fixture the 90 and 270 degree rotations
+     * fail; 180, hflip and vflip survive, so their cases are here to catch the
+     * same regression reaching them. Every fixture in this suite used to be
+     * smaller than the threshold, which is why this went unnoticed.
+     */
+    #[DataProvider('rotationProvider')]
+    public function testRotationAndFlipAboveOneMegapixel(string $transformation, int $width, int $height): void
+    {
+        $input = tempnam(sys_get_temp_dir(), 'eva-input-');
+        $output = tempnam(sys_get_temp_dir(), 'eva-output-');
+        self::assertIsString($input);
+        self::assertIsString($output);
+        try {
+            Image::black(1200, 800, ['bands' => 3])->newFromImage([10, 120, 200])->pngsave($input);
+            $source = new SourceImage($input, 'fixture', time(), (int) filesize($input), 'png');
+            (new Pipeline())->write($source, (new Parser())->parse($transformation), $output, 'png');
+            $image = Image::newFromFile($output);
+            self::assertSame($width, $image->width, $transformation);
+            self::assertSame($height, $image->height, $transformation);
+        } finally {
+            unlink($input);
+            unlink($output);
+        }
+    }
+
+    public static function rotationProvider(): iterable
+    {
+        yield 'rotate 90 clockwise' => ['a_90', 800, 1200];
+        yield 'rotate 180' => ['a_180', 1200, 800];
+        yield 'rotate 270 clockwise' => ['a_270', 800, 1200];
+        yield 'rotate 90 anticlockwise' => ['a_-90', 800, 1200];
+        yield 'flip horizontally' => ['a_hflip', 1200, 800];
+        yield 'flip vertically' => ['a_vflip', 1200, 800];
+    }
+
+    /**
+     * The canonical string is the only channel by which ar reaches the
+     * transform subprocess, so it has to survive a float round trip. Truncating
+     * it to 14 significant digits turned w_600,ar_16:9 into 600x337.
+     */
+    #[DataProvider('aspectRatioProvider')]
+    public function testAspectRatioSurvivesCanonicalisation(string $transformation, int $width, int $height): void
+    {
+        $input = tempnam(sys_get_temp_dir(), 'eva-input-');
+        $output = tempnam(sys_get_temp_dir(), 'eva-output-');
+        self::assertIsString($input);
+        self::assertIsString($output);
+        try {
+            Image::black(1200, 800, ['bands' => 3])->newFromImage([10, 120, 200])->pngsave($input);
+            $source = new SourceImage($input, 'fixture', time(), (int) filesize($input), 'png');
+            $parser = new Parser();
+            // The subprocess only ever receives the canonical form, so assert
+            // against that exact string rather than the expression typed above.
+            $canonical = $parser->parse($transformation)->canonical();
+            self::assertSame($canonical, $parser->parse($canonical)->canonical());
+            (new Pipeline())->write($source, $parser->parse($canonical), $output, 'png');
+            $image = Image::newFromFile($output);
+            self::assertSame($width, $image->width, $transformation);
+            self::assertSame($height, $image->height, $transformation);
+        } finally {
+            unlink($input);
+            unlink($output);
+        }
+    }
+
+    public static function aspectRatioProvider(): iterable
+    {
+        yield 'sixteen by nine at the half pixel boundary' => ['c_fill,w_600,ar_16:9', 600, 338];
+        yield 'sixteen by nine at a whole pixel' => ['c_fill,w_1600,ar_16:9', 1600, 900];
+        yield 'four by three' => ['c_fill,w_600,ar_4:3', 600, 450];
+        yield 'nine by sixteen' => ['c_fill,w_1080,ar_9:16', 1080, 1920];
+        yield 'twenty one by nine' => ['c_fill,w_1000,ar_21:9', 1000, 429];
+        yield 'three by two' => ['c_fill,w_1000,ar_3:2', 1000, 667];
+        yield 'square' => ['c_fill,w_600,ar_1:1', 600, 600];
+    }
 }
