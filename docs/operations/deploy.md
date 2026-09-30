@@ -32,28 +32,33 @@
 - 实测同一份源码连续构建的 `RootFS.Layers` 逐层一致；镜像 config/manifest ID 会因 BuildKit attestation 元数据而变化，属预期，不是内容漂移。
 
 ## 发布边界
-CI image job 使用 buildx 构建 linux/amd64、linux/arm64。版本号只写在 `src/Version.php` 的 `Version::VERSION`（`/healthz` 直接回报它），发布时按语义化版本解析：
+CI image job 使用 buildx 构建 linux/amd64、linux/arm64。版本号只写在 `src/Version.php` 的 `Version::VERSION`（`/healthz` 直接回报它），发布时按语义化版本解析。**发布由写新版本号的那个 commit 触发，`v*` tag 由 CI 自己打，人不再手工 tag**：
 
 | 触发 | 结果 |
 |---|---|
-| 分支 push / pull request | 只构建并写 gha 缓存，`push=false`；镜像带 OCI source/revision/version 标签 |
-| `v<major>.<minor>.<patch>` | 推送 `docker.io/allovince/evathumber:<version without v>` 与 `:latest` |
-| `v<major>.<minor>.<patch>-<prerelease>` | 只推 `<version without v>`，`:latest` 留在上一个稳定版 |
+| 分支 push / pull request | release job 跳过；只构建并写 gha 缓存，`push=false`；镜像带 OCI source/revision/version 标签 |
+| `main` push，声明的是尚未发布过的版本 | release job 打并推 `v<version without v>`，随后推送 `docker.io/allovince/evathumber:<version without v>` |
+| 同上，且是 `v<major>.<minor>.<patch>` stable | 额外推 `:latest`，README Quick Start 拉的就是它 |
+| 同上，且是 `v<major>.<minor>.<patch>-<prerelease>` | 不推 `:latest`，它留在上一个 stable 版上 |
+| `main` push，但该版本已由更早的 commit 发布过 | 只构建并缓存，不重复占用同一个版本号 |
 
-任一条件不满足就整步失败、不推半成品镜像：tag 去掉 `v` 后不是合法 semver（Docker tag 不能含 `+`，因此拒绝 build metadata）、tag 与 `Version::VERSION` 不一致、或缺 `secrets.DOCKERHUB_TOKEN`（Docker Hub access token，账号 `allovince`）。tag 指向的 commit 必须先过 test job 的 amd64 与 arm64 原生 gate，image job `needs: test`。
+tag 与发布在同一次 run 内完成：`release` job（`needs: test`，`permissions: contents: write`）推 tag，`image` job 消费它的 `publish` 产物推镜像。用 `GITHUB_TOKEN` 推的 tag 不会触发新的 workflow run，所以工作流不再监听 `v*` tag 事件，改为把打 tag 自动化。
+
+任一条件不满足就整步失败、不推半成品镜像，也不产生 tag：`src/Version.php` 读不到 `VERSION`、声明的不是合法 semver（Docker tag 不能含 `+`，因此拒绝 build metadata）、声明版本低于已发布的最高版本（防止 release commit 被 revert 后悄悄占用旧版本号）、或需要发布时缺 `secrets.DOCKERHUB_TOKEN`（Docker Hub access token，账号 `allovince`，在 tag 产生之前检查）。要发布的 commit 必须先过 test job 的 amd64 与 arm64 原生 gate。
 
 缓存是纯派生数据，删除即重建，不需要备份；TLS 终止与多副本编排由部署方负责，README 未承诺。当前无独立生产编排、回滚脚本或监控告警配置可引用。
 
 ## 发布流程
-1. 确认要发布的 commit 已在 `main` 且 CI 全绿。
-2. 发一个 commit 把 `src/Version.php` 的 `Version::VERSION` 改成目标版本（patch 修 bug、minor 加能力、major 改不兼容语义），不改其他内容。
-3. 本地按 [命令](../development/commands.md) 跑 `composer test` 与 `composer analyse`，两者都要过。
-4. `git tag v<Version::VERSION> && git push origin main v<Version::VERSION>`。
-5. 看 `image` job：stable 版本的 run 要出现 `docker.io/allovince/evathumber:<version>` 与 `:latest` 两个 tag。
-6. 验收已发布镜像：匿名拉 `<version>`，用 README 原样两参数命令起容器，确认 `/healthz` 回报的版本号与 tag 一致、`/readyz` ready、一次冷请求 200 后转 `X-Evathumber-Cache: HIT`。
-7. 把 tag、commit、CI run、index digest 与第 6 步结果记进 [进度](../progress.md) 的发布小节。
+1. 发一个 commit 把 `src/Version.php` 的 `Version::VERSION` 改成目标版本（patch 修 bug、minor 加能力、major 改不兼容语义），不改其他内容。
+2. 本地按 [命令](../development/commands.md) 跑 `composer test` 与 `composer analyse`，两者都要过。
+3. `git push origin main`。不需要 `git tag`。
+4. 看这次 run 的三个 job：`test`（amd64、arm64）→ `release`（打并推 `v<Version::VERSION>`）→ `image`（推镜像）。stable 版本的 run 要出现 `docker.io/allovince/evathumber:<version>` 与 `:latest` 两个 tag；`release` 与 `image` 的 step summary 会写出声明版本、已发布最高版本和将要推送的镜像名。
+5. 验收已发布镜像：匿名拉 `<version>`，用 README 原样两参数命令起容器，确认 `/healthz` 回报的版本号与 tag 一致、`/readyz` ready、一次冷请求 200 后转 `X-Evathumber-Cache: HIT`。
+6. 把 tag、commit、CI run、index digest 与第 5 步结果记进 [进度](../progress.md) 的发布小节。
 
-发布后 `main` 上的新提交不会自动进镜像：README Quick Start 拉的 `:latest` 只在下一个 stable tag 时前进。
+发布后 `main` 上的新提交不会自动进镜像：README Quick Start 拉的 `:latest` 只在下一个 stable 版本发布时前进。
+
+镜像推送失败时 tag 已经存在，不要靠再改一次版本号恢复：在 GitHub 上 re-run 同一个 run，tag 仍指向该 commit 就会重新发布。
 
 ## 相关
 - [配置](config.md)、[运行排障](runtime.md)、[测试与 CI](../development/testing.md)、[进度](../progress.md)。

@@ -52,11 +52,11 @@ libvips 测试中的同一 PHP 进程重复处理可能受进程内状态影响�
 `tests/crash-recovery.php` 与 `tests/pool-http.php` 都会在停止后重新读取 `docker port`：OrbStack 上 stop/start 会重新分配临时宿主端口。
 
 ## CI 当前配置
-`.github/workflows/ci.yml` 在 master/main push、v* tag、PR 触发；test job 将 linux/amd64 对应 ubuntu-24.04、linux/arm64 对应 ubuntu-24.04-arm。每个 runner 构建 development 镜像（Dockerfile 安装 libvips），容器内以 **uid 33** 运行完整测试（`--do-not-cache-result`）与 PHPStan，使权限敏感断言真正执行而不是被跳过；再构建 production 镜像，由宿主 PHP 依次运行 `container-smoke`、`rc1-acceptance`、`product-acceptance`、`docker-acceptance`、`crash-recovery` 五套验收。
+`.github/workflows/ci.yml` 在 master/main push 与 PR 触发；test job 将 linux/amd64 对应 ubuntu-24.04、linux/arm64 对应 ubuntu-24.04-arm。每个 runner 构建 development 镜像（Dockerfile 安装 libvips），容器内以 **uid 33** 运行完整测试（`--do-not-cache-result`）与 PHPStan，使权限敏感断言真正执行而不是被跳过；再构建 production 镜像，由宿主 PHP 依次运行 `container-smoke`、`rc1-acceptance`、`product-acceptance`、`docker-acceptance`、`crash-recovery` 五套验收。
 
-image job 依赖 test，QEMU/buildx 构建 linux/amd64、linux/arm64。分支与 PR 只构建并缓存；`v*` tag 才登录 Docker Hub（用户 `allovince` + `secrets.DOCKERHUB_TOKEN`）并推送 `docker.io/allovince/evathumber:<去掉 v 的版本号>`，stable 版本额外推 `:latest`（README Quick Start 拉的就是它），预发布版本不推 `latest`。版本号来自 `src/Version.php` 的 `Version::VERSION`，tag 不是合法 semver、tag 与该常量不一致、或缺 secret 时该步都直接失败并给出 `::error::`，不会产出半发布状态。secret 只存在于 Actions，未读取其值。容器原生库输出 heifload nclx 警告，测试通过不代表无警告。
+main push 时 `release` job（`needs: test`，`contents: write`）在声明的版本尚未发布过时打并推 `v*` tag，`image` job 消费它的 `publish` 产物决定是否登录 Docker Hub（用户 `allovince` + `secrets.DOCKERHUB_TOKEN`）并推送 `docker.io/allovince/evathumber:<去掉 v 的版本号>`，stable 版本额外推 `:latest`（README Quick Start 拉的就是它），预发布版本不推 `latest`。分支 push 与 PR 跳过 release，只构建并缓存。版本号来自 `src/Version.php` 的 `Version::VERSION`：tag 创建、镜像标签、OCI 标签与「已发布最高版本」比较都由 `.github/actions/release-version` 产出，声明版本不前进、不是合法 semver、读不到常量或缺 secret 时都直接失败并给出 `::error::`，不会产出半发布状态。工作流不监听 `v*` tag 事件，因为用 `GITHUB_TOKEN` 推的 tag 不会再触发 run，发布由创建 tag 的那次 run 完成。secret 只存在于 Actions，未读取其值。容器原生库输出 heifload nclx 警告，测试通过不代表无警告。发布门禁与恢复方式见 [部署](../operations/deploy.md)。
 
-最近一次远程运行：run `36322300814`（commit `aade6db`，main），`test`（amd64、arm64）与 `image` 三个 job 全部 success，证据归档在 [`bench/results/rc1-ci/`](../bench/results/rc1-ci/)。分支 push 不推送镜像，只有 tag 会。
+最近一次远程运行：run `36322300814`（commit `aade6db`，main），`test`（amd64、arm64）与 `image` 三个 job 全部 success，证据归档在 [`bench/results/rc1-ci/`](../bench/results/rc1-ci/)。该 run 早于自动打 tag 的改动，它验证的是当时的发布链路，不能作为新链路的证据。
 
 ## 覆盖缺口
 尚未完整覆盖所有 resize/codec、动画拒绝、全部 Limits 边界、Accept 各 q/通配符组合、方法限制、来源并发变更。处理中停止与强杀恢复已由 `tests/crash-recovery.php` 在真实容器与真实 HTTP 上覆盖。HEAD/304 已由独立容器 HTTP 验收覆盖，跨进程准入与处理超时已有回归；满槽准入另经 `tests/compose-admission.php` 在真实 Compose HTTP 入口验证。硬 OOM 隔离尚无证据：现有的是 RSS 采样回收加有界拒绝。`access=random` 的内存代价目前只有单次 28 MPix 峰值测量，没有负载下的 RSS 分布证据。新增行为时按影响选择测试，不冒称完整覆盖。

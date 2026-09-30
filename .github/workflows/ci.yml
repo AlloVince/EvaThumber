@@ -3,7 +3,6 @@ name: CI
 on:
   push:
     branches: [main, master]
-    tags: ['v*']
   pull_request:
 
 jobs:
@@ -48,77 +47,73 @@ jobs:
       - name: Crash recovery acceptance
         run: php tests/crash-recovery.php evathumber:smoke "${{ matrix.platform }}"
 
-  image:
+  # A release is declared by the commit that writes a new Version::VERSION.
+  # This job turns that declaration into the v* tag itself, so nobody has to
+  # tag and push by hand. A tag pushed with GITHUB_TOKEN does not start a new
+  # workflow run, which is why the image is published by the run that created
+  # the tag instead of by a separate tag run.
+  release:
     needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      publish: ${{ steps.tag.outputs.publish }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/release-version
+        id: version
+      - name: Create and push the v* tag for the declared version
+        id: tag
+        env:
+          GIT_TAG: ${{ steps.version.outputs.git_tag }}
+          TAG_COMMIT: ${{ steps.version.outputs.tag_commit }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "$TAG_COMMIT" ] && [ "$TAG_COMMIT" != "$GITHUB_SHA" ]; then
+            echo "$GIT_TAG is already released at $TAG_COMMIT; this commit publishes nothing."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          # Checked before the tag exists: a tag without a published image is a
+          # release nobody can install.
+          if [ -z "$DOCKERHUB_TOKEN" ]; then
+            echo "::error::secrets.DOCKERHUB_TOKEN is required to tag and publish a release"
+            exit 1
+          fi
+
+          if [ -z "$TAG_COMMIT" ]; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git tag -a "$GIT_TAG" -m "EvaThumber ${GIT_TAG#v}" "$GITHUB_SHA"
+            git push origin "refs/tags/$GIT_TAG"
+            echo "Pushed $GIT_TAG at $GITHUB_SHA."
+          else
+            # A re-run of the run that created this tag: publish again, so a
+            # failed image push is recoverable without inventing a version.
+            echo "$GIT_TAG already points at this commit; republishing."
+          fi
+          echo "publish=true" >> "$GITHUB_OUTPUT"
+
+  image:
+    # release only runs on main pushes, so branch and pull request runs see it
+    # skipped and still build for the gha cache without publishing.
+    needs: [test, release]
+    if: always() && needs.test.result == 'success' && (needs.release.result == 'success' || needs.release.result == 'skipped')
     runs-on: ubuntu-latest
     permissions:
       contents: read
-    env:
-      IMAGE: docker.io/allovince/evathumber
     steps:
       - uses: actions/checkout@v4
       - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
-      # Branch and pull request runs only build and cache. A tag publishes
-      # docker.io/allovince/evathumber:<version without v>, plus :latest for a
-      # stable release, which is what the README quick start pulls.
-      - name: Resolve the release version and tags
-        id: meta
-        env:
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          declared=$(sed -n "s/^ *public const string VERSION = '\([^']*\)';.*/\1/p" src/Version.php)
-          if [ -z "$declared" ]; then
-            echo "::error::src/Version.php declares no VERSION constant; the release gate cannot read the version"
-            exit 1
-          fi
-          {
-            echo "labels<<EOF"
-            echo "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
-            echo "org.opencontainers.image.revision=$GITHUB_SHA"
-            echo "org.opencontainers.image.version=$declared"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
-
-          if [ "${{ github.ref_type }}" != "tag" ]; then
-            echo "push=false" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          version=${GITHUB_REF_NAME#v}
-          # Semver without build metadata: a Docker tag cannot carry "+", so a
-          # v1.2.3+build.4 tag has no image name to publish under.
-          semver='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
-          if [[ ! $version =~ $semver ]]; then
-            echo "::error::$GITHUB_REF_NAME is not a v<major>.<minor>.<patch>[-prerelease] semver tag"
-            exit 1
-          fi
-          if [ "$version" != "$declared" ]; then
-            echo "::error::tag $GITHUB_REF_NAME does not match src/Version.php ($declared); bump the constant in the release commit"
-            exit 1
-          fi
-          if [ -z "$DOCKERHUB_TOKEN" ]; then
-            echo "::error::secrets.DOCKERHUB_TOKEN is required to publish a v* tag"
-            exit 1
-          fi
-
-          tags=("$IMAGE:$version")
-          # A prerelease is a candidate, not a stable default: :latest stays
-          # on the last stable release until the matching stable tag lands.
-          if [ "$version" = "${version#*-}" ]; then
-            tags+=("$IMAGE:latest")
-          fi
-
-          {
-            echo "push=true"
-            echo "version=$version"
-            echo "tags<<EOF"
-            printf '%s\n' "${tags[@]}"
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+      - uses: ./.github/actions/release-version
+        id: version
       - name: Log in to Docker Hub
-        if: steps.meta.outputs.push == 'true'
+        if: needs.release.outputs.publish == 'true'
         uses: docker/login-action@v3
         with:
           username: allovince
@@ -128,8 +123,8 @@ jobs:
           context: .
           target: production
           platforms: linux/amd64,linux/arm64
-          push: ${{ steps.meta.outputs.push == 'true' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          push: ${{ needs.release.outputs.publish == 'true' }}
+          tags: ${{ steps.version.outputs.docker_tags }}
+          labels: ${{ steps.version.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max

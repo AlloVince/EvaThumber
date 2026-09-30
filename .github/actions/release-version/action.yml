@@ -1,0 +1,170 @@
+name: Release version
+description: >-
+  Read Version::VERSION from src/Version.php and turn it into the release
+  facts both the tagging job and the publishing job need: the git tag, the
+  Docker Hub tags, the OCI labels, the commit an existing tag already points
+  at, and the highest version ever released. Fails the step instead of
+  publishing half a release.
+
+inputs:
+  image:
+    description: Image repository the Docker tags are built for.
+    required: false
+    default: docker.io/allovince/evathumber
+
+outputs:
+  version:
+    description: The declared version, without a leading v.
+    value: ${{ steps.resolve.outputs.version }}
+  git_tag:
+    description: The tag name this version is released under.
+    value: ${{ steps.resolve.outputs.git_tag }}
+  tag_commit:
+    description: The commit an already existing v* tag points at, empty when the version was never released.
+    value: ${{ steps.resolve.outputs.tag_commit }}
+  highest:
+    description: The highest version ever released, or "none".
+    value: ${{ steps.resolve.outputs.highest }}
+  docker_tags:
+    description: Newline separated image references this version publishes as.
+    value: ${{ steps.resolve.outputs.docker_tags }}
+  labels:
+    description: Newline separated OCI labels for the built image.
+    value: ${{ steps.resolve.outputs.labels }}
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve the declared version into release facts
+      id: resolve
+      shell: bash
+      env:
+        IMAGE: ${{ inputs.image }}
+        SERVER_URL: ${{ github.server_url }}
+        REPOSITORY: ${{ github.repository }}
+        REVISION: ${{ github.sha }}
+      run: |
+        set -euo pipefail
+        # Prerelease identifiers sort below their release and are compared the
+        # way semver.org 11 prescribes, so the decision never depends on the
+        # runner's locale collation.
+        export LC_ALL=C
+
+        # Echoes gt, lt or eq for $1 against $2. Both must already have passed
+        # the validation pattern below.
+        semver_cmp() {
+          local a=$1 b=$2
+          local a_core=${a%%-*} b_core=${b%%-*} a_pre= b_pre=
+          [ "$a" != "$a_core" ] && a_pre=${a#"$a_core-"}
+          [ "$b" != "$b_core" ] && b_pre=${b#"$b_core-"}
+
+          local a_major=${a_core%%.*} a_rest=${a_core#*.}
+          local b_major=${b_core%%.*} b_rest=${b_core#*.}
+          local -a an=("$a_major" "${a_rest%%.*}" "${a_rest#*.}")
+          local -a bn=("$b_major" "${b_rest%%.*}" "${b_rest#*.}")
+          local i
+          for i in 0 1 2; do
+            if [ "${an[i]}" -lt "${bn[i]}" ]; then echo lt; return 0; fi
+            if [ "${an[i]}" -gt "${bn[i]}" ]; then echo gt; return 0; fi
+          done
+
+          if [ -z "$a_pre" ] && [ -z "$b_pre" ]; then echo eq; return 0; fi
+          if [ -z "$a_pre" ]; then echo gt; return 0; fi
+          if [ -z "$b_pre" ]; then echo lt; return 0; fi
+
+          local -a ap bp
+          IFS=. read -r -a ap <<< "$a_pre"
+          IFS=. read -r -a bp <<< "$b_pre"
+          local x y
+          for ((i = 0; i < ${#ap[@]} || i < ${#bp[@]}; i++)); do
+            x=${ap[i]:-}
+            y=${bp[i]:-}
+            # A shorter identifier list sorts first: 1.0.0-alpha < 1.0.0-alpha.1
+            [ -z "$x" ] && { echo lt; return 0; }
+            [ -z "$y" ] && { echo gt; return 0; }
+            if [ "$x" = "$y" ]; then continue; fi
+            if [[ $x =~ ^[0-9]+$ && $y =~ ^[0-9]+$ ]]; then
+              [ "$x" -lt "$y" ] && echo lt || echo gt
+              return 0
+            fi
+            # Numeric identifiers always rank below alphanumeric ones.
+            [[ $x =~ ^[0-9]+$ ]] && { echo lt; return 0; }
+            [[ $y =~ ^[0-9]+$ ]] && { echo gt; return 0; }
+            [[ $x < $y ]] && echo lt || echo gt
+            return 0
+          done
+          echo eq
+        }
+
+        declared=$(sed -n "s/^ *public const string VERSION = '\([^']*\)';.*/\1/p" src/Version.php)
+        if [ -z "$declared" ]; then
+          echo "::error::src/Version.php declares no VERSION constant; the release gate cannot read the version"
+          exit 1
+        fi
+
+        # Semver without build metadata: a Docker tag cannot carry "+", so a
+        # v1.2.3+build.4 release has no image name to publish under.
+        semver='^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-([0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*))?$'
+        if [[ ! $declared =~ $semver ]]; then
+          echo "::error::Version::VERSION is $declared, which is not a <major>.<minor>.<patch>[-prerelease] semver; fix the constant in the release commit"
+          exit 1
+        fi
+
+        git_tag="v$declared"
+        # Unfiltered, because a pattern makes ls-remote report an annotated tag
+        # as its tag object only: it prints the peeled commit on a full listing
+        # alone, and that commit is what a re-run has to be recognised by.
+        refs=$(git ls-remote --tags origin)
+        tag_commit=$(awk -v t="refs/tags/$git_tag" '
+          $2 == t { object = $1 }
+          $2 == t "^{}" { commit = $1 }
+          END { print (commit != "" ? commit : object) }' <<< "$refs")
+
+        # Every released version, including the pre-v-prefix tags of 1.x, so a
+        # version that moves backwards cannot slip through as a new release.
+        highest=''
+        while read -r _ ref; do
+          case $ref in
+            *'^{}') continue ;;
+          esac
+          released=${ref#refs/tags/}
+          released=${released#v}
+          [[ $released =~ $semver ]] || continue
+          if [ -z "$highest" ] || [ "$(semver_cmp "$released" "$highest")" = gt ]; then
+            highest=$released
+          fi
+        done <<< "$refs"
+
+        if [ -n "$highest" ] && [ "$(semver_cmp "$declared" "$highest")" = lt ]; then
+          echo "::error::Version::VERSION is $declared but $highest was already released; a release must move the version forward"
+          exit 1
+        fi
+
+        tags=("$IMAGE:$declared")
+        # A prerelease is a candidate, not a stable default: :latest stays on
+        # the last stable release until the matching stable tag lands.
+        if [ "$declared" = "${declared#*-}" ]; then
+          tags+=("$IMAGE:latest")
+        fi
+
+        {
+          echo "version=$declared"
+          echo "git_tag=$git_tag"
+          echo "tag_commit=$tag_commit"
+          echo "highest=${highest:-none}"
+          echo "docker_tags<<EOF"
+          printf '%s\n' "${tags[@]}"
+          echo "EOF"
+          echo "labels<<EOF"
+          echo "org.opencontainers.image.source=$SERVER_URL/$REPOSITORY"
+          echo "org.opencontainers.image.revision=$REVISION"
+          echo "org.opencontainers.image.version=$declared"
+          echo "EOF"
+        } >> "$GITHUB_OUTPUT"
+
+        {
+          echo "version $declared ($git_tag), highest released ${highest:-none}"
+          echo "existing tag: ${tag_commit:-none}"
+          echo "images:"
+          printf '  %s\n' "${tags[@]}"
+        } >> "$GITHUB_STEP_SUMMARY"
